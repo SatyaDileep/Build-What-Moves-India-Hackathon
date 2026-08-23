@@ -1,0 +1,84 @@
+
+## 1. Project Overview & Architecture Constraints
+
+**Objective:** Build a drop-in middleware (DocBridge) that replaces brittle file upload inputs on Indian government sites. It intercepts the upload, parses the site's strict constraints using AI, fetches high-res files from a mock DigiLocker (Supabase), processes them locally in the browser, and submits them to the legacy backend.
+**Hackathon Deadline Target:** August 27, 2026.
+**Compute Constraints:** The local development environment relies on an Intel i5 6th-Gen processor with 12GB of RAM. The agent must strictly offload heavy backend logic to cloud services (Supabase for DB/Auth, OpenAI for inference) and utilize lightweight client-side libraries (HTML5 Canvas API for image processing) to prevent local memory exhaustion.
+
+## 2. Target Showcase Portals & User Journeys
+
+The prototype will simulate two distinct, highly recognizable public service environments to prove scalability.
+
+### Showcase A: EPFO (Employees' Provident Fund Organization) Portal
+
+**Context:** Used by senior citizens to claim pensions, submit life certificates, and update KYC. It is notorious for cryptic PDF size limits and session timeouts.
+**User Persona:** Ramesh, a 68-year-old pensioner.
+**The Journey:**
+
+1. Ramesh navigates to the mock EPFO "Update KYC / Passbook" page.
+2. The page displays a requirement: "Upload Passbook copy. Must be PDF format. Maximum size 500 KB. Account number must be visible."
+3. Instead of the standard file input, Ramesh clicks the prominent "Fetch & Auto-Format via DigiLocker" button.
+4. A Supabase mock-auth modal opens. Ramesh logs in with a dummy mobile number.
+5. He selects his high-resolution (4MB) smartphone photo of his bank passbook from his vault.
+6. **Agentic Action:** The system's OpenAI parser reads the EPFO page text, extracts `{"format": "pdf", "max_kb": 500}`.
+7. **Processing Action:** The frontend Canvas/PDF-lib pipeline converts the 4MB JPEG into a flattened PDF, compressing the image quality iteratively until the payload is ~480KB.
+8. The optimized PDF is automatically injected into the EPFO form state. The mock EPFO backend returns a "200 OK - KYC Updated" message.
+
+### Showcase B: UPSC / State PSC Job Application Portal
+
+**Context:** Used by millions of rural youth. It has the most rigid, pixel-perfect image dimension requirements that cause massive rejection rates.
+**User Persona:** Priya, a 22-year-old applicant from a village using a low-end smartphone.
+**The Journey:**
+
+1. Priya navigates to the mock UPSC "Document Upload" step.
+2. The page displays the rules: "Upload Passport Photo. JPEG only. Size 20KB - 50KB. Dimensions strictly 3.5cm width x 4.5cm height. White background."
+3. She triggers the DocBridge integration and selects a casual 5MB selfie from her mock DigiLocker.
+4. **Agentic Action:** OpenAI extracts `{"format": "jpeg", "min_kb": 20, "max_kb": 50, "width_cm": 3.5, "height_cm": 4.5, "bg_color": "white"}`.
+5. **Processing Action:** The system crops to a 3.5x4.5 ratio, normalizes the background to white (using a lightweight client-side background removal or simulating it for the hackathon), and compresses to exactly 35KB.
+6. The widget shows a side-by-side "Original vs. Optimized" preview.
+7. Priya clicks "Submit". The mock legacy endpoint validates the strict byte size and dimensions, returning a success state.
+
+## 3. Technical Stack & Implementation Specs
+
+**Frontend Core:**
+
+* Next.js (App Router) with Tailwind CSS.
+* Lucide React for iconography.
+* Browser Canvas API / `pdf-lib` for client-side, zero-server document transformation (crucial for keeping local dev lightweight).
+
+**Backend & Storage:**
+
+* Supabase: Handles the mock authentication and hosts the mock DigiLocker storage buckets.
+* Mock Legacy API Routes: Next.js API routes (`/api/legacy-epfo` and `/api/legacy-upsc`) that strictly reject any payload not meeting the exact constraints, proving the middleware works.
+
+**AI Integration (Hackathon Requirement):**
+
+* OpenAI API (gpt-4o-mini for speed/cost).
+* Implement Structured Outputs (JSON mode) with a strict system prompt to parse raw HTML/text instructions into a standardized JSON configuration object for the image processor.
+
+## 4. Supabase Mock Data Seeding Instructions
+
+The agent must configure the following dummy records in the Supabase instance or local mock data files:
+
+* **DigiLocker Assets - Ramesh (EPFO User):**
+* `ramesh_passbook_raw.jpg`: A 4.2MB unoptimized, slightly angled photo of a bank passbook.
+* `ramesh_pan_card.jpg`: A 3MB uncompressed image of a PAN card.
+
+
+* **DigiLocker Assets - Priya (UPSC User):**
+* `priya_selfie_raw.jpg`: A 5MB casual photo with a cluttered background.
+* `priya_signature_raw.png`: A 2MB photo of a signature on lined paper, low contrast.
+
+
+
+## 5. UI/UX & Styling Guidelines
+
+* **Strict Requirement:** Do not use HTML tables anywhere in the UI or data presentation. Use CSS Grid or Flexbox for all layout alignments and data listings.
+* **Color Scheme:**
+* Primary actions (DocBridge button): `#0056B3` (Accessible Blue).
+* Success confirmations: `#10B981` (Emerald Green).
+* Legacy site mock background: `#F9FAFB` (Off-white) to look dated and bureaucratic.
+
+
+* **Typography:** Inter, minimum 16px base size. Ensure high contrast (WCAG AAA) for all helper text, keeping senior citizens in mind.
+* **Widget States:** The DocBridge modal must clearly display three states to build trust: "Connecting to DigiLocker..." -> "Analyzing Portal Requirements..." -> "Optimizing Document Format...".
