@@ -88,7 +88,7 @@ export default function DigiLockerModal({
         {/* Header */}
         <div 
           className="p-6 text-white"
-          style={{ backgroundColor: COLORS.primary }}
+          style={{ backgroundColor: COLORS.saffron }}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">

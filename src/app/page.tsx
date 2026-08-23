@@ -8,31 +8,56 @@ export default function Home() {
       style={{ backgroundColor: COLORS.legacyBg }}
     >
       {/* Header */}
-      <header 
-        className="border-b"
-        style={{ 
-          backgroundColor: COLORS.white,
-          borderColor: COLORS.legacyBorder
-        }}
-      >
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+      <header>
+        {/* Tricolor Bar */}
+        <div className="flex h-2">
+          <div className="flex-1" style={{ backgroundColor: COLORS.saffron }} />
+          <div className="flex-1" style={{ backgroundColor: COLORS.white }} />
+          <div className="flex-1" style={{ backgroundColor: COLORS.green }} />
+        </div>
+
+        {/* Gov of India Top Bar */}
+        <div 
+          className="py-1 text-center text-xs"
+          style={{ backgroundColor: '#1A1A1A', color: COLORS.white }}
+        >
+          <span className="opacity-90">Government of India</span>
+          <span className="mx-3 opacity-50">|</span>
+          <span className="opacity-90">सत्यमेव जयते</span>
+        </div>
+
+        {/* Main Header */}
+        <div 
+          className="py-4"
+          style={{ backgroundColor: COLORS.saffron, border: "2px solid " + COLORS.saffronDark }}
+        >
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="flex items-center gap-4">
+              {/* Ashoka Chakra */}
               <div 
-                className="w-10 h-10 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: COLORS.primary }}
+                className="w-16 h-16 rounded-full flex items-center justify-center border-2 border-white border-opacity-30"
+                style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
               >
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                <svg className="w-12 h-12" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="1.5" fill="none" />
+                  <circle cx="12" cy="12" r="3" fill="white" />
+                  {Array.from({ length: 24 }).map((_, i) => {
+                    const angle = (i * 15) * (Math.PI / 180);
+                    const x1 = 12 + 4 * Math.cos(angle);
+                    const y1 = 12 + 4 * Math.sin(angle);
+                    const x2 = 12 + 9.5 * Math.cos(angle);
+                    const y2 = 12 + 9.5 * Math.sin(angle);
+                    return (
+                      <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="white" strokeWidth="0.5" />
+                    );
+                  })}
                 </svg>
               </div>
-              <div>
-                <h1 className="text-xl font-bold" style={{ color: COLORS.gray[800] }}>
-                  DocBridge
-                </h1>
-                <p className="text-sm" style={{ color: COLORS.gray[500] }}>
-                  Smart Document Upload Middleware
-                </p>
+              
+              <div className="text-white">
+                <div className="text-3xl font-bold tracking-wide">DocBridge</div>
+                <div className="text-sm opacity-90 mt-1">Smart Document Upload Middleware</div>
+                <div className="text-xs opacity-75 mt-0.5">Digital India Initiative • Ministry of Electronics & IT</div>
               </div>
             </div>
           </div>
@@ -282,30 +307,20 @@ export default function Home() {
 
       {/* Footer */}
       <footer 
-        className="border-t mt-16"
-        style={{ 
-          backgroundColor: COLORS.white,
-          borderColor: COLORS.legacyBorder
-        }}
+        className="border-t mt-12"
+        style={{ backgroundColor: COLORS.primary }}
       >
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-white">
             <div className="flex items-center gap-3">
-              <div 
-                className="w-8 h-8 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: COLORS.primary }}
-              >
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-              </div>
-              <span className="font-semibold" style={{ color: COLORS.gray[700] }}>
-                DocBridge
-              </span>
+              <span className="opacity-75">©</span>
+              <span className="opacity-90 font-bold">DocBridge</span>
+              <span className="opacity-75">•</span>
+              <span className="opacity-75">Built for Build What Moves India Hackathon</span>
             </div>
-            <p className="text-sm" style={{ color: COLORS.gray[500] }}>
-              © 2024 DocBridge. Built for Build What Moves India Hackathon.
-            </p>
+            <div className="text-xs opacity-60">
+              सत्यमेव जयते • Truth Alone Triumphs
+            </div>
           </div>
         </div>
       </footer>

@@ -103,7 +103,7 @@ export default function DocBridgeWidget({
         <button
           onClick={handleStart}
           className="w-full py-4 px-6 rounded-lg font-semibold text-white transition-all duration-200 flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98]"
-          style={{ backgroundColor: COLORS.primary }}
+          style={{ backgroundColor: COLORS.saffron, border: "2px solid " + COLORS.saffronDark }}
           onMouseEnter={(e) => {
             e.currentTarget.style.backgroundColor = COLORS.primaryHover;
           }}
@@ -115,7 +115,7 @@ export default function DocBridgeWidget({
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
           </svg>
-          Fetch & Auto-Format via DigiLocker
+          ✨ Fetch & Auto-Format via DocBridge ✨
         </button>
       )}
 

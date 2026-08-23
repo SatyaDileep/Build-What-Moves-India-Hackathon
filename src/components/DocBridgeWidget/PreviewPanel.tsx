@@ -43,6 +43,8 @@ export default function PreviewPanel({
     return `${Math.round(kb)} KB`;
   };
 
+  const isPDF = result.constraint.format === "pdf";
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -70,7 +72,7 @@ export default function PreviewPanel({
             }}
           >
             <h4 className="font-semibold text-sm" style={{ color: COLORS.gray[700] }}>
-              Original
+              📷 Source Image (JPEG)
             </h4>
           </div>
           <div className="p-4">
@@ -127,18 +129,18 @@ export default function PreviewPanel({
 
         {/* Processed */}
         <div 
-          className="border rounded-lg overflow-hidden"
-          style={{ borderColor: COLORS.primary }}
+          className="border-2 rounded-lg overflow-hidden"
+          style={{ borderColor: COLORS.success }}
         >
           <div 
             className="px-4 py-2 border-b"
             style={{ 
-              backgroundColor: COLORS.primaryLight,
-              borderColor: COLORS.primary
+              backgroundColor: COLORS.successLight,
+              borderColor: COLORS.success
             }}
           >
-            <h4 className="font-semibold text-sm" style={{ color: COLORS.primary }}>
-              Optimized ✓
+            <h4 className="font-semibold text-sm" style={{ color: COLORS.success }}>
+              {isPDF ? "📄 Optimized PDF" : "🖼️ Optimized JPEG"} ✓
             </h4>
           </div>
           <div className="p-4">

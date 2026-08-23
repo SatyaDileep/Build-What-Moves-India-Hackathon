@@ -1,6 +1,7 @@
 'use client';
 
 import DocBridgeWidget from '@/components/DocBridgeWidget';
+import GovernmentHeader from '@/components/ui/GovernmentHeader';
 import { COLORS } from '@/lib/constants';
 
 export default function UPSCPortal() {
@@ -9,43 +10,14 @@ export default function UPSCPortal() {
       className="min-h-screen"
       style={{ backgroundColor: COLORS.legacyBg }}
     >
-      {/* Legacy Header */}
-      <header 
-        className="border-b"
-        style={{ 
-          backgroundColor: COLORS.white,
-          borderColor: COLORS.legacyBorder
-        }}
-      >
-        <div className="max-w-6xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div 
-                className="w-12 h-12 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: COLORS.primary }}
-              >
-                <span className="text-white font-bold text-lg">UPSC</span>
-              </div>
-              <div>
-                <h1 className="text-xl font-bold" style={{ color: COLORS.gray[800] }}>
-                  Union Public Service Commission
-                </h1>
-                <p className="text-sm" style={{ color: COLORS.gray[500] }}>
-                  Government of India • Civil Services Examination 2024
-                </p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-sm font-medium" style={{ color: COLORS.gray[700] }}>
-                Welcome, Priya Sharma
-              </p>
-              <p className="text-xs" style={{ color: COLORS.gray[500] }}>
-                Registration: UPSC2024001234
-              </p>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Government Header with Tricolor */}
+      <GovernmentHeader
+        portalName="UPSC"
+        portalFullName="Union Public Service Commission"
+        portalInitials="UPSC"
+        welcomeText="Welcome, Priya Sharma"
+        userIdText="Registration: UPSC2024001234"
+      />
 
       {/* Progress Bar */}
       <div 
@@ -269,7 +241,7 @@ export default function UPSCPortal() {
                           color: COLORS.gray[500]
                         }}
                       >
-                        OR use DocBridge (Recommended)
+                        ✨ OR use DocBridge ✨ (Recommended)
                       </span>
                     </div>
                   </div>

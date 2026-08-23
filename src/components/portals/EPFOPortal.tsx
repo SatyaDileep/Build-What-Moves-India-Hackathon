@@ -1,6 +1,7 @@
 'use client';
 
 import DocBridgeWidget from '@/components/DocBridgeWidget';
+import GovernmentHeader from '@/components/ui/GovernmentHeader';
 import { COLORS } from '@/lib/constants';
 
 export default function EPFOPortal() {
@@ -9,43 +10,14 @@ export default function EPFOPortal() {
       className="min-h-screen"
       style={{ backgroundColor: COLORS.legacyBg }}
     >
-      {/* Legacy Header */}
-      <header 
-        className="border-b"
-        style={{ 
-          backgroundColor: COLORS.white,
-          borderColor: COLORS.legacyBorder
-        }}
-      >
-        <div className="max-w-6xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div 
-                className="w-12 h-12 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: COLORS.primary }}
-              >
-                <span className="text-white font-bold text-lg">EPFO</span>
-              </div>
-              <div>
-                <h1 className="text-xl font-bold" style={{ color: COLORS.gray[800] }}>
-                  Employees' Provident Fund Organisation
-                </h1>
-                <p className="text-sm" style={{ color: COLORS.gray[500] }}>
-                  Government of India • Ministry of Labour & Employment
-                </p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-sm font-medium" style={{ color: COLORS.gray[700] }}>
-                Welcome, Ramesh Kumar
-              </p>
-              <p className="text-xs" style={{ color: COLORS.gray[500] }}>
-                UAN: 10098765432
-              </p>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Government Header with Tricolor */}
+      <GovernmentHeader
+        portalName="EPFO"
+        portalFullName="Employees' Provident Fund Organisation"
+        portalInitials="EPFO"
+        welcomeText="Welcome, Ramesh Kumar"
+        userIdText="UAN: 10098765432"
+      />
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 py-8">
@@ -215,7 +187,7 @@ export default function EPFOPortal() {
                           color: COLORS.gray[500]
                         }}
                       >
-                        OR use DocBridge
+                        ✨ OR use DocBridge ✨
                       </span>
                     </div>
                   </div>
