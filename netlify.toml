@@ -1,0 +1,12 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Environment: OpenAI key is optional — the parser has a built-in demo fallback.
+# If you want the real OpenAI models to run (server-side), add OPENAI_API_KEY
+# under Netlify > Site configuration > Environment variables.
+[build.environment]
+  NEXT_PRIVATE_BUILD_WORKER = "1"
