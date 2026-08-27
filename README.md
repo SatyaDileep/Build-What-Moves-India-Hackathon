@@ -2,7 +2,9 @@
 
 > A trusted document-preparation layer for Indian public-service portals.
 
-DocBridge turns the most frustrating step in a public-service application—getting an attachment accepted—into a guided, one-click experience. It is designed for the millions of people who encounter cryptic upload rules, repeated rejection messages, and session timeouts while applying for essential services.
+**🔗 Live demo → [https://incredible-taffy-db08a6.netlify.app](https://incredible-taffy-db08a6.netlify.app)**
+
+DocBridge turns the most frustrating step in a public-service application — getting an attachment accepted — into a guided, one-click experience. It is built for the millions of people who face cryptic upload rules, repeated rejection messages, and session timeouts while applying for essential services like UPSC exams, driving licences, and EPFO claims. One layer, many portals, zero detours.
 
 ## Why DocBridge matters
 
@@ -98,6 +100,14 @@ Open [http://localhost:3000](http://localhost:3000), then visit:
 - `/epfo` for the EPFO KYC passbook journey
 - `/upsc` for the UPSC passport-photo journey
 - `/vahan` for the Vahan / Sarathi Learner's Licence journey
+
+## Live deployment
+
+[**incredible-taffy-db08a6.netlify.app**](https://incredible-taffy-db08a6.netlify.app) — deployed on Netlify from this repository's `main` branch.
+
+- **Approach:** Netlify's Next.js runtime (`@netlify/plugin-nextjs`) with `output: 'standalone'`. The page routes are static, while the `/api/legacy-*` and `/api/parse-constraints` endpoints run as serverless functions — which is what lets the demo's "submit" handoff to the simulated portal backends actually work.
+- **Redeploy:** push to `main` (or hit *Deploy* in the Netlify dashboard for a manual build).
+- **OpenAI (optional):** the built-in parser needs no key. To run real OpenAI models, add `OPENAI_API_KEY` under Netlify → Site configuration → Environment variables.
 
 ## Vision
 
