@@ -16,23 +16,23 @@ export default function DigiLockerModal({
   onClose, 
   onAssetSelected 
 }: DigiLockerModalProps) {
-  const [step, setStep] = useState<'mobile' | 'otp' | 'select'>('mobile');
-  const [mobile, setMobile] = useState('');
+  const [step, setStep] = useState<'aadhaar' | 'otp' | 'select'>('aadhaar');
+  const [aadhaarId, setAadhaarId] = useState('');
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [assets, setAssets] = useState<DigiLockerAsset[]>([]);
 
-  const handleMobileSubmit = async () => {
-    if (!mobile || mobile.length !== 10) {
-      setError('Please enter a valid 10-digit mobile number');
+  const handleAadhaarSubmit = async () => {
+    if (!aadhaarId || aadhaarId.length !== 10) {
+      setError('Please enter a valid 10-digit Aadhaar-linked number');
       return;
     }
 
     setLoading(true);
     setError('');
 
-    const result = await supabase.signInWithMobile(mobile);
+    const result = await supabase.signInWithAadhaarLikeId(aadhaarId);
     
     if (result.success) {
       setStep('otp');
@@ -121,40 +121,28 @@ export default function DigiLockerModal({
 
         {/* Content */}
         <div className="p-6">
-          {/* Mobile Step */}
-          {step === 'mobile' && (
+          {/* Aadhaar Step */}
+          {step === 'aadhaar' && (
             <div>
               <h3 className="text-lg font-semibold mb-2" style={{ color: COLORS.gray[800] }}>
-                Enter your mobile number
+                Enter your Aadhaar-linked number
               </h3>
               <p className="text-sm mb-4" style={{ color: COLORS.gray[500] }}>
-                We'll send a one-time password to verify your identity
+                Enter any 10-digit number to continue to OTP verification
               </p>
               
               <div className="mb-4">
-                <div className="flex">
-                  <span 
-                    className="px-4 py-3 rounded-l-lg border border-r-0 text-sm font-medium"
-                    style={{ 
-                      backgroundColor: COLORS.gray[100],
-                      borderColor: COLORS.gray[300],
-                      color: COLORS.gray[700]
-                    }}
-                  >
-                    +91
-                  </span>
-                  <input
-                    type="tel"
-                    value={mobile}
-                    onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                    placeholder="9876543210"
-                    className="flex-1 px-4 py-3 border rounded-r-lg focus:outline-none focus:ring-2 focus:border-transparent text-lg"
-                    style={{ 
-                      borderColor: COLORS.gray[300],
-                    }}
-                    aria-label="Mobile number"
-                  />
-                </div>
+                <input
+                  type="tel"
+                  value={aadhaarId}
+                  onChange={(e) => setAadhaarId(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  placeholder="1234567890"
+                  className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-lg"
+                  style={{ 
+                    borderColor: COLORS.gray[300],
+                  }}
+                  aria-label="Aadhaar-linked number"
+                />
               </div>
 
               {error && (
@@ -164,8 +152,8 @@ export default function DigiLockerModal({
               )}
 
               <button
-                onClick={handleMobileSubmit}
-                disabled={loading || mobile.length !== 10}
+                onClick={handleAadhaarSubmit}
+                disabled={loading || aadhaarId.length !== 10}
                 className="w-full py-3 px-4 rounded-lg font-semibold text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ backgroundColor: COLORS.primary }}
               >
@@ -183,7 +171,7 @@ export default function DigiLockerModal({
               </button>
 
               <p className="text-xs mt-4 text-center" style={{ color: COLORS.gray[400] }}>
-                Prototype access: 9876543210 or 8765432109
+                Any 10-digit number is accepted in this prototype
               </p>
             </div>
           )}
@@ -195,7 +183,7 @@ export default function DigiLockerModal({
                 Enter OTP
               </h3>
               <p className="text-sm mb-4" style={{ color: COLORS.gray[500] }}>
-                We've sent a 6-digit code to {mobile}
+                We&apos;ve sent a 6-digit code to {aadhaarId}
               </p>
               
               <div className="mb-4">
@@ -238,7 +226,7 @@ export default function DigiLockerModal({
               </button>
 
               <p className="text-xs mt-4 text-center" style={{ color: COLORS.gray[400] }}>
-                Prototype access: enter any six-digit code
+                Any 6-digit OTP is accepted
               </p>
             </div>
           )}

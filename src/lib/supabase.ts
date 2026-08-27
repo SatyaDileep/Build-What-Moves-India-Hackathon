@@ -9,16 +9,16 @@ class MockSupabaseClient {
   private assets: DigiLockerAsset[] = DIGILOCKER_ASSETS;
   private currentUser: UserProfile | null = null;
 
-  // Mock authentication - verify mobile number
-  async signInWithMobile(mobile: string): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
+  // Prototype authentication - accept any 10-digit identifier
+  async signInWithAadhaarLikeId(identifier: string): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 800));
 
-    const user = this.users.find(u => u.mobile === mobile);
-    if (!user) {
-      return { success: false, error: 'User not found. Try: 9876543210 (Ramesh) or 8765432109 (Priya)' };
+    if (!/^\d{10}$/.test(identifier)) {
+      return { success: false, error: 'Please enter a valid 10-digit number.' };
     }
 
+    const user = this.users[0];
     this.currentUser = user;
     return { success: true, user };
   }
@@ -37,7 +37,7 @@ class MockSupabaseClient {
   // Get current user's DigiLocker assets
   getAssets(): DigiLockerAsset[] {
     if (!this.currentUser) return [];
-    return this.assets.filter(a => a.owner === (this.currentUser!.role === 'pensioner' ? 'ramesh' : 'priya'));
+    return this.assets;
   }
 
   // Get current user
