@@ -1,329 +1,187 @@
+'use client';
+
 import Link from 'next/link';
-import { COLORS } from '@/lib/constants';
+import { useState } from 'react';
+
+const steps = [
+  ['01', 'Understand the portal', 'DocBridge reads upload instructions and turns them into clear, structured requirements.'],
+  ['02', 'Connect with consent', 'The citizen selects the required file from an authorised DigiLocker vault.'],
+  ['03', 'Prepare in the browser', 'The document is resized, converted, compressed, and checked without a third-party converter.'],
+  ['04', 'Submit with confidence', 'The existing portal receives a file tailored to its own validation rules.'],
+];
+
+const principles = [
+  ['DigiLocker-first', 'A familiar, consent-based source for documents instead of unknown upload tools.'],
+  ['Privacy-conscious', 'Document preparation stays in the browser, reducing unnecessary data movement.'],
+  ['Legacy-compatible', 'A lightweight layer that works with the upload flows portals already have.'],
+];
 
 export default function Home() {
+  const [isExperienceOpen, setIsExperienceOpen] = useState(false);
+
   return (
-    <div 
-      className="min-h-screen"
-      style={{ backgroundColor: COLORS.legacyBg }}
-    >
-      {/* Header */}
-      <header>
-        {/* Tricolor Bar */}
-        <div className="flex h-2">
-          <div className="flex-1" style={{ backgroundColor: COLORS.saffron }} />
-          <div className="flex-1" style={{ backgroundColor: COLORS.white }} />
-          <div className="flex-1" style={{ backgroundColor: COLORS.green }} />
-        </div>
+    <main className="min-h-screen overflow-x-hidden bg-[#f7f8fc] text-slate-900">
+      <div className="h-1.5 bg-gradient-to-r from-[#f28c28] via-white via-50% to-[#138808]" />
 
-        {/* Gov of India Top Bar */}
-        <div 
-          className="py-1 text-center text-xs"
-          style={{ backgroundColor: '#1A1A1A', color: COLORS.white }}
-        >
-          <span className="opacity-90">Government of India</span>
-          <span className="mx-3 opacity-50">|</span>
-          <span className="opacity-90">सत्यमेव जयते</span>
-        </div>
-
-        {/* Main Header */}
-        <div 
-          className="py-4"
-          style={{ backgroundColor: COLORS.saffron, border: "2px solid " + COLORS.saffronDark }}
-        >
-          <div className="max-w-6xl mx-auto px-4">
-            <div className="flex items-center gap-4">
-              {/* Ashoka Chakra */}
-              <div 
-                className="w-16 h-16 rounded-full flex items-center justify-center border-2 border-white border-opacity-30"
-                style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-              >
-                <svg className="w-12 h-12" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="1.5" fill="none" />
-                  <circle cx="12" cy="12" r="3" fill="white" />
-                  {Array.from({ length: 24 }).map((_, i) => {
-                    const angle = (i * 15) * (Math.PI / 180);
-                    const x1 = 12 + 4 * Math.cos(angle);
-                    const y1 = 12 + 4 * Math.sin(angle);
-                    const x2 = 12 + 9.5 * Math.cos(angle);
-                    const y2 = 12 + 9.5 * Math.sin(angle);
-                    return (
-                      <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="white" strokeWidth="0.5" />
-                    );
-                  })}
-                </svg>
-              </div>
-              
-              <div className="text-white">
-                <div className="text-3xl font-bold tracking-wide">DocBridge</div>
-                <div className="text-sm opacity-90 mt-1">Smart Document Upload Middleware</div>
-                <div className="text-xs opacity-75 mt-0.5">Digital India Initiative • Ministry of Electronics & IT</div>
-              </div>
-            </div>
-          </div>
+      <header className="border-b border-slate-200 bg-white/90 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-6">
+          <Link href="/" className="flex items-center gap-3" aria-label="DocBridge home">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#061c4f] text-lg font-bold text-white shadow-sm">D</span>
+            <span>
+              <span className="block text-lg font-bold tracking-tight text-[#061c4f]">DocBridge</span>
+              <span className="block text-xs font-medium text-slate-500">Document readiness for public services</span>
+            </span>
+          </Link>
+          <button
+            type="button"
+            onClick={() => setIsExperienceOpen(true)}
+            className="rounded-lg px-3 py-2 text-sm font-semibold text-[#061c4f] transition hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#061c4f] sm:px-4"
+          >
+            Explore the experience
+          </button>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <main className="max-w-6xl mx-auto px-4 py-16">
-        <div className="text-center mb-16">
-          <div 
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium mb-6"
-            style={{ 
-              backgroundColor: COLORS.primaryLight,
-              color: COLORS.primary
-            }}
-          >
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
-            </svg>
-            AI-Powered Document Processing
+      <section className="relative">
+        <div className="absolute inset-x-0 top-0 -z-10 h-[34rem] bg-[radial-gradient(circle_at_78%_18%,rgba(255,153,51,0.17),transparent_24rem),radial-gradient(circle_at_12%_16%,rgba(6,28,79,0.12),transparent_28rem)]" />
+        <div className="mx-auto grid max-w-6xl gap-14 px-5 py-20 sm:px-6 lg:grid-cols-[1.06fr_0.94fr] lg:items-center lg:py-28">
+          <div>
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white px-3 py-1.5 text-sm font-semibold text-[#0b3c92] shadow-sm">
+              <span className="h-2 w-2 rounded-full bg-[#138808]" />
+              Built for India&apos;s public-service journeys
+            </div>
+            <h1 className="max-w-3xl text-4xl font-bold leading-[1.08] tracking-tight text-[#061c4f] sm:text-5xl lg:text-6xl">
+              From file rejected to application complete.
+            </h1>
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600 sm:text-xl">
+              DocBridge prepares documents for the exact rules of a public-service portal—without sending citizens through a maze of compression and conversion websites.
+            </p>
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <button
+                type="button"
+                onClick={() => setIsExperienceOpen(true)}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#061c4f] px-6 py-3.5 font-semibold text-white shadow-lg shadow-blue-950/15 transition hover:-translate-y-0.5 hover:bg-[#0b2d76] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#061c4f] focus-visible:ring-offset-2"
+              >
+                See DocBridge in action
+                <span aria-hidden="true">→</span>
+              </button>
+              <span className="text-sm text-slate-500">Designed as a drop-in layer for existing upload flows.</span>
+            </div>
           </div>
-          
-          <h1 
-            className="text-4xl md:text-5xl font-bold mb-6"
-            style={{ color: COLORS.gray[900] }}
-          >
-            Never Get Rejected Again
-          </h1>
-          
-          <p 
-            className="text-xl max-w-2xl mx-auto mb-8"
-            style={{ color: COLORS.gray[600] }}
-          >
-            DocBridge automatically parses portal requirements, fetches your documents from DigiLocker, 
-            and optimizes them to meet strict government upload specifications.
-          </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/epfo"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-lg font-semibold text-white text-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
-              style={{ backgroundColor: COLORS.primary }}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Try EPFO Portal
-            </Link>
-            
-            <Link
-              href="/upsc"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-lg font-semibold text-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
-              style={{ 
-                backgroundColor: COLORS.white,
-                color: COLORS.primary,
-                border: `2px solid ${COLORS.primary}`
-              }}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              Try UPSC Portal
-            </Link>
+          <div className="rounded-3xl border border-white/80 bg-white p-5 shadow-2xl shadow-slate-900/10 sm:p-7">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-5">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Document status</p>
+                <h2 className="mt-1 text-lg font-bold text-slate-900">Ready for portal submission</h2>
+              </div>
+              <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">Compliant</span>
+            </div>
+            <div className="mt-6 grid gap-3">
+              {[
+                ['Source', 'Authorised DigiLocker document', 'bg-blue-50 text-blue-700'],
+                ['Requirements', 'PDF · under 500 KB · account number visible', 'bg-amber-50 text-amber-700'],
+                ['Preparation', 'Converted and optimised in browser', 'bg-violet-50 text-violet-700'],
+              ].map(([label, value, tone]) => (
+                <div key={label} className="flex items-start gap-3 rounded-xl border border-slate-100 p-4">
+                  <span className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-sm font-bold ${tone}`}>✓</span>
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wide text-slate-400">{label}</p>
+                    <p className="mt-0.5 text-sm font-semibold leading-5 text-slate-700">{value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-6 flex items-center gap-3 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">
+              <span className="text-lg">🔒</span>
+              <span>Review first. Submit only when the citizen is ready.</span>
+            </div>
           </div>
         </div>
+      </section>
 
-        {/* Features */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-          {[
-            {
-              icon: (
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-              ),
-              title: 'AI Constraint Parsing',
-              description: 'Automatically reads and understands complex upload requirements from government portals.'
-            },
-            {
-              icon: (
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                </svg>
-              ),
-              title: 'Smart Processing',
-              description: 'Client-side compression, cropping, and format conversion to meet exact specifications.'
-            },
-            {
-              icon: (
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-              ),
-              title: 'DigiLocker Integration',
-              description: 'Securely fetch documents from your government-verified DigiLocker vault.'
-            },
-          ].map((feature, index) => (
-            <div 
-              key={index}
-              className="p-6 rounded-lg border"
-              style={{ 
-                backgroundColor: COLORS.white,
-                borderColor: COLORS.legacyBorder
-              }}
-            >
-              <div 
-                className="w-14 h-14 rounded-lg flex items-center justify-center mb-4"
-                style={{ 
-                  backgroundColor: COLORS.primaryLight,
-                  color: COLORS.primary
-                }}
-              >
-                {feature.icon}
-              </div>
-              <h3 className="text-lg font-semibold mb-2" style={{ color: COLORS.gray[800] }}>
-                {feature.title}
-              </h3>
-              <p className="text-sm" style={{ color: COLORS.gray[600] }}>
-                {feature.description}
-              </p>
-            </div>
+      <section className="border-y border-slate-200 bg-white">
+        <div className="mx-auto grid max-w-6xl gap-8 px-5 py-14 sm:px-6 md:grid-cols-3">
+          {principles.map(([title, description]) => (
+            <article key={title} className="border-l-2 border-[#f28c28] pl-5">
+              <h2 className="text-lg font-bold text-[#061c4f]">{title}</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
+            </article>
           ))}
         </div>
+      </section>
 
-        {/* How It Works */}
-        <div className="text-center mb-16">
-          <h2 
-            className="text-3xl font-bold mb-8"
-            style={{ color: COLORS.gray[800] }}
-          >
-            How It Works
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {[
-              { step: 1, title: 'Click DocBridge', description: 'Instead of the standard upload button' },
-              { step: 2, title: 'Authenticate', description: 'Securely log into your DigiLocker' },
-              { step: 3, title: 'Select Document', description: 'Choose from your vault' },
-              { step: 4, title: 'Auto-Format', description: 'AI optimizes and submits' },
-            ].map((step) => (
-              <div key={step.step} className="relative">
-                <div 
-                  className="w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mb-4 mx-auto"
-                  style={{ 
-                    backgroundColor: COLORS.primary,
-                    color: COLORS.white
-                  }}
-                >
-                  {step.step}
-                </div>
-                <h4 className="font-semibold mb-1" style={{ color: COLORS.gray[800] }}>
-                  {step.title}
-                </h4>
-                <p className="text-sm" style={{ color: COLORS.gray[500] }}>
-                  {step.description}
-                </p>
-                
-                {step.step < 4 && (
-                  <div 
-                    className="hidden md:block absolute top-6 left-[60%] w-[80%] h-0.5"
-                    style={{ backgroundColor: COLORS.gray[200] }}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
+      <section className="mx-auto max-w-6xl px-5 py-20 sm:px-6">
+        <div className="max-w-2xl">
+          <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#e17614]">One simple bridge</p>
+          <h2 className="mt-3 text-3xl font-bold tracking-tight text-[#061c4f] sm:text-4xl">Make strict upload rules feel human.</h2>
+          <p className="mt-4 text-lg leading-8 text-slate-600">DocBridge works between the citizen and the portal, preserving the portal&apos;s validation rules while removing the technical burden from the person applying.</p>
         </div>
-
-        {/* Demo Users */}
-        <div 
-          className="rounded-lg border p-8"
-          style={{ 
-            backgroundColor: COLORS.white,
-            borderColor: COLORS.legacyBorder
-          }}
-        >
-          <h2 
-            className="text-2xl font-bold mb-6 text-center"
-            style={{ color: COLORS.gray[800] }}
-          >
-            Demo Users
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div 
-              className="p-6 rounded-lg border"
-              style={{ borderColor: COLORS.gray[200] }}
-            >
-              <div className="flex items-center gap-4 mb-4">
-                <div 
-                  className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold"
-                  style={{ 
-                    backgroundColor: COLORS.primaryLight,
-                    color: COLORS.primary
-                  }}
-                >
-                  RK
-                </div>
-                <div>
-                  <h3 className="font-semibold" style={{ color: COLORS.gray[800] }}>
-                    Ramesh Kumar
-                  </h3>
-                  <p className="text-sm" style={{ color: COLORS.gray[500] }}>
-                    68 years old • Pensioner
-                  </p>
-                </div>
-              </div>
-              <div className="text-sm" style={{ color: COLORS.gray[600] }}>
-                <p className="mb-2"><strong>Portal:</strong> EPFO - Update KYC</p>
-                <p className="mb-2"><strong>Mobile:</strong> 9876543210</p>
-                <p><strong>Document:</strong> Bank Passbook (4.2MB JPEG → 480KB PDF)</p>
-              </div>
-            </div>
-
-            <div 
-              className="p-6 rounded-lg border"
-              style={{ borderColor: COLORS.gray[200] }}
-            >
-              <div className="flex items-center gap-4 mb-4">
-                <div 
-                  className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold"
-                  style={{ 
-                    backgroundColor: COLORS.successLight,
-                    color: COLORS.success
-                  }}
-                >
-                  PS
-                </div>
-                <div>
-                  <h3 className="font-semibold" style={{ color: COLORS.gray[800] }}>
-                    Priya Sharma
-                  </h3>
-                  <p className="text-sm" style={{ color: COLORS.gray[500] }}>
-                    22 years old • Applicant
-                  </p>
-                </div>
-              </div>
-              <div className="text-sm" style={{ color: COLORS.gray[600] }}>
-                <p className="mb-2"><strong>Portal:</strong> UPSC - Document Upload</p>
-                <p className="mb-2"><strong>Mobile:</strong> 8765432109</p>
-                <p><strong>Document:</strong> Selfie (5MB JPEG → 35KB JPEG)</p>
-              </div>
-            </div>
-          </div>
+        <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+          {steps.map(([number, title, description]) => (
+            <article key={number} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <span className="text-sm font-bold text-[#e17614]">{number}</span>
+              <h3 className="mt-5 text-lg font-bold text-slate-900">{title}</h3>
+              <p className="mt-3 text-sm leading-6 text-slate-600">{description}</p>
+            </article>
+          ))}
         </div>
-      </main>
+      </section>
 
-      {/* Footer */}
-      <footer 
-        className="border-t mt-12"
-        style={{ backgroundColor: COLORS.primary }}
-      >
-        <div className="max-w-6xl mx-auto px-4 py-6">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-white">
-            <div className="flex items-center gap-3">
-              <span className="opacity-75">©</span>
-              <span className="opacity-90 font-bold">DocBridge</span>
-              <span className="opacity-75">•</span>
-              <span className="opacity-75">Built for Build What Moves India Hackathon</span>
-            </div>
-            <div className="text-xs opacity-60">
-              सत्यमेव जयते • Truth Alone Triumphs
-            </div>
+      <section className="bg-[#061c4f] px-5 py-16 sm:px-6">
+        <div className="mx-auto flex max-w-6xl flex-col justify-between gap-8 rounded-3xl border border-white/15 bg-white/5 p-8 sm:p-10 lg:flex-row lg:items-center">
+          <div className="max-w-2xl">
+            <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#ffb35c]">Designed to scale</p>
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-white">One integration, many citizen journeys.</h2>
+            <p className="mt-4 leading-7 text-blue-100">From pensions and KYC to admissions, recruitment, benefits, and licences—DocBridge can help any portal turn attachment constraints into a seamless step.</p>
           </div>
+          <button type="button" onClick={() => setIsExperienceOpen(true)} className="shrink-0 rounded-xl bg-white px-6 py-3.5 font-semibold text-[#061c4f] transition hover:bg-blue-50">
+            Explore the prototype
+          </button>
+        </div>
+      </section>
+
+      <footer className="bg-[#041538] px-5 py-7 text-sm text-blue-100 sm:px-6">
+        <div className="mx-auto flex max-w-6xl flex-col justify-between gap-3 sm:flex-row">
+          <span><strong className="text-white">DocBridge</strong> · Document readiness for public services</span>
+          <span className="text-blue-200">Built for Build What Moves India Hackathon</span>
         </div>
       </footer>
+
+      {isExperienceOpen && <ExperienceModal onClose={() => setIsExperienceOpen(false)} />}
+    </main>
+  );
+}
+
+function ExperienceModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="experience-title">
+      <div className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl sm:p-8">
+        <div className="flex items-start justify-between gap-5">
+          <div>
+            <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#e17614]">Prototype experience</p>
+            <h2 id="experience-title" className="mt-2 text-2xl font-bold tracking-tight text-[#061c4f]">Choose a public-service journey</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">Each scenario demonstrates how DocBridge fits into an existing upload flow. You&apos;ll connect to a safe mock DigiLocker vault, select a document, and see it prepared for the portal.</p>
+          </div>
+          <button type="button" onClick={onClose} className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900" aria-label="Close experience chooser">✕</button>
+        </div>
+        <div className="mt-7 grid gap-4 sm:grid-cols-2">
+          <JourneyCard href="/epfo" title="EPFO KYC" label="Passbook · PDF under 500 KB" description="See a passbook prepared for a strict KYC upload requirement." onNavigate={onClose} />
+          <JourneyCard href="/upsc" title="UPSC photograph" label="JPEG · 3.5 cm × 4.5 cm" description="See a photograph transformed for a precise application upload rule." onNavigate={onClose} />
+        </div>
+        <p className="mt-6 rounded-xl bg-slate-50 p-3 text-xs leading-5 text-slate-500">This submission uses mock identities and sample documents. No real citizen data is collected or stored.</p>
+      </div>
     </div>
+  );
+}
+
+function JourneyCard({ href, title, label, description, onNavigate }: { href: string; title: string; label: string; description: string; onNavigate: () => void }) {
+  return (
+    <Link href={href} onClick={onNavigate} className="group rounded-2xl border border-slate-200 p-5 transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#061c4f]">
+      <p className="text-xs font-bold uppercase tracking-wide text-[#e17614]">{label}</p>
+      <h3 className="mt-3 text-lg font-bold text-[#061c4f]">{title}</h3>
+      <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
+      <span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#0b3c92]">Open journey <span className="transition group-hover:translate-x-1">→</span></span>
+    </Link>
   );
 }
