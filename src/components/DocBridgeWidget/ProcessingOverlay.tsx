@@ -15,16 +15,21 @@ export default function ProcessingOverlay({ state }: ProcessingOverlayProps) {
 
   return (
     <div 
-      className="p-8 rounded-lg text-center"
-      style={{ backgroundColor: COLORS.gray[50] }}
+      className="p-8 rounded-lg text-center border overflow-hidden"
+      style={{ backgroundColor: COLORS.gray[50], borderColor: COLORS.gray[200] }}
     >
+      <div className="flex h-1 -mx-8 -mt-8 mb-7" aria-hidden="true">
+        <div className="flex-1" style={{ backgroundColor: COLORS.saffron }} />
+        <div className="flex-1" style={{ backgroundColor: COLORS.white }} />
+        <div className="flex-1" style={{ backgroundColor: COLORS.green }} />
+      </div>
       {/* Animated Spinner */}
       <div className="relative w-20 h-20 mx-auto mb-6">
         <div 
           className="absolute inset-0 rounded-full animate-spin"
           style={{ 
             border: `4px solid ${COLORS.gray[200]}`,
-            borderTopColor: COLORS.primary,
+            borderTopColor: COLORS.saffron,
           }}
         />
         <div 

@@ -3,6 +3,43 @@ import { NextRequest, NextResponse } from 'next/server';
 // Mock UPSC legacy backend
 // Validates: JPEG format, 20-50KB size, 3.5cm x 4.5cm dimensions
 
+function getJpegDimensions(fileBytes: ArrayBuffer): { width: number; height: number } | null {
+  const bytes = new Uint8Array(fileBytes);
+
+  if (bytes.length < 4 || bytes[0] !== 0xff || bytes[1] !== 0xd8) {
+    return null;
+  }
+
+  for (let offset = 2; offset + 8 < bytes.length;) {
+    if (bytes[offset] !== 0xff) {
+      offset += 1;
+      continue;
+    }
+
+    const marker = bytes[offset + 1];
+    offset += 2;
+
+    // Standalone JPEG markers do not contain a length field.
+    if (marker === 0xd8 || marker === 0xd9) continue;
+    if (offset + 2 > bytes.length) break;
+
+    const segmentLength = (bytes[offset] << 8) | bytes[offset + 1];
+    const isStartOfFrame = marker >= 0xc0 && marker <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(marker);
+
+    if (isStartOfFrame && offset + 7 < bytes.length) {
+      return {
+        height: (bytes[offset + 3] << 8) | bytes[offset + 4],
+        width: (bytes[offset + 5] << 8) | bytes[offset + 6],
+      };
+    }
+
+    if (segmentLength < 2) break;
+    offset += segmentLength;
+  }
+
+  return null;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
@@ -45,23 +82,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate dimensions by reading image
+    // Read JPEG dimensions directly from its Start Of Frame marker. This keeps
+    // the route server-safe instead of relying on browser-only Image APIs.
     const arrayBuffer = await file.arrayBuffer();
-    const blob = new Blob([arrayBuffer]);
-    const url = URL.createObjectURL(blob);
-    
-    const img = new Image();
-    await new Promise<void>((resolve, reject) => {
-      img.onload = () => resolve();
-      img.onerror = reject;
-      img.src = url;
-    });
-    
-    URL.revokeObjectURL(url);
+    const dimensions = getJpegDimensions(arrayBuffer);
+
+    if (!dimensions) {
+      return NextResponse.json(
+        { success: false, error: 'Could not read JPEG dimensions.' },
+        { status: 400 }
+      );
+    }
 
     // Calculate dimensions in cm (assuming 96 DPI for web images)
-    const widthCm = (img.width / 96) * 2.54;
-    const heightCm = (img.height / 96) * 2.54;
+    const widthCm = (dimensions.width / 96) * 2.54;
+    const heightCm = (dimensions.height / 96) * 2.54;
 
     // Allow some tolerance for dimensions (±0.5cm)
     const widthTolerance = 0.5;

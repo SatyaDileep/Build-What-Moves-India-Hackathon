@@ -63,7 +63,14 @@ export default function DocBridgeWidget({
     
     try {
       const formData = new FormData();
-      formData.append('file', processingResult.processed.blob);
+      const extension = processingResult.constraint.format === 'pdf' ? 'pdf' : 'jpg';
+      formData.append('file', processingResult.processed.blob, `docbridge-ready.${extension}`);
+
+      // EPFO's legacy endpoint expects the account number as a separate form value.
+      // In a production integration, this would come from the authenticated portal form state.
+      if (portalId === 'epfo') {
+        formData.append('account_number', '3847 2910 5678');
+      }
       
       const endpoint = portalId === 'epfo' 
         ? '/api/legacy-epfo' 

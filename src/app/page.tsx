@@ -51,10 +51,10 @@ export default function Home() {
               Built for India&apos;s public-service journeys
             </div>
             <h1 className="max-w-3xl text-4xl font-bold leading-[1.08] tracking-tight text-[#061c4f] sm:text-5xl lg:text-6xl">
-              From file rejected to application complete.
+              One trusted bridge for every public-service upload.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600 sm:text-xl">
-              DocBridge prepares documents for the exact rules of a public-service portal—without sending citizens through a maze of compression and conversion websites.
+              Every portal has different file-size, format, and dimension rules. DocBridge unifies that complexity behind one secure, seamless upload experience.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
               <button
@@ -62,10 +62,10 @@ export default function Home() {
                 onClick={() => setIsExperienceOpen(true)}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#061c4f] px-6 py-3.5 font-semibold text-white shadow-lg shadow-blue-950/15 transition hover:-translate-y-0.5 hover:bg-[#0b2d76] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#061c4f] focus-visible:ring-offset-2"
               >
-                See DocBridge in action
+              Explore how it works
                 <span aria-hidden="true">→</span>
               </button>
-              <span className="text-sm text-slate-500">Designed as a drop-in layer for existing upload flows.</span>
+              <span className="text-sm text-slate-500">A drop-in layer for legacy portals—no backend rewrite required.</span>
             </div>
           </div>
 
@@ -114,8 +114,8 @@ export default function Home() {
       <section className="mx-auto max-w-6xl px-5 py-20 sm:px-6">
         <div className="max-w-2xl">
           <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#e17614]">One simple bridge</p>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight text-[#061c4f] sm:text-4xl">Make strict upload rules feel human.</h2>
-          <p className="mt-4 text-lg leading-8 text-slate-600">DocBridge works between the citizen and the portal, preserving the portal&apos;s validation rules while removing the technical burden from the person applying.</p>
+          <h2 className="mt-3 text-3xl font-bold tracking-tight text-[#061c4f] sm:text-4xl">Unify the upload layer. Keep every portal intact.</h2>
+          <p className="mt-4 text-lg leading-8 text-slate-600">DocBridge works between the citizen and the portal, translating each site&apos;s scattered rules into one familiar experience—without requiring a government infrastructure overhaul.</p>
         </div>
         <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
           {steps.map(([number, title, description]) => (
@@ -132,8 +132,8 @@ export default function Home() {
         <div className="mx-auto flex max-w-6xl flex-col justify-between gap-8 rounded-3xl border border-white/15 bg-white/5 p-8 sm:p-10 lg:flex-row lg:items-center">
           <div className="max-w-2xl">
             <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#ffb35c]">Designed to scale</p>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight text-white">One integration, many citizen journeys.</h2>
-            <p className="mt-4 leading-7 text-blue-100">From pensions and KYC to admissions, recruitment, benefits, and licences—DocBridge can help any portal turn attachment constraints into a seamless step.</p>
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-white">Universal ingestion middleware for public services.</h2>
+            <p className="mt-4 leading-7 text-blue-100">From pensions and KYC to admissions, recruitment, benefits, and licences—one integration can make every distinct attachment rule feel consistent, secure, and simple.</p>
           </div>
           <button type="button" onClick={() => setIsExperienceOpen(true)} className="shrink-0 rounded-xl bg-white px-6 py-3.5 font-semibold text-[#061c4f] transition hover:bg-blue-50">
             Explore the prototype
@@ -159,9 +159,9 @@ function ExperienceModal({ onClose }: { onClose: () => void }) {
       <div className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl sm:p-8">
         <div className="flex items-start justify-between gap-5">
           <div>
-            <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#e17614]">Prototype experience</p>
-            <h2 id="experience-title" className="mt-2 text-2xl font-bold tracking-tight text-[#061c4f]">Choose a public-service journey</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">Each scenario demonstrates how DocBridge fits into an existing upload flow. You&apos;ll connect to a safe mock DigiLocker vault, select a document, and see it prepared for the portal.</p>
+            <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#e17614]">Interactive walkthrough</p>
+            <h2 id="experience-title" className="mt-2 text-2xl font-bold tracking-tight text-[#061c4f]">See one experience across two very different portals</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">Each scenario demonstrates the same DocBridge layer adapting to a portal&apos;s unique rules. Connect to a safe mock DigiLocker vault, select a document, and see it prepared for the destination.</p>
           </div>
           <button type="button" onClick={onClose} className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900" aria-label="Close experience chooser">✕</button>
         </div>

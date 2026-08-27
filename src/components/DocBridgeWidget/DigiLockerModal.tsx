@@ -85,10 +85,15 @@ export default function DigiLockerModal({
         className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden"
         style={{ maxHeight: '90vh' }}
       >
+        <div className="flex h-1.5" aria-hidden="true">
+          <div className="flex-1" style={{ backgroundColor: COLORS.saffron }} />
+          <div className="flex-1" style={{ backgroundColor: COLORS.white }} />
+          <div className="flex-1" style={{ backgroundColor: COLORS.green }} />
+        </div>
         {/* Header */}
         <div 
           className="p-6 text-white"
-          style={{ backgroundColor: COLORS.saffron }}
+          style={{ backgroundColor: COLORS.primary }}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -99,7 +104,7 @@ export default function DigiLockerModal({
               </div>
               <div>
                 <h2 className="text-xl font-bold">DigiLocker</h2>
-                <p className="text-sm opacity-90">Secure Document Access</p>
+                <p className="text-sm opacity-90">Consent-based document access</p>
               </div>
             </div>
             <button
@@ -178,7 +183,7 @@ export default function DigiLockerModal({
               </button>
 
               <p className="text-xs mt-4 text-center" style={{ color: COLORS.gray[400] }}>
-                Demo: Use 9876543210 (Ramesh) or 8765432109 (Priya)
+                Prototype access: 9876543210 or 8765432109
               </p>
             </div>
           )}
@@ -233,7 +238,7 @@ export default function DigiLockerModal({
               </button>
 
               <p className="text-xs mt-4 text-center" style={{ color: COLORS.gray[400] }}>
-                Demo: Enter any 6-digit code (e.g., 123456)
+                Prototype access: enter any six-digit code
               </p>
             </div>
           )}
@@ -320,7 +325,7 @@ export default function DigiLockerModal({
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
-            <span>Secured by DigiLocker • Government of India</span>
+            <span>Authorised DigiLocker access • Your document stays in your control</span>
           </div>
         </div>
       </div>
