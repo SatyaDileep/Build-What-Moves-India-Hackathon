@@ -26,6 +26,7 @@ export default function DocBridgeWidget({
   const [error, setError] = useState<string | null>(null);
   const [processingResult, setProcessingResult] = useState<any>(null);
   const [selectedAsset, setSelectedAsset] = useState<DigiLockerAsset | null>(null);
+  const [source, setSource] = useState<'digilocker' | 'device'>('digilocker');
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const startDigiLocker = () => {
@@ -65,6 +66,7 @@ export default function DocBridgeWidget({
 
   const handleAssetSelected = async (asset: DigiLockerAsset) => {
     setSelectedAsset(asset);
+    setSource('digilocker');
     setShowModal(false);
 
     const fileBlob = await supabase.fetchAsset(asset.id);
@@ -78,6 +80,7 @@ export default function DocBridgeWidget({
   const handleManualFile = async (file: File | null) => {
     if (!file) return;
     setSelectedAsset({ id: 'manual', name: file.name, type: file.type, size_mb: file.size / (1024 * 1024), url: '', owner: 'ramesh' });
+    setSource('device');
     await runProcessing(file, {
       name: file.name,
       type: file.type,
@@ -200,7 +203,7 @@ export default function DocBridgeWidget({
 
       {/* Loading States */}
       {['authenticating', 'parsing', 'processing', 'submitting'].includes(state) && (
-        <ProcessingOverlay state={state} />
+        <ProcessingOverlay state={state} source={source} />
       )}
 
       {/* Preview Panel */}

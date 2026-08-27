@@ -5,16 +5,12 @@ import { COLORS } from '@/lib/constants';
 
 interface ProcessingOverlayProps {
   state: WidgetState;
+  source?: 'digilocker' | 'device';
 }
 
 // The three moments we narrate while a document is worked on.
 // authenticating/parsing = accessing the file · processing = AI compression ·
 // submitting = seamless handoff to the portal.
-const STEPS: { label: string; tag?: string }[] = [
-  { label: 'File accessed from DigiLocker' },
-  { label: 'DocBridge asks AI for the ideal compression', tag: 'AI' },
-  { label: 'Seamless upload in your portal’s format' },
-];
 
 function currentStep(state: WidgetState): number {
   if (state === 'authenticating' || state === 'parsing') return 0;
@@ -44,8 +40,14 @@ function stepIcon(state: WidgetState): React.ReactNode {
   );
 }
 
-export default function ProcessingOverlay({ state }: ProcessingOverlayProps) {
+export default function ProcessingOverlay({ state, source = 'digilocker' }: ProcessingOverlayProps) {
   const active = currentStep(state);
+
+  const STEPS: { label: string; tag?: string }[] = [
+    { label: source === 'device' ? 'File added from your device' : 'File accessed from DigiLocker' },
+    { label: 'DocBridge asks AI for the ideal compression', tag: 'AI' },
+    { label: 'Seamless upload in your portal’s format' },
+  ];
 
   return (
     <div

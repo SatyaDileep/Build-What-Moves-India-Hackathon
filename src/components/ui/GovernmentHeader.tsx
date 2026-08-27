@@ -18,9 +18,9 @@ export default function GovernmentHeader({
   userIdText,
 }: GovernmentHeaderProps) {
   return (
-    <header className="sticky top-0 z-50 shadow-sm">
-      {/* Tricolor Bar - Indian Flag */}
-      <div className="relative h-2 overflow-hidden">
+    <header className="relative">
+      {/* Tricolor Bar - Indian Flag (pinned to the viewport top the whole scroll) */}
+      <div className="fixed inset-x-0 top-0 z-50 h-2 overflow-hidden shadow-sm">
         <div className="flex h-full">
           <div className="flex-1" style={{ backgroundColor: COLORS.saffron }} />
           <div className="flex-1" style={{ backgroundColor: COLORS.white }} />
@@ -28,6 +28,8 @@ export default function GovernmentHeader({
         </div>
         <div className="flag-sheen pointer-events-none absolute inset-y-0 left-0 w-1/3" />
       </div>
+      {/* Spacer so header content sits below the pinned flag bar */}
+      <div className="h-2" />
 
       {/* Government of India Top Bar */}
       <div 
