@@ -37,7 +37,8 @@ async function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: nu
 async function compressToTargetSize(
   canvas: HTMLCanvasElement,
   format: 'jpeg' | 'png',
-  targetKB: number
+  targetKB: number,
+  minKB?: number
 ): Promise<Blob> {
   let low = 0.1;
   let high = 1.0;
@@ -67,7 +68,54 @@ async function compressToTargetSize(
     }
   }
 
+  // If the portal requires a minimum size, add subtle photo grain and re-encode
+  // until the file clears the floor (simple images can compress below it).
+  if (minKB && bestBlob.size / 1024 < minKB) {
+    bestBlob = await reachMinimumSize(canvas, format, targetKB, minKB);
+  }
+
   return bestBlob;
+}
+
+// Nudge a too-small document above the portal's minimum-size floor by
+// applying a light film grain and re-encoding at high quality. Grain is what
+// organic scanner/camera photos naturally carry, so the result still reads as
+// a genuine photo rather than a padded blank.
+async function reachMinimumSize(
+  source: HTMLCanvasElement,
+  format: 'jpeg' | 'png',
+  targetKB: number,
+  minKB: number
+): Promise<Blob> {
+  const canvas = document.createElement('canvas');
+  canvas.width = source.width;
+  canvas.height = source.height;
+  const ctx = canvas.getContext('2d')!;
+  ctx.drawImage(source, 0, 0);
+
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+
+  for (let pass = 0; pass < 6; pass++) {
+    for (let i = 0; i < data.length; i += 4) {
+      const noise = (Math.random() - 0.5) * 6;
+      data[i] += noise;
+      data[i + 1] += noise;
+      data[i + 2] += noise;
+    }
+    ctx.putImageData(imageData, 0, 0);
+
+    const quality = format === 'jpeg' ? 0.95 : 1.0;
+    const blob = await canvasToBlob(canvas, `image/${format}`, quality);
+    if (blob.size / 1024 >= minKB && blob.size / 1024 <= targetKB) {
+      return blob;
+    }
+    if (blob.size / 1024 > targetKB) break;
+  }
+
+  // Last resort: return the largest we produced without exceeding the cap.
+  const finalBlob = await canvasToBlob(canvas, `image/${format}`, format === 'jpeg' ? 1.0 : 1.0);
+  return finalBlob.size / 1024 > targetKB ? await canvasToBlob(canvas, `image/${format}`, 0.92) : finalBlob;
 }
 
 // Crop canvas to aspect ratio
@@ -241,7 +289,8 @@ export async function processDocument(
     processedBlob = await compressToTargetSize(
       processedCanvas,
       constraint.format === 'jpeg' ? 'jpeg' : 'png',
-      targetKB
+      targetKB,
+      constraint.min_kb
     );
   }
   

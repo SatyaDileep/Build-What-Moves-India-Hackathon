@@ -214,20 +214,6 @@ export default function UPSCPortal() {
                       <p className="mt-1 text-sm">20KB - 200KB · 350 - 1000px · white background · 75% face</p>
                     </div>
 
-                    {/* Standard upload fails before DocBridge */}
-                    <div className="mb-4 rounded-lg border bg-white p-4" style={{ borderColor: COLORS.gray[300] }}>
-                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Trying the standard upload</p>
-                      <div className="mt-3 rounded-md p-3 text-sm" style={{ backgroundColor: COLORS.errorLight, color: COLORS.error }}>
-                        <span className="font-semibold">File size should be between 20KB and 200KB, resolution between 350px and 1000px.</span>
-                        <p className="mt-1 text-xs text-[#991B1B]">
-                          A typical phone photo is 2-5 MB and hundreds of pixels too small. The portal rejects it — you are pointed to an external resize tool.
-                        </p>
-                      </div>
-                      <div className="mt-3 rounded-lg p-3 text-sm" style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}>
-                        <strong>Why DocBridge:</strong> fetch from DigiLocker, crop to 75% face, force white background, and compress to 20-200KB at 350-1000px — ready on the first try.
-                      </div>
-                    </div>
-
                     {/* Live photo capture & match */}
                     <div className="mb-4 rounded-lg border bg-white p-4" style={{ borderColor: COLORS.gray[300] }}>
                       <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">UPSC 2026 · Live photograph capture</p>
