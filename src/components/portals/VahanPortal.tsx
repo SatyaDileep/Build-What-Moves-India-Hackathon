@@ -8,42 +8,25 @@ import { COLORS } from '@/lib/constants';
 
 type JourneyStep = 'login' | 'dashboard' | 'upload' | 'submitted';
 
-const checklist = [
-  'Personal details completed',
-  'Education details completed',
-  'Photo upload pending',
-  'Signature upload pending',
-];
-
-const requirements = [
-  'Passport size photograph only',
-  'JPEG format only',
-  'Size between 20 KB and 200 KB',
-  'Resolution 350px to 1000px',
-  'Plain white background',
-  'Face must cover 3/4th (75%) of photo',
-  'Live photograph capture & match required',
-];
-
-export default function UPSCPortal() {
+export default function VahanPortal() {
   const [step, setStep] = useState<JourneyStep>('login');
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: COLORS.legacyBg }}>
       <GovernmentHeader
-        portalName="UPSC"
-        portalFullName="Union Public Service Commission"
-        portalInitials="UPSC"
+        portalName="Vahan"
+        portalFullName="Vahan & Sarathi - Ministry of Road Transport & Highways"
+        portalInitials="VAHAN"
         welcomeText={step === 'login' ? undefined : 'Welcome, Priya Sharma'}
-        userIdText={step === 'login' ? undefined : 'Registration: UPSC2024001234'}
+        userIdText={step === 'login' ? undefined : 'Application: DL2026-0092451'}
       />
 
       <div className="mx-auto mt-6 max-w-6xl px-4">
         <div className="mb-4 flex items-center justify-between rounded-2xl border border-stone-200/60 bg-white/80 px-4 py-3 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
           <div className="text-sm text-slate-600">
-            <span className="font-semibold text-[#1E3A8A]">Online Application Portal</span>
+            <span className="font-semibold text-[#1E3A8A]">Sarathi - Citizen Services</span>
             <span className="mx-2 text-slate-300">/</span>
-            <span>Photograph Upload</span>
+            <span>Learner&apos;s Licence · Application</span>
           </div>
           <Link
             href="/"
@@ -59,36 +42,28 @@ export default function UPSCPortal() {
           <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="space-y-5">
               <div className="rounded-2xl border bg-white p-6 shadow-sm" style={{ borderColor: COLORS.legacyBorder }}>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8a5a00]">Application portal</p>
-                <h1 className="mt-2 text-3xl font-bold text-[#0b1f4d]">Candidate login</h1>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8a5a00]">Sarathi Portal</p>
+                <h1 className="mt-2 text-3xl font-bold text-[#0b1f4d]">Learner&apos;s Licence login</h1>
                 <p className="mt-3 text-sm leading-6 text-slate-600">
-                  Sign in to continue your application and complete the required photograph and signature uploads before final submission.
+                  Sign in to continue your Learner&apos;s Licence application and complete the required photograph upload before the fee step.
                 </p>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-xl border bg-[#fff8e8] p-5" style={{ borderColor: '#f2cf7f' }}>
-                  <p className="text-sm font-semibold text-[#8a5a00]">Status</p>
-                  <p className="mt-2 text-2xl font-bold text-[#0b1f4d]">Application in progress</p>
-                  <p className="mt-2 text-sm text-slate-600">Sections 1 and 2 are complete. The portal is waiting on photo and signature uploads.</p>
-                </div>
-                <div className="rounded-xl border bg-white p-5" style={{ borderColor: COLORS.legacyBorder }}>
-                  <p className="text-sm font-semibold text-[#0b3c92]">Recruitment cycle</p>
-                  <p className="mt-2 text-2xl font-bold text-[#0b1f4d]">Civil Services Examination 2026</p>
-                  <p className="mt-2 text-sm text-slate-600">Application editing window is open. Complete document uploads before payment.</p>
-                </div>
+              <div className="rounded-xl border bg-white p-5" style={{ borderColor: COLORS.legacyBorder }}>
+                <p className="text-sm font-semibold text-[#0b3c92]">Status</p>
+                <p className="mt-2 text-2xl font-bold text-[#0b1f4d]">LLR application in progress</p>
+                <p className="mt-2 text-sm text-slate-600">The photograph upload is the pending step. Sarathi enforces a strict 10KB - 20KB JPEG rule.</p>
               </div>
             </div>
 
             <div className="rounded-2xl border bg-white shadow-sm" style={{ borderColor: COLORS.legacyBorder }}>
               <div className="border-b px-5 py-4" style={{ borderColor: COLORS.legacyBorder }}>
-                <h2 className="text-lg font-bold text-[#0b1f4d]">Candidate Login</h2>
-                <p className="mt-1 text-sm text-slate-500">Registration ID, password, and OTP checkpoint before editing the form.</p>
+                <h2 className="text-lg font-bold text-[#0b1f4d]">Sarathi Login</h2>
+                <p className="mt-1 text-sm text-slate-500">Learner number, password, and OTP checkpoint.</p>
               </div>
               <div className="space-y-4 p-5">
-                <Field label="Registration ID" value="UPSC2024001234" />
+                <Field label="Learner No / Mobile" value="DL2026-0092451" />
                 <Field label="Password" value="••••••••••" />
-                <Field label="One-Time Passcode" value="582914" />
                 <button
                   type="button"
                   onClick={() => setStep('dashboard')}
@@ -97,6 +72,10 @@ export default function UPSCPortal() {
                 >
                   Sign In and Continue
                 </button>
+                <div className="flex justify-between text-xs text-[#0b3c92]">
+                  <span>New Registration</span>
+                  <span>Forgot Password</span>
+                </div>
               </div>
             </div>
           </section>
@@ -107,13 +86,13 @@ export default function UPSCPortal() {
             <div className="rounded-2xl border bg-white p-6 shadow-sm" style={{ borderColor: COLORS.legacyBorder }}>
               <h2 className="text-xl font-bold text-[#0b1f4d]">Application checklist</h2>
               <ul className="mt-4 space-y-3 text-sm">
-                {checklist.map((item, index) => (
+                {['Learner details completed', 'Fee started', 'Photograph upload pending', 'Signature upload pending'].map((item, index) => (
                   <li key={item} className="flex items-start gap-3">
                     <span
                       className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white"
-                      style={{ backgroundColor: index < 2 ? COLORS.green : COLORS.saffronDark }}
+                      style={{ backgroundColor: index < 1 ? COLORS.green : COLORS.saffronDark }}
                     >
-                      {index < 2 ? '✓' : '!'}
+                      {index < 1 ? '✓' : '!'}
                     </span>
                     <span className="text-slate-600">{item}</span>
                   </li>
@@ -122,19 +101,19 @@ export default function UPSCPortal() {
             </div>
 
             <div className="rounded-2xl border bg-white p-6 shadow-sm" style={{ borderColor: COLORS.legacyBorder }}>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8a5a00]">Application review</p>
-              <h2 className="mt-2 text-3xl font-bold text-[#0b1f4d]">Photograph upload is still pending</h2>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8a5a00]">The tightest upload rule in Indian gov portals</p>
+              <h2 className="mt-2 text-3xl font-bold text-[#0b1f4d]">Your photograph must be under 20KB</h2>
               <p className="mt-3 text-sm leading-6 text-slate-600">
-                Please continue to the document upload section to complete the photograph requirement before moving to payment.
+                A modern phone photo is 2-5 MB — over a hundred times too large. Sarathi&apos;s automated check rejects most uploads on the first try.
               </p>
               <div className="mt-5 grid gap-4 md:grid-cols-2">
                 <div className="rounded-xl bg-[#f8fafc] p-4">
                   <p className="text-sm font-semibold text-[#0b3c92]">Current task</p>
-                  <p className="mt-2 text-sm text-slate-600">Upload passport photograph before payment and final submission.</p>
+                  <p className="mt-2 text-sm text-slate-600">Upload a 35mm x 45mm JPEG with a 70-80% face before the fee step.</p>
                 </div>
                 <div className="rounded-xl bg-[#fff8e1] p-4">
                   <p className="text-sm font-semibold text-[#8a5a00]">Pain point</p>
-                  <p className="mt-2 text-sm text-slate-600">The portal gives exact size and dimension rules, but no friendly tooling to help meet them.</p>
+                  <p className="mt-2 text-sm text-slate-600">"You may use online option to compress them" — the portal offers no built-in tool.</p>
                 </div>
               </div>
               <button
@@ -154,10 +133,16 @@ export default function UPSCPortal() {
             <div className="lg:col-span-1">
               <div className="sticky top-4 rounded-lg border bg-white p-4" style={{ borderColor: COLORS.legacyBorder }}>
                 <h3 className="mb-4 font-semibold" style={{ color: COLORS.gray[800] }}>
-                  Photo Requirements
+                  Photo Requirements (Sarathi)
                 </h3>
                 <ul className="space-y-3 text-sm" style={{ color: COLORS.gray[600] }}>
-                  {requirements.map((item) => (
+                  {[
+                    'JPEG / JPG only',
+                    'File size 10KB - 20KB',
+                    'Dimensions 35mm x 45mm',
+                    'White or light background',
+                    'Face covers 70-80%',
+                  ].map((item) => (
                     <li key={item} className="flex items-start gap-2">
                       <svg className="mt-0.5 h-4 w-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" style={{ color: COLORS.primary }}>
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -167,8 +152,8 @@ export default function UPSCPortal() {
                   ))}
                 </ul>
 
-                <div className="mt-6 rounded-lg p-3 text-sm" style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}>
-                  <strong>Where DocBridge helps:</strong> the photograph can be fetched, cropped, resized, compressed, and checked before the portal rejects it.
+                <div className="mt-6 rounded-lg p-3 text-sm" style={{ backgroundColor: COLORS.primaryLight, color: COLORS.primary }}>
+                  <strong>Aadhaar e-KYC:</strong> many states auto-fetch your Aadhaar photo as the DL photo. A DigiLocker photograph keeps the journey on trusted identity.
                 </div>
               </div>
             </div>
@@ -177,7 +162,7 @@ export default function UPSCPortal() {
               <div className="rounded-lg border bg-white" style={{ borderColor: COLORS.legacyBorder }}>
                 <div className="border-b px-6 py-4" style={{ borderColor: COLORS.legacyBorder }}>
                   <h2 className="text-lg font-bold" style={{ color: COLORS.gray[800] }}>
-                    Upload Passport Photograph
+                    Upload Photograph & Signature
                   </h2>
                   <p className="mt-1 text-sm" style={{ color: COLORS.gray[500] }}>
                     Step 3 of 5: Document Upload
@@ -192,76 +177,52 @@ export default function UPSCPortal() {
                       </svg>
                       <div>
                         <h4 className="font-semibold" style={{ color: COLORS.error }}>
-                          Strict Requirements
+                          Strict automated check
                         </h4>
                         <p className="mt-1 text-sm" style={{ color: '#991B1B' }}>
-                          Upload latest Passport Photo. JPEG only. File size 20KB - 200KB. Resolution 350px - 1000px. Plain white background. Face must cover 3/4th (75%) of the photo. A live photograph must also be captured and matched.
+                          Photograph in JPEG between 10KB and 20KB, 35mm x 45mm. Signature in JPEG between 10KB and 20KB.
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="mb-6">
-                    <label className="mb-2 block text-sm font-medium" style={{ color: COLORS.gray[700] }}>
-                      Passport Photograph *
-                    </label>
+                  {/* Standard upload fails before DocBridge */}
+                  <div className="mb-6 rounded-lg border bg-white p-4" style={{ borderColor: COLORS.gray[300] }}>
+                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Trying the standard upload</p>
+                    <div className="mt-3 rounded-md p-3 text-sm" style={{ backgroundColor: COLORS.errorLight, color: COLORS.error }}>
+                      <span className="font-semibold">File size should be between 10KB and 20KB.</span>
+                      <p className="mt-1 text-xs text-[#991B1B]">
+                        "Document need to be single jpeg copy or PDF file in the given size only. You may use online option to compress them." — a typical 3MB phone photo fails instantly.
+                      </p>
+                    </div>
+                    <div className="mt-3 rounded-lg p-3 text-sm" style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}>
+                      <strong>Why DocBridge:</strong> fetch the photo from DigiLocker, force the 35mm x 45mm crop and 70-80% face, then compress to 10-20KB without blurring the face.
+                    </div>
+                  </div>
 
+                  <div className="mb-4">
+                    <label className="mb-2 block text-sm font-medium" style={{ color: COLORS.gray[700] }}>
+                      Photograph (JPEG, 35mm x 45mm) *
+                    </label>
                     <div className="mb-4 rounded-lg border-2 border-dashed p-8 text-center" style={{ borderColor: COLORS.gray[300], color: COLORS.gray[500] }}>
                       <svg className="mx-auto mb-3 h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
-                      <p className="font-medium">Standard upload expects a fully compliant JPEG</p>
-                      <p className="mt-1 text-sm">20KB - 200KB · 350 - 1000px · white background · 75% face</p>
-                    </div>
-
-                    {/* Standard upload fails before DocBridge */}
-                    <div className="mb-4 rounded-lg border bg-white p-4" style={{ borderColor: COLORS.gray[300] }}>
-                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Trying the standard upload</p>
-                      <div className="mt-3 rounded-md p-3 text-sm" style={{ backgroundColor: COLORS.errorLight, color: COLORS.error }}>
-                        <span className="font-semibold">File size should be between 20KB and 200KB, resolution between 350px and 1000px.</span>
-                        <p className="mt-1 text-xs text-[#991B1B]">
-                          A typical phone photo is 2-5 MB and hundreds of pixels too small. The portal rejects it — you are pointed to an external resize tool.
-                        </p>
-                      </div>
-                      <div className="mt-3 rounded-lg p-3 text-sm" style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}>
-                        <strong>Why DocBridge:</strong> fetch from DigiLocker, crop to 75% face, force white background, and compress to 20-200KB at 350-1000px — ready on the first try.
-                      </div>
-                    </div>
-
-                    {/* Live photo capture & match */}
-                    <div className="mb-4 rounded-lg border bg-white p-4" style={{ borderColor: COLORS.gray[300] }}>
-                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">UPSC 2026 · Live photograph capture</p>
-                      <p className="mt-2 text-sm text-slate-600">
-                        UPSC now requires a live photograph captured during the form — via webcam or a mobile QR scan — and it is checked against your uploaded photo. A mismatch rejects the application.
-                      </p>
-                      <div className="mt-3 rounded-lg p-3 text-sm" style={{ backgroundColor: COLORS.primaryLight, color: COLORS.primary }}>
-                        <strong>Why DocBridge:</strong> your DigiLocker photo arrives consistent with your live capture, so the match check passes without an in-person re-shoot.
-                      </div>
+                      <p className="font-medium">Standard upload expects a compliant JPEG</p>
+                      <p className="mt-1 text-sm">10KB - 20KB · 35mm x 45mm · white background</p>
                     </div>
 
                     <div className="rounded-2xl border border-stone-200/60 bg-[#fffaf3] p-4">
                       <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#EA580C]">DocBridge assist</p>
-                      <p className="mt-2 text-sm text-slate-600">Fetch the photograph from DigiLocker, prepare it to the required UPSC 2026 format, and review before continuing.</p>
+                      <p className="mt-2 text-sm text-slate-600">Fetch the photograph from DigiLocker, prepare it to the 10-20KB Sarathi rule, and review before continuing.</p>
                       <div className="mt-4">
                         <DocBridgeWidget
-                          portalId="upsc"
-                          requirements="Upload latest Passport Photo. JPEG only. File size 20KB - 200KB. Resolution 350px - 1000px. Plain white background. Face must cover 3/4th (75%) of the photo. A live photograph must also be captured and matched."
+                          portalId="vahan"
+                          requirements="Upload passport photograph in JPEG only. File size 10KB - 20KB. Dimensions 35mm x 45mm. Plain white or light background. Face should cover 70-80% of the photo."
                           onSuccess={() => setStep('submitted')}
                         />
                       </div>
                     </div>
-                  </div>
-
-                  <div className="rounded-lg p-4" style={{ backgroundColor: COLORS.gray[50] }}>
-                    <h4 className="mb-2 font-semibold" style={{ color: COLORS.gray[800] }}>
-                      Photo Guidelines
-                    </h4>
-                    <ul className="space-y-1 text-sm" style={{ color: COLORS.gray[600] }}>
-                      <li>Recent photograph from the last 6 months</li>
-                      <li>Clear front-facing image with eyes open</li>
-                      <li>Plain white background and balanced crop</li>
-                      <li>No manual trial-and-error on external resize tools</li>
-                    </ul>
                   </div>
                 </div>
               </div>
@@ -272,14 +233,14 @@ export default function UPSCPortal() {
         {step === 'submitted' && (
           <section className="rounded-2xl border bg-white p-6 shadow-sm" style={{ borderColor: COLORS.legacyBorder }}>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#0d6b07]">Photograph accepted</p>
-            <h2 className="mt-2 text-3xl font-bold text-[#0b1f4d]">The application cleared the 2026 photo and live-match checks without a resize loop</h2>
+            <h2 className="mt-2 text-3xl font-bold text-[#0b1f4d]">The 10-20KB limit was met on the first try</h2>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-              The photograph met the 20-200KB, 350-1000px, and white-background rules, and stayed consistent with the live photograph. You may continue to signature upload, payment, and final submission.
+              The photograph passed Sarathi&apos;s strict size and 35mm x 45mm dimension check without an external compressor. You may proceed to the fee step.
             </p>
             <div className="mt-6 grid gap-4 md:grid-cols-3">
-              <ResultCard label="Document state" value="JPEG validated for UPSC 2026 rules" tone="blue" />
-              <ResultCard label="Next milestone" value="Payment and final submission" tone="green" />
-              <ResultCard label="Live photo match" value="Consistent with DigiLocker source" tone="saffron" />
+              <ResultCard label="Document state" value="JPEG validated (10-20KB)" tone="blue" />
+              <ResultCard label="Next milestone" value="Fee payment" tone="green" />
+              <ResultCard label="Source" value="DigiLocker photograph" tone="saffron" />
             </div>
           </section>
         )}

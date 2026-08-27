@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { WidgetState, DocumentConstraint, DigiLockerAsset } from '@/types';
-import { COLORS, WIDGET_STATES } from '@/lib/constants';
+import { COLORS, PORTALS, WIDGET_STATES } from '@/lib/constants';
 import { supabase } from '@/lib/supabase';
 import { parsePortalConstraints } from '@/lib/openai';
 import { processDocument } from '@/lib/processor';
@@ -11,7 +11,7 @@ import ProcessingOverlay from './ProcessingOverlay';
 import PreviewPanel from './PreviewPanel';
 
 interface DocBridgeWidgetProps {
-  portalId: 'epfo' | 'upsc';
+  portalId: 'epfo' | 'upsc' | 'vahan';
   requirements: string;
   onSuccess?: (result: any) => void;
 }
@@ -26,55 +26,96 @@ export default function DocBridgeWidget({
   const [error, setError] = useState<string | null>(null);
   const [processingResult, setProcessingResult] = useState<any>(null);
   const [selectedAsset, setSelectedAsset] = useState<DigiLockerAsset | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleStart = () => {
+  const startDigiLocker = () => {
     setError(null);
     setShowModal(true);
     setState('authenticating');
   };
 
-  const handleAssetSelected = async (asset: DigiLockerAsset) => {
-    setSelectedAsset(asset);
-    setShowModal(false);
-    
+  const startManualUpload = () => {
+    setError(null);
+    fileInputRef.current?.click();
+  };
+
+  const runProcessing = async (blob: Blob, meta: { name: string; type: string; size_mb: number }) => {
     try {
-      // Step 1: Parse portal requirements
+      const wait = (ms: number) => new Promise(res => setTimeout(res, ms));
+
+      // Step 1: Access the file (fetched from DigiLocker or picked from device).
       setState('parsing');
+      await wait(900);
       const constraint = await parsePortalConstraints(requirements);
-      
-      // Step 2: Fetch and process document
+
+      // Step 2: DocBridge asks AI for the ideal compression / conversion.
       setState('processing');
-      const fileBlob = await supabase.fetchAsset(asset.id);
-      const result = await processDocument(fileBlob, constraint);
-      
+      const result = await processDocument(blob, constraint, meta);
+      await wait(900);
+
       setProcessingResult(result);
       setState('previewing');
-      
-    } catch (err) {
-      setError('Failed to process document. Please try again.');
+      return result;
+    } catch (err: any) {
+      setError(err?.message || 'Failed to process document. Please try again.');
       setState('idle');
+      return null;
     }
   };
 
-  const handleSubmit = async () => {
+  const handleAssetSelected = async (asset: DigiLockerAsset) => {
+    setSelectedAsset(asset);
+    setShowModal(false);
+
+    const fileBlob = await supabase.fetchAsset(asset.id);
+    await runProcessing(fileBlob, {
+      name: asset.name,
+      type: asset.type,
+      size_mb: asset.size_mb,
+    });
+  };
+
+  const handleManualFile = async (file: File | null) => {
+    if (!file) return;
+    setSelectedAsset({ id: 'manual', name: file.name, type: file.type, size_mb: file.size / (1024 * 1024), url: '', owner: 'ramesh' });
+    await runProcessing(file, {
+      name: file.name,
+      type: file.type,
+      size_mb: file.size / (1024 * 1024),
+    });
+  };
+
+  const handleSubmit = async (saveToDigiLocker: boolean = true) => {
     if (!processingResult) return;
     
     setState('submitting');
     
     try {
+      // Optionally save the optimized copy back to DigiLocker for reuse
+      if (saveToDigiLocker) {
+        const ext = processingResult.constraint.format;
+        const storedName = `${processingResult.original.assetName || 'Document'} (${portalId.toUpperCase()}-ready).${ext}`;
+        await supabase.storeAsset(
+          storedName,
+          `image/${ext}`,
+          processingResult.processed.size_kb / 1024
+        );
+      }
+
       const formData = new FormData();
       const extension = processingResult.constraint.format === 'pdf' ? 'pdf' : 'jpg';
       formData.append('file', processingResult.processed.blob, `docbridge-ready.${extension}`);
 
       // EPFO's legacy endpoint expects the account number as a separate form value.
-      // In a production integration, this would come from the authenticated portal form state.
       if (portalId === 'epfo') {
         formData.append('account_number', '3847 2910 5678');
       }
       
       const endpoint = portalId === 'epfo' 
         ? '/api/legacy-epfo' 
-        : '/api/legacy-upsc';
+        : portalId === 'vahan'
+          ? '/api/legacy-vahan'
+          : '/api/legacy-upsc';
       
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -105,26 +146,37 @@ export default function DocBridgeWidget({
 
   return (
     <div className="relative">
-      {/* Main Button */}
+      {/* Source chooser */}
       {state === 'idle' && (
-        <button
-          onClick={handleStart}
-          className="w-full py-4 px-6 rounded-lg font-semibold text-white transition-all duration-200 flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98]"
-          style={{ backgroundColor: COLORS.saffron, border: "2px solid " + COLORS.saffronDark }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = COLORS.saffronDark;
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = COLORS.saffron;
-          }}
-          aria-label="Fetch and auto-format via DigiLocker"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-          </svg>
-          ✨ Fetch & Auto-Format via DocBridge ✨
-        </button>
+        <div className="rounded-xl border p-4" style={{ borderColor: COLORS.gray[300], backgroundColor: COLORS.primaryLight }}>
+          <p className="text-sm font-semibold mb-1" style={{ color: COLORS.primary }}>Where is your document?</p>
+          <p className="text-xs mb-4" style={{ color: COLORS.gray[600] }}>
+            DocBridge works with either a trusted source or a file you already have.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <SourceOption
+              title="From DigiLocker"
+              description="Authorised, consent-based access to your issued documents."
+              icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>}
+              onClick={startDigiLocker}
+            />
+            <SourceOption
+              title="Upload from device"
+              description="Pick a photo or PDF you already have on your phone or computer."
+              icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>}
+              onClick={startManualUpload}
+            />
+          </div>
+        </div>
       )}
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*,.pdf"
+        className="hidden"
+        onChange={(e) => handleManualFile(e.target.files?.[0] || null)}
+      />
 
       {/* Error Message */}
       {error && (
@@ -195,6 +247,7 @@ export default function DocBridgeWidget({
       {showModal && (
         <DigiLockerModal
           portalId={portalId}
+          signInName={PORTALS.find(p => p.id === portalId)?.persona?.name || 'the citizen'}
           onClose={() => {
             setShowModal(false);
             setState('idle');
@@ -203,5 +256,23 @@ export default function DocBridgeWidget({
         />
       )}
     </div>
+  );
+}
+
+function SourceOption({ title, description, icon, onClick }: { title: string; description: string; icon: React.ReactNode; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex flex-col items-start gap-2 rounded-xl border bg-white/80 p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_12px_30px_rgba(30,58,138,0.12)]"
+      style={{ borderColor: COLORS.gray[300] }}
+      onMouseEnter={(e) => { e.currentTarget.style.borderColor = COLORS.primary; }}
+      onMouseLeave={(e) => { e.currentTarget.style.borderColor = COLORS.gray[300]; }}
+    >
+      <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg" style={{ backgroundColor: COLORS.primaryLight, color: COLORS.primary }}>
+        {icon}
+      </span>
+      <span className="text-sm font-bold" style={{ color: COLORS.gray[800] }}>{title}</span>
+      <span className="text-xs leading-5" style={{ color: COLORS.gray[600] }}>{description}</span>
+    </button>
   );
 }

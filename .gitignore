@@ -17,6 +17,10 @@ dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+dev-server.log
+
+# stray local file (canonical copy lives in public/)
+/img_ind.png
 
 # local env files
 .env*.local

@@ -31,6 +31,8 @@ export interface ProcessingResult {
     blob: Blob;
     size_mb: number;
     dimensions?: { width: number; height: number };
+    assetName?: string;
+    assetType?: string;
   };
   processed: {
     blob: Blob;
@@ -41,7 +43,7 @@ export interface ProcessingResult {
 }
 
 export interface PortalConfig {
-  id: 'epfo' | 'upsc';
+  id: 'epfo' | 'upsc' | 'vahan';
   name: string;
   description: string;
   requirements: string;

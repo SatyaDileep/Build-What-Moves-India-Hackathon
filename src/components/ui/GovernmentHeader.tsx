@@ -18,12 +18,15 @@ export default function GovernmentHeader({
   userIdText,
 }: GovernmentHeaderProps) {
   return (
-    <header>
+    <header className="sticky top-0 z-50 shadow-sm">
       {/* Tricolor Bar - Indian Flag */}
-      <div className="flex h-2">
-        <div className="flex-1" style={{ backgroundColor: COLORS.saffron }} />
-        <div className="flex-1" style={{ backgroundColor: COLORS.white }} />
-        <div className="flex-1" style={{ backgroundColor: COLORS.green }} />
+      <div className="relative h-2 overflow-hidden">
+        <div className="flex h-full">
+          <div className="flex-1" style={{ backgroundColor: COLORS.saffron }} />
+          <div className="flex-1" style={{ backgroundColor: COLORS.white }} />
+          <div className="flex-1" style={{ backgroundColor: COLORS.green }} />
+        </div>
+        <div className="flag-sheen pointer-events-none absolute inset-y-0 left-0 w-1/3" />
       </div>
 
       {/* Government of India Top Bar */}

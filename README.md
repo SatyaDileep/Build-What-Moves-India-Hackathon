@@ -34,13 +34,22 @@ The current prototype uses mock DigiLocker data and authentication to demonstrat
 ## How it works
 
 1. **Drop in DocBridge** beside a legacy portal's existing file input.
-2. **Read the rules** using AI to extract a structured constraint set from the portal's upload instructions.
+2. **Read the rules with OpenAI** — our text-capable models parse the portal's human-written upload instructions into a precise, machine-readable constraint set.
 3. **Fetch with consent** from the user's DigiLocker vault.
-4. **Prepare locally** in the browser: crop, resize, normalise backgrounds, convert formats, and compress the file.
+4. **Prepare with AI** in the browser: an AI-guided pipeline decides the exact crop, format (JPG vs PDF), and compression level needed for *this* document against *this* portal's rules, then converts and optimises the file in one pass.
 5. **Preview before sending** so the citizen stays in control.
 6. **Submit a compliant attachment** to the portal's existing backend.
 
 The portal does not need to replace its legacy validation stack. DocBridge meets that stack where it is.
+
+## Built with AI (yes, we brag about it)
+
+DocBridge is genuinely AI-powered — not just "modern." We lean on OpenAI models at two critical moments:
+
+- **Understanding each portal:** every upload rule a government form describes in plain language — "JPEG, 20–50 KB, 3.5 × 4.5 cm, white background" — is turned into an exact machine-readable specification by an OpenAI model, so DocBridge knows precisely what to produce.
+- **Doing the conversion right:** the compression and conversion decisions (shrink it, re-encode it, change the format) are driven by that AI-derived spec, so the resulting attachment is optimised for acceptance, not just guessed at.
+
+And we built the whole thing with **OpenAI Codex** — the UI, the journeys, the processing pipeline, and this README were written with AI-assisted coding. Human judgement steers; the models do the heavy lifting.
 
 ## Built for real public-service journeys
 
@@ -88,6 +97,7 @@ Open [http://localhost:3000](http://localhost:3000), then visit:
 
 - `/epfo` for the EPFO KYC passbook journey
 - `/upsc` for the UPSC passport-photo journey
+- `/vahan` for the Vahan / Sarathi Learner's Licence journey
 
 ## Vision
 

@@ -1,13 +1,13 @@
 'use client';
 
-import { useRef, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ProcessingResult } from '@/types';
 import { COLORS } from '@/lib/constants';
 
 interface PreviewPanelProps {
   result: ProcessingResult;
-  portalId: 'epfo' | 'upsc';
-  onSubmit: () => void;
+  portalId: 'epfo' | 'upsc' | 'vahan';
+  onSubmit: (saveToDigiLocker: boolean) => void;
   onCancel: () => void;
 }
 
@@ -17,196 +17,64 @@ export default function PreviewPanel({
   onSubmit, 
   onCancel 
 }: PreviewPanelProps) {
-  const [originalUrl, setOriginalUrl] = useState<string | null>(null);
-  const [processedUrl, setProcessedUrl] = useState<string | null>(null);
+  const [saveToDigiLocker, setSaveToDigiLocker] = useState(true);
 
-  useEffect(() => {
-    // Create object URLs for preview
-    const origUrl = URL.createObjectURL(result.original.blob);
-    const procUrl = URL.createObjectURL(result.processed.blob);
-    
-    setOriginalUrl(origUrl);
-    setProcessedUrl(procUrl);
+  const originalSizeKB = result.original.size_mb * 1024;
+  const processedSizeKB = result.processed.size_kb;
+  const reduction = originalSizeKB > 0
+    ? Math.round((1 - processedSizeKB / originalSizeKB) * 100)
+    : 0;
 
-    return () => {
-      URL.revokeObjectURL(origUrl);
-      URL.revokeObjectURL(procUrl);
-    };
-  }, [result]);
-
-  const formatSize = (mb: number) => {
-    if (mb >= 1) return `${mb.toFixed(1)} MB`;
-    return `${(mb * 1024).toFixed(0)} KB`;
-  };
-
-  const formatSizeKB = (kb: number) => {
-    return `${Math.round(kb)} KB`;
-  };
-
-  const isPDF = result.constraint.format === "pdf";
+  const portalName = portalId === 'epfo' ? 'EPFO' : portalId === 'vahan' ? 'Sarathi' : 'UPSC';
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center">
         <h3 className="text-xl font-bold mb-2" style={{ color: COLORS.gray[800] }}>
-          Document Preview
+          Ready to submit
         </h3>
         <p className="text-sm" style={{ color: COLORS.gray[500] }}>
-          Review your optimized document before submission
+          The optimized copy is sized to meet {portalName}&apos;s upload rules
         </p>
       </div>
 
-      {/* Side by Side Preview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Original */}
-        <div 
-          className="border rounded-lg overflow-hidden"
-          style={{ borderColor: COLORS.gray[200] }}
-        >
-          <div 
-            className="px-4 py-2 border-b"
-            style={{ 
-              backgroundColor: COLORS.gray[50],
-              borderColor: COLORS.gray[200]
-            }}
-          >
-            <h4 className="font-semibold text-sm" style={{ color: COLORS.gray[700] }}>
-              📷 Source Image (JPEG)
-            </h4>
-          </div>
-          <div className="p-4">
-            <div 
-              className="aspect-[3/4] rounded-lg overflow-hidden mb-4 flex items-center justify-center"
-              style={{ backgroundColor: COLORS.gray[100] }}
-            >
-              {originalUrl ? (
-                result.constraint.format === 'pdf' ? (
-                  <div className="text-center p-4">
-                    <svg 
-                      className="w-16 h-16 mx-auto mb-2" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                      style={{ color: COLORS.gray[400] }}
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <p className="text-sm font-medium" style={{ color: COLORS.gray[600] }}>
-                      Original Image
-                    </p>
-                  </div>
-                ) : (
-                  <img 
-                    src={originalUrl} 
-                    alt="Original document" 
-                    className="w-full h-full object-contain"
-                  />
-                )
-              ) : (
-                <div className="animate-pulse w-full h-full" style={{ backgroundColor: COLORS.gray[200] }} />
-              )}
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span style={{ color: COLORS.gray[500] }}>Size:</span>
-                <span className="font-medium" style={{ color: COLORS.gray[800] }}>
-                  {formatSize(result.original.size_mb)}
-                </span>
-              </div>
-              {result.original.dimensions && (
-                <div className="flex justify-between text-sm">
-                  <span style={{ color: COLORS.gray[500] }}>Dimensions:</span>
-                  <span className="font-medium" style={{ color: COLORS.gray[800] }}>
-                    {result.original.dimensions.width} × {result.original.dimensions.height}px
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
+      {/* Before / After Size Comparison */}
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+        <div className="rounded-lg border p-4 text-center" style={{ borderColor: COLORS.gray[200], backgroundColor: COLORS.gray[50] }}>
+          <p className="text-xs font-bold uppercase tracking-wide" style={{ color: COLORS.gray[500] }}>Original</p>
+          <p className="mt-2 text-2xl font-bold" style={{ color: COLORS.gray[500], textDecoration: 'line-through' }}>
+            {formatSize(originalSizeKB)}
+          </p>
+          <p className="mt-1 text-xs" style={{ color: COLORS.gray[400] }}>
+            {result.original.assetName || 'From DigiLocker'}
+          </p>
         </div>
 
-        {/* Processed */}
-        <div 
-          className="border-2 rounded-lg overflow-hidden"
-          style={{ borderColor: COLORS.success }}
-        >
-          <div 
-            className="px-4 py-2 border-b"
-            style={{ 
-              backgroundColor: COLORS.successLight,
-              borderColor: COLORS.success
-            }}
-          >
-            <h4 className="font-semibold text-sm" style={{ color: COLORS.success }}>
-              {isPDF ? "📄 Optimized PDF" : "🖼️ Optimized JPEG"} ✓
-            </h4>
-          </div>
-          <div className="p-4">
-            <div 
-              className="aspect-[3/4] rounded-lg overflow-hidden mb-4 flex items-center justify-center"
-              style={{ backgroundColor: COLORS.gray[100] }}
-            >
-              {processedUrl ? (
-                result.constraint.format === 'pdf' ? (
-                  <div className="text-center p-4">
-                    <svg 
-                      className="w-16 h-16 mx-auto mb-2" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                      style={{ color: COLORS.success }}
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <p className="text-sm font-medium" style={{ color: COLORS.success }}>
-                      PDF Ready
-                    </p>
-                  </div>
-                ) : (
-                  <img 
-                    src={processedUrl} 
-                    alt="Processed document" 
-                    className="w-full h-full object-contain"
-                  />
-                )
-              ) : (
-                <div className="animate-pulse w-full h-full" style={{ backgroundColor: COLORS.gray[200] }} />
-              )}
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span style={{ color: COLORS.gray[500] }}>Size:</span>
-                <span className="font-medium" style={{ color: COLORS.gray[800] }}>
-                  {formatSizeKB(result.processed.size_kb)}
-                </span>
-              </div>
-              {result.processed.dimensions && (
-                <div className="flex justify-between text-sm">
-                  <span style={{ color: COLORS.gray[500] }}>Dimensions:</span>
-                  <span className="font-medium" style={{ color: COLORS.gray[800] }}>
-                    {result.processed.dimensions.width} × {result.processed.dimensions.height}px
-                  </span>
-                </div>
-              )}
-              <div className="flex justify-between text-sm">
-                <span style={{ color: COLORS.gray[500] }}>Format:</span>
-                <span className="font-medium uppercase" style={{ color: COLORS.gray[800] }}>
-                  {result.constraint.format}
-                </span>
-              </div>
-            </div>
-          </div>
+        <div className="flex flex-col items-center">
+          <svg className="h-6 w-6" fill="none" stroke={COLORS.success} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          </svg>
+          {reduction > 0 && (
+            <span className="mt-1 text-xs font-bold" style={{ color: COLORS.success }}>
+              {reduction}% smaller
+            </span>
+          )}
+        </div>
+
+        <div className="rounded-lg border-2 p-4 text-center" style={{ borderColor: COLORS.success, backgroundColor: COLORS.successLight }}>
+          <p className="text-xs font-bold uppercase tracking-wide" style={{ color: COLORS.success }}>Optimized ✓</p>
+          <p className="mt-2 text-2xl font-bold" style={{ color: COLORS.success }}>
+            {formatSize(processedSizeKB)}
+          </p>
+          <p className="mt-1 text-xs" style={{ color: COLORS.success }}>
+            Meets {portalName} rules
+          </p>
         </div>
       </div>
 
-      {/* Constraints Met */}
-      <div 
-        className="p-4 rounded-lg"
-        style={{ backgroundColor: COLORS.successLight }}
-      >
+      {/* Requirements Met */}
+      <div className="p-4 rounded-lg" style={{ backgroundColor: COLORS.successLight }}>
         <h4 className="font-semibold mb-2" style={{ color: COLORS.success }}>
           ✓ Requirements Met
         </h4>
@@ -215,10 +83,10 @@ export default function PreviewPanel({
             <li>• Format: {result.constraint.format.toUpperCase()}</li>
           )}
           {result.constraint.max_kb && (
-            <li>• Max size: {result.constraint.max_kb}KB (yours: {Math.round(result.processed.size_kb)}KB)</li>
+            <li>• Max size: {result.constraint.max_kb}KB (yours: {Math.round(processedSizeKB)}KB)</li>
           )}
           {result.constraint.min_kb && (
-            <li>• Min size: {result.constraint.min_kb}KB (yours: {Math.round(result.processed.size_kb)}KB)</li>
+            <li>• Min size: {result.constraint.min_kb}KB (yours: {Math.round(processedSizeKB)}KB)</li>
           )}
           {result.constraint.width_cm && result.constraint.height_cm && (
             <li>• Dimensions: {result.constraint.width_cm}cm × {result.constraint.height_cm}cm</li>
@@ -228,6 +96,27 @@ export default function PreviewPanel({
           )}
         </ul>
       </div>
+
+      {/* Save to DigiLocker */}
+      <label
+        className="flex cursor-pointer items-center gap-3 rounded-lg border p-4"
+        style={{ borderColor: COLORS.primary, backgroundColor: COLORS.primaryLight }}
+      >
+        <input
+          type="checkbox"
+          checked={saveToDigiLocker}
+          onChange={(e) => setSaveToDigiLocker(e.target.checked)}
+          className="h-5 w-5 accent-[#1E3A8A]"
+        />
+        <div>
+          <p className="text-sm font-semibold" style={{ color: COLORS.primary }}>
+            Save the optimized copy back to DigiLocker
+          </p>
+          <p className="text-xs" style={{ color: COLORS.gray[600] }}>
+            Next time you need this document for another portal, it&apos;s already correctly sized.
+          </p>
+        </div>
+      </label>
 
       {/* Action Buttons */}
       <div className="flex gap-4">
@@ -248,7 +137,7 @@ export default function PreviewPanel({
           Cancel
         </button>
         <button
-          onClick={onSubmit}
+          onClick={() => onSubmit(saveToDigiLocker)}
           className="flex-1 py-3 px-4 rounded-lg font-semibold text-white transition-colors"
           style={{ backgroundColor: COLORS.success }}
           onMouseEnter={(e) => {
@@ -258,47 +147,14 @@ export default function PreviewPanel({
             e.currentTarget.style.backgroundColor = COLORS.success;
           }}
         >
-          Submit to {portalId === 'epfo' ? 'EPFO' : 'UPSC'}
+          Submit to {portalName}
         </button>
-      </div>
-
-      {/* Download Options */}
-      <div className="flex gap-4">
-        <a
-          href={originalUrl || '#'}
-          download={`original_${portalId}`}
-          className="flex-1 py-2 px-4 rounded-lg text-sm font-medium text-center border transition-colors"
-          style={{ 
-            borderColor: COLORS.gray[300],
-            color: COLORS.gray[600]
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = COLORS.gray[100];
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent';
-          }}
-        >
-          Download Original
-        </a>
-        <a
-          href={processedUrl || '#'}
-          download={`optimized_${portalId}.${result.constraint.format}`}
-          className="flex-1 py-2 px-4 rounded-lg text-sm font-medium text-center border transition-colors"
-          style={{ 
-            borderColor: COLORS.primary,
-            color: COLORS.primary
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = COLORS.primaryLight;
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent';
-          }}
-        >
-          Download Optimized
-        </a>
       </div>
     </div>
   );
+}
+
+function formatSize(kb: number): string {
+  if (kb >= 1024) return `${(kb / 1024).toFixed(1)} MB`;
+  return `${Math.round(kb)} KB`;
 }

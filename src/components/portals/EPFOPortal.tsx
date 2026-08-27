@@ -56,16 +56,6 @@ export default function EPFOPortal() {
         </div>
 
         <div className="mb-6 rounded-lg border bg-white" style={{ borderColor: COLORS.legacyBorder }}>
-          <div className="grid gap-4 border-b px-4 py-3 text-sm md:grid-cols-[1fr_auto]" style={{ borderColor: COLORS.legacyBorder }}>
-            <div className="flex flex-wrap items-center gap-3 text-slate-600">
-              <span className="font-semibold text-[#0b3c92]">Member e-Sewa</span>
-              <span className={`rounded-full px-3 py-1 ${step === 'login' ? 'bg-[#fff3e0] text-[#9a4d00]' : 'bg-[#e8f5e9] text-[#0d6b07]'}`}>
-                {step === 'login' ? 'Step 1: Sign in' : step === 'home' ? 'Step 2: Open Manage' : step === 'kyc' ? 'Step 3: Upload proof' : 'Step 4: Submitted'}
-              </span>
-            </div>
-            <div className="text-xs text-slate-500">Member services portal</div>
-          </div>
-
           {step === 'login' && (
             <section className="grid gap-6 p-4 lg:grid-cols-[1.2fr_0.8fr] lg:p-6">
               <div className="space-y-5">
@@ -216,6 +206,9 @@ export default function EPFOPortal() {
                   <p className="mt-2 text-sm leading-6 text-slate-600">
                     EPFO guidance says members can seed bank account KYC online, and bank proof such as the first page of the passbook is commonly required so the name, account number, and IFSC are visible.
                   </p>
+                  <div className="mt-3 rounded-lg p-3 text-sm" style={{ backgroundColor: '#FFF1F2', color: '#BE123C' }}>
+                    <strong>Real friction:</strong> a missing or poorly formatted profile photograph can block e-nomination filing and delay claim settlement — EPFO flags it with an &ldquo;Unable to proceed&rdquo; error.
+                  </div>
                 </div>
               </div>
             </section>
@@ -297,6 +290,19 @@ export default function EPFOPortal() {
                       </svg>
                       <p className="font-medium">Standard upload expects a ready PDF</p>
                       <p className="mt-1 text-sm">PDF only, maximum 500 KB, with bank details visible</p>
+                    </div>
+                    <div className="mt-3 rounded-lg border p-4" style={{ backgroundColor: '#FFF1F2', borderColor: '#FECDD3' }}>
+                      <div className="flex items-start gap-3">
+                        <svg className="mt-0.5 h-5 w-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" style={{ color: '#BE123C' }}>
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        <div>
+                          <p className="text-sm font-semibold text-[#BE123C]">Direct uploads usually fail</p>
+                          <p className="mt-1 text-sm text-[#9F1239]">
+                            A scanned passbook or a downloaded bank statement is often over 500 KB, and the portal rejects it with &ldquo;File size should be less than 500KB&rdquo;. Members end up hunting for online compressors that strip page clarity.
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
 

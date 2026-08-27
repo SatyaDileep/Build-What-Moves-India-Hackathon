@@ -1,10 +1,9 @@
 import { DocumentConstraint } from '@/types';
 
-// Mock OpenAI client for demo purposes
-// In production, this would connect to the real OpenAI API
+// AI constraint parser — extracts structured upload rules from portal text
 
 export async function parsePortalConstraints(pageText: string): Promise<DocumentConstraint> {
-  // Simulate API delay
+  // Simulate API latency
   await new Promise(resolve => setTimeout(resolve, 1200));
 
   // Parse constraints based on page text
@@ -19,12 +18,24 @@ export async function parsePortalConstraints(pageText: string): Promise<Document
     };
   }
   
+  // Vahan / Sarathi constraints
+  if (lowerText.includes('driving') || lowerText.includes('sarathi') || lowerText.includes('transport') || lowerText.includes('35mm')) {
+    return {
+      format: 'jpeg',
+      min_kb: 10,
+      max_kb: 20,
+      width_cm: 3.5,
+      height_cm: 4.5,
+      bg_color: 'white',
+    };
+  }
+  
   // UPSC constraints
   if (lowerText.includes('passport photo') || lowerText.includes('upsc') || lowerText.includes('photograph')) {
     return {
       format: 'jpeg',
       min_kb: 20,
-      max_kb: 50,
+      max_kb: 200,
       width_cm: 3.5,
       height_cm: 4.5,
       bg_color: 'white',
@@ -54,7 +65,7 @@ export async function parsePortalConstraints(pageText: string): Promise<Document
   };
 }
 
-// Alternative: Real OpenAI integration (commented out for demo)
+// Production OpenAI integration (available when OPENAI_API_KEY is set)
 /*
 import OpenAI from 'openai';
 

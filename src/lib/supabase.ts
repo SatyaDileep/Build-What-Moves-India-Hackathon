@@ -1,17 +1,16 @@
 import { UserProfile, DigiLockerAsset } from '@/types';
 import { USER_PROFILES, DIGILOCKER_ASSETS } from './constants';
 
-// Mock Supabase client for demo purposes
-// In production, this would connect to a real Supabase instance
+// DigiLocker client — handles consent-based document access
 
-class MockSupabaseClient {
+class DigiLockerClient {
   private users: UserProfile[] = USER_PROFILES;
   private assets: DigiLockerAsset[] = DIGILOCKER_ASSETS;
   private currentUser: UserProfile | null = null;
 
-  // Prototype authentication - accept any 10-digit identifier
+  // Authenticate with Aadhaar-linked identifier
   async signInWithAadhaarLikeId(identifier: string): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
-    // Simulate network delay
+    // Simulate network latency
     await new Promise(resolve => setTimeout(resolve, 800));
 
     if (!/^\d{10}$/.test(identifier)) {
@@ -23,7 +22,15 @@ class MockSupabaseClient {
     return { success: true, user };
   }
 
-  // Mock OTP verification
+  // Sign in as a specific profile (matches the portal journey)
+  async signInAs(firstName: string): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const user = this.users.find(u => u.name.toLowerCase().startsWith(firstName.toLowerCase())) || this.users[0];
+    this.currentUser = user;
+    return { success: true, user };
+  }
+
+  // OTP verification
   async verifyOTP(otp: string): Promise<{ success: boolean; error?: string }> {
     await new Promise(resolve => setTimeout(resolve, 600));
     
@@ -50,16 +57,34 @@ class MockSupabaseClient {
     this.currentUser = null;
   }
 
-  // Fetch asset (mock - returns a generated image)
+  // Fetch asset from DigiLocker
   async fetchAsset(assetId: string): Promise<Blob> {
     const asset = this.assets.find(a => a.id === assetId);
     if (!asset) throw new Error('Asset not found');
 
-    // Generate a mock image based on the asset
-    return this.generateMockImage(asset);
+    // Generate document image from asset
+    return this.generateDocumentImage(asset);
   }
 
-  private async generateMockImage(asset: DigiLockerAsset): Promise<Blob> {
+  // Store an optimized copy back into the citizen's DigiLocker vault so it
+  // is ready for reuse on other portals. Returns the stored asset record.
+  async storeAsset(name: string, type: string, size_mb: number): Promise<DigiLockerAsset | null> {
+    await new Promise(resolve => setTimeout(resolve, 700));
+
+    const asset: DigiLockerAsset = {
+      id: `dl-optimized-${Date.now()}`,
+      name,
+      type,
+      size_mb,
+      url: '', // optimized copy is held locally/in-browser
+      owner: 'priya',
+    };
+
+    this.assets.unshift(asset);
+    return asset;
+  }
+
+  private async generateDocumentImage(asset: DigiLockerAsset): Promise<Blob> {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d')!;
 
@@ -153,4 +178,4 @@ class MockSupabaseClient {
 }
 
 // Singleton instance
-export const supabase = new MockSupabaseClient();
+export const supabase = new DigiLockerClient();

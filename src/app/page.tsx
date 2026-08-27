@@ -48,13 +48,13 @@ export default function Home() {
           <div>
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-stone-200/60 bg-white/80 px-4 py-2 text-sm font-semibold uppercase tracking-[0.18em] text-[#1E3A8A] shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
               <span className="h-2 w-2 rounded-full bg-[#059669]" />
-              Built for India&apos;s public-service journeys
+              No two Indian portals agree on a file upload
             </div>
             <h1 className="max-w-3xl text-4xl font-bold leading-[1.04] tracking-[-0.04em] text-[#1E3A8A] sm:text-5xl lg:text-6xl">
-              One trusted bridge for every public-service upload.
+              One upload layer for India&apos;s many official portals.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600 sm:text-xl">
-              Every portal has different file-size, format, and dimension rules. DocBridge unifies that complexity behind one secure, seamless upload experience.
+              UPSC, Sarathi, and EPFO each enforce a different size, format, and dimension — so the same photo that clears one portal bounces on another. Complying often means handing that document to a third-party tool. DocBridge prepares it in the browser to match each portal&apos;s own rules — so the upload you came to do, finally goes through.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
               <button
@@ -69,34 +69,21 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="glass-card rounded-3xl p-5 sm:p-7">
-            <div className="flex items-center justify-between border-b border-stone-200/60 pb-5">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Document status</p>
-                <h2 className="mt-1 text-lg font-bold text-[#1E3A8A]">Ready for portal submission</h2>
-              </div>
-              <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">Compliant</span>
-            </div>
-            <div className="mt-6 grid gap-3">
-              {[
-                ['Source', 'Authorised DigiLocker document', 'bg-blue-50 text-blue-800'],
-                ['Requirements', 'PDF · under 500 KB · account number visible', 'bg-orange-50 text-orange-700'],
-                ['Preparation', 'Converted and optimised in browser', 'bg-emerald-50 text-emerald-700'],
-              ].map(([label, value, tone]) => (
-                <div key={label} className="flex items-start gap-3 rounded-2xl border border-stone-200/60 bg-white/70 p-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-                  <span className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-sm font-bold ${tone}`}>✓</span>
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-wide text-slate-400">{label}</p>
-                    <p className="mt-0.5 text-sm font-semibold leading-5 text-slate-700">{value}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-6 flex items-center gap-3 rounded-2xl bg-slate-50/90 p-4 text-sm text-slate-600">
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#E7EEFF] text-[#1E3A8A]">✓</span>
-              <span>Review first. Submit only when the citizen is ready.</span>
-            </div>
-          </div>
+          <figure className="glass-card overflow-hidden rounded-3xl">
+            <img
+              src="/img_ind.png"
+              alt="Indian citizens completing digital public-service uploads"
+              className="w-full object-cover"
+              style={{ aspectRatio: '16 / 10' }}
+            />
+            <figcaption className="flex items-center justify-between gap-4 px-5 py-4 sm:px-6">
+              <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#1E3A8A]">
+                <span className="h-2 w-2 rounded-full bg-[#059669]" />
+                The document should match the portal — not the other way around
+              </span>
+              <span className="hidden rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 sm:inline-flex">Compliant</span>
+            </figcaption>
+          </figure>
         </div>
       </section>
 
@@ -109,6 +96,31 @@ export default function Home() {
             </article>
           ))}
         </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-5 py-20 sm:px-6">
+        <div className="max-w-2xl">
+          <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#EA580C]">Made for millions of Indians</p>
+          <h2 className="mt-3 text-3xl font-bold tracking-[-0.03em] text-[#1E3A8A] sm:text-4xl">This isn&apos;t a niche problem — it touches every new government user.</h2>
+          <p className="mt-4 text-lg leading-8 text-slate-600">
+            Every day, in official portals across the country, a photo or a passbook gets rejected — and the person on the other side has to figure out why, alone.
+          </p>
+        </div>
+        <div className="mt-12 grid gap-5 md:grid-cols-3">
+          {[
+            ['Remote & first-time users', 'A villager logging in for the first time doesn\'t know about crop tools, KB, DPI, or pixel ranges. The error message might as well be another language.'],
+            ['Elderly citizens', 'For a senior filling a pension or KYC form, a rejected upload means another trip, another helper, another day lost on something that should be instant.'],
+            ['Even the tech-savvy', 'Younger users — who can code — still end up uploading an Aadhaar or a photo to unknown third-party resize sites, unsure whether they\'ve just leaked a sensitive document.'],
+          ].map(([title, description]) => (
+            <article key={title} className="glass-card rounded-3xl p-6 transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(30,58,138,0.12)]">
+              <h3 className="text-lg font-bold tracking-tight text-[#1E3A8A]">{title}</h3>
+              <p className="mt-3 text-sm leading-6 text-slate-600">{description}</p>
+            </article>
+          ))}
+        </div>
+        <p className="mt-9 rounded-2xl border border-stone-200/60 bg-white/70 p-5 text-sm leading-6 text-slate-600 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+          DocBridge removes the guesswork from the start — the document is prepared against the portal&apos;s own rule, so no one has to copy a file into an unfamiliar tool just to get a government service done.
+        </p>
       </section>
 
       <section className="mx-auto max-w-6xl px-5 py-20 sm:px-6">
@@ -136,7 +148,7 @@ export default function Home() {
             <p className="mt-4 leading-7 text-blue-100">From pensions and KYC to admissions, recruitment, benefits, and licences—one integration can make every distinct attachment rule feel consistent, secure, and simple.</p>
           </div>
           <button type="button" onClick={() => setIsExperienceOpen(true)} className="shrink-0 rounded-2xl bg-[#EA580C] px-6 py-3.5 font-semibold text-white transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-[#C2410C] hover:shadow-[0_16px_40px_rgba(234,88,12,0.22)]">
-            Explore the prototype
+            See it in action
           </button>
         </div>
       </section>
@@ -189,33 +201,50 @@ export default function Home() {
 
 function ExperienceModal({ onClose }: { onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="experience-title">
-      <div className="w-full max-w-2xl rounded-3xl border border-stone-200/60 bg-[#fffdf9] p-6 shadow-[0_16px_40px_rgba(0,0,0,0.08)] sm:p-8">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/55 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="experience-title">
+      <div className="w-full max-w-4xl rounded-3xl border border-stone-200/60 bg-[#fffdf9] p-6 shadow-[0_16px_40px_rgba(0,0,0,0.08)] sm:p-8">
         <div className="flex items-start justify-between gap-5">
-          <div>
+          <div className="max-w-3xl">
             <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#EA580C]">Interactive walkthrough</p>
-            <h2 id="experience-title" className="mt-2 text-2xl font-bold tracking-[-0.03em] text-[#1E3A8A]">See one experience across two very different portals</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">Each scenario demonstrates the same DocBridge layer adapting to a portal&apos;s unique rules. Connect to a safe mock DigiLocker vault, select a document, and see it prepared for the destination.</p>
+            <h2 id="experience-title" className="mt-2 text-2xl font-bold tracking-[-0.03em] text-[#1E3A8A] sm:text-3xl">Real governments, real upload dead-ends — and how DocBridge clears them</h2>
+            <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
+              Millions of Indians hit a subtle wall on official portals: the file they have doesn&apos;t match the rule the site silently expects. Pick a journey to walk through the friction — and the fix.
+            </p>
           </div>
           <button type="button" onClick={onClose} className="rounded-2xl p-2 text-slate-500 transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-slate-100 hover:text-slate-900" aria-label="Close experience chooser">✕</button>
         </div>
-        <div className="mt-7 grid gap-4 sm:grid-cols-2">
-          <JourneyCard href="/epfo" title="EPFO KYC" label="Passbook · PDF under 500 KB" description="See a passbook prepared for a strict KYC upload requirement." onNavigate={onClose} />
-          <JourneyCard href="/upsc" title="UPSC photograph" label="JPEG · 3.5 cm × 4.5 cm" description="See a photograph transformed for a precise application upload rule." onNavigate={onClose} />
+
+        <div className="mt-8 grid gap-5 sm:grid-cols-3">
+          <JourneyCard step="01" accent="#1E3A8A" href="/upsc" title="UPSC" label="Apply for a government job" description="A single over-large or dim photo can stall the application — and 2026 adds a live-photo match check. See it clear in one try." onNavigate={onClose} />
+          <JourneyCard step="02" accent="#EA580C" href="/vahan" title="Vahan / Sarathi" label="Get a driving licence" description="Sarathi caps the photo far below a phone screenshot size, so most uploads bounce. See the fix that keeps you moving." onNavigate={onClose} />
+          <JourneyCard step="03" accent="#138808" href="/epfo" title="EPFO" label="Update my bank KYC" description="Every member must seed a bank proof to get claims moving. See a passbook prepared with no online compressor hunt." onNavigate={onClose} />
         </div>
-        <p className="mt-6 rounded-2xl bg-slate-50 p-3 text-xs leading-5 text-slate-500">This submission uses mock identities and sample documents. No real citizen data is collected or stored.</p>
+
+        <div className="mt-7 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+          <p className="rounded-2xl bg-slate-50 p-3 text-xs leading-5 text-slate-500">
+            DocBridge uses consent-based DigiLocker access. No documents are stored on our servers — everything is prepared in your browser.
+          </p>
+          <span className="inline-flex shrink-0 items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">
+            <span className="h-2 w-2 rounded-full bg-[#059669]" /> Live demo · no setup needed
+          </span>
+        </div>
       </div>
     </div>
   );
 }
 
-function JourneyCard({ href, title, label, description, onNavigate }: { href: string; title: string; label: string; description: string; onNavigate: () => void }) {
+function JourneyCard({ href, step, accent, title, label, description, onNavigate }: { href: string; step: string; accent: string; title: string; label: string; description: string; onNavigate: () => void }) {
   return (
-    <Link href={href} onClick={onNavigate} className="group rounded-3xl border border-stone-200/60 bg-white/70 p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-[0_16px_40px_rgba(30,58,138,0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1E3A8A]">
-      <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#EA580C]">{label}</p>
-      <h3 className="mt-3 text-lg font-bold tracking-tight text-[#1E3A8A]">{title}</h3>
-      <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
-      <span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#1E3A8A]">Open journey <span className="transition group-hover:translate-x-1">→</span></span>
+    <Link href={href} onClick={onNavigate} className="group flex flex-col rounded-3xl border border-stone-200/60 bg-white/70 p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 ease-in-out hover:-translate-y-1 hover:border-blue-300 hover:shadow-[0_16px_40px_rgba(30,58,138,0.14)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1E3A8A]">
+      <div className="flex items-start justify-between">
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-bold text-white" style={{ backgroundColor: accent }}>{step}</span>
+        <span className="rounded-full border border-stone-200/60 bg-white px-3 py-1 text-xs font-semibold" style={{ color: accent }}>{title}</span>
+      </div>
+      <h3 className="mt-5 text-lg font-bold tracking-tight text-[#1E3A8A]">{label}</h3>
+      <p className="mt-2 flex-1 text-sm leading-6 text-slate-600">{description}</p>
+      <span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#1E3A8A]">
+        Open journey <span className="transition group-hover:translate-x-1">→</span>
+      </span>
     </Link>
   );
 }

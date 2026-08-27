@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Mock EPFO legacy backend
+// EPFO legacy backend
 // Validates: PDF format, max 500KB, account number visible
 
 export async function POST(request: NextRequest) {

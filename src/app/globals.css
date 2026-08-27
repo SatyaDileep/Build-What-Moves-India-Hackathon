@@ -266,3 +266,26 @@ body::before {
     transform: translateX(55%);
   }
 }
+
+/* Flowing wave across the Indian-flag tricolor bar */
+.flag-sheen {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.5),
+    rgba(255, 255, 255, 0.75),
+    rgba(255, 255, 255, 0.5),
+    transparent
+  );
+  animation: flag-flow 4s linear infinite;
+  will-change: transform;
+}
+
+@keyframes flag-flow {
+  0% {
+    transform: translateX(-130%);
+  }
+  100% {
+    transform: translateX(330%);
+  }
+}

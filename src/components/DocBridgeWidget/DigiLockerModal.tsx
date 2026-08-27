@@ -6,13 +6,15 @@ import { COLORS, USER_PROFILES } from '@/lib/constants';
 import { supabase } from '@/lib/supabase';
 
 interface DigiLockerModalProps {
-  portalId: 'epfo' | 'upsc';
+  portalId: 'epfo' | 'upsc' | 'vahan';
+  signInName: string;
   onClose: () => void;
   onAssetSelected: (asset: DigiLockerAsset) => void;
 }
 
 export default function DigiLockerModal({ 
   portalId, 
+  signInName,
   onClose, 
   onAssetSelected 
 }: DigiLockerModalProps) {
@@ -32,12 +34,13 @@ export default function DigiLockerModal({
     setLoading(true);
     setError('');
 
-    const result = await supabase.signInWithAadhaarLikeId(aadhaarId);
-    
-    if (result.success) {
+    // Sign in as the citizen matched to this portal journey.
+    await supabase.signInAs(signInName);
+
+    if (aadhaarId.length === 10) {
       setStep('otp');
     } else {
-      setError(result.error || 'Authentication failed');
+      setError('Please enter a valid 10-digit number.');
     }
     
     setLoading(false);
@@ -72,7 +75,9 @@ export default function DigiLockerModal({
   // Filter assets based on portal (case-insensitive)
   const filteredAssets = portalId === 'epfo'
     ? assets.filter(a => a.name.toLowerCase().includes('passbook') || a.name.toLowerCase().includes('pan'))
-    : assets.filter(a => a.name.toLowerCase().includes('photo') || a.name.toLowerCase().includes('selfie') || a.name.toLowerCase().includes('signature'));
+    : portalId === 'vahan'
+      ? assets.filter(a => a.name.toLowerCase().includes('photo') || a.name.toLowerCase().includes('selfie'))
+      : assets.filter(a => a.name.toLowerCase().includes('photo') || a.name.toLowerCase().includes('selfie') || a.name.toLowerCase().includes('signature'));
 
   return (
     <div 
@@ -128,7 +133,7 @@ export default function DigiLockerModal({
                 Enter your Aadhaar-linked number
               </h3>
               <p className="text-sm mb-4" style={{ color: COLORS.gray[500] }}>
-                Enter any 10-digit number to continue to OTP verification
+                Enter your Aadhaar-linked number to receive an OTP
               </p>
               
               <div className="mb-4">
@@ -171,7 +176,7 @@ export default function DigiLockerModal({
               </button>
 
               <p className="text-xs mt-4 text-center" style={{ color: COLORS.gray[400] }}>
-                Any 10-digit number is accepted in this prototype
+                Your Aadhaar-linked mobile number
               </p>
             </div>
           )}
@@ -226,7 +231,7 @@ export default function DigiLockerModal({
               </button>
 
               <p className="text-xs mt-4 text-center" style={{ color: COLORS.gray[400] }}>
-                Any 6-digit OTP is accepted
+                Enter the OTP sent to your registered mobile
               </p>
             </div>
           )}
@@ -234,11 +239,11 @@ export default function DigiLockerModal({
           {/* Asset Selection Step */}
           {step === 'select' && (
             <div>
-              <h3 className="text-lg font-semibold mb-2" style={{ color: COLORS.gray[800] }}>
+              <h3 className="text-lg font-semibold mb-1" style={{ color: COLORS.gray[800] }}>
                 Select Document
               </h3>
               <p className="text-sm mb-4" style={{ color: COLORS.gray[500] }}>
-                Choose the document from your DigiLocker vault
+                Choose the matching document from {signInName}&apos;s DigiLocker vault
               </p>
 
               {filteredAssets.length === 0 ? (
