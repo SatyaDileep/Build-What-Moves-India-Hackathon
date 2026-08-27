@@ -105,10 +105,10 @@ export default function DocBridgeWidget({
           className="w-full py-4 px-6 rounded-lg font-semibold text-white transition-all duration-200 flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98]"
           style={{ backgroundColor: COLORS.saffron, border: "2px solid " + COLORS.saffronDark }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = COLORS.primaryHover;
+            e.currentTarget.style.backgroundColor = COLORS.saffronDark;
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = COLORS.primary;
+            e.currentTarget.style.backgroundColor = COLORS.saffron;
           }}
           aria-label="Fetch and auto-format via DigiLocker"
         >

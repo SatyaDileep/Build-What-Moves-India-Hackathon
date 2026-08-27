@@ -69,10 +69,10 @@ export default function DigiLockerModal({
     onAssetSelected(asset);
   };
 
-  // Filter assets based on portal
-  const filteredAssets = portalId === 'epfo' 
-    ? assets.filter(a => a.name.includes('passbook') || a.name.includes('pan'))
-    : assets.filter(a => a.name.includes('selfie') || a.name.includes('signature'));
+  // Filter assets based on portal (case-insensitive)
+  const filteredAssets = portalId === 'epfo'
+    ? assets.filter(a => a.name.toLowerCase().includes('passbook') || a.name.toLowerCase().includes('pan'))
+    : assets.filter(a => a.name.toLowerCase().includes('photo') || a.name.toLowerCase().includes('selfie') || a.name.toLowerCase().includes('signature'));
 
   return (
     <div 
