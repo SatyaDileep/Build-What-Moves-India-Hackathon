@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DocBridge
 
-## Getting Started
+DocBridge makes document uploads on Indian public-service portals simpler, faster, and more reliable.
 
-First, run the development server:
+## The problem
+
+Many government and public-service websites impose strict rules for uploaded documents: a particular file type, a small maximum size, precise photo dimensions, or a plain background. Citizens are often forced to leave the application, search for conversion tools, resize a file, compress it repeatedly, and return to try again. This creates avoidable friction at an important point in the service journey.
+
+## Our solution
+
+DocBridge sits alongside an existing upload field and prepares a citizen's document for the portal automatically. It reads the portal's requirements, retrieves an authorised document from DigiLocker, applies the needed transformations, and presents a compliant file for submission.
+
+The result is a seamless upload experience that helps people complete public-service applications with confidence instead of navigating a chain of technical workarounds.
+
+## What it supports
+
+- Extracts upload requirements such as file type, maximum size, dimensions, and background colour.
+- Connects the user to relevant DigiLocker documents.
+- Converts images to PDF when a portal requires a PDF.
+- Crops, resizes, normalises backgrounds, and compresses images to meet portal constraints.
+- Shows the processed file for review before submitting it to the destination portal.
+
+## Example journeys
+
+### EPFO KYC
+
+For an EPFO passbook upload, DocBridge prepares a PDF within the 500 KB limit while preserving the information needed for KYC.
+
+### UPSC application photograph
+
+For a UPSC passport photograph, DocBridge creates a JPEG with a white background, 3.5 cm × 4.5 cm dimensions, and a file size between 20 KB and 50 KB.
+
+## Technology
+
+- Next.js 14 and React
+- TypeScript and Tailwind CSS
+- `pdf-lib` for PDF generation
+- DigiLocker and requirement-parsing integration points
+
+## Run locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). Visit `/epfo` or `/upsc` to explore the portal journeys.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project direction
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+DocBridge is designed as a reusable integration layer for public-service portals. The same approach can support any workflow where attachment requirements make an otherwise simple citizen task unnecessarily difficult.
