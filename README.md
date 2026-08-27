@@ -92,3 +92,7 @@ Open [http://localhost:3000](http://localhost:3000), then visit:
 ## Vision
 
 DocBridge makes public digital services feel as thoughtful as the people they serve. By combining trusted document access, privacy-conscious local processing, and portal-aware automation, it helps every citizen move from “file rejected” to “application complete.”
+
+## Acknowledgement
+
+This project is developed with assistance from OpenAI Codex.
