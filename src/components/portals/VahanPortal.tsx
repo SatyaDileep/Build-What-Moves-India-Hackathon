@@ -54,7 +54,7 @@ export default function VahanPortal() {
               <div className="rounded-xl border bg-white p-5" style={{ borderColor: COLORS.legacyBorder }}>
                 <p className="text-sm font-semibold text-[#0b3c92]">Status</p>
                 <p className="mt-2 text-2xl font-bold text-[#0b1f4d]">LLR application in progress</p>
-                <p className="mt-2 text-sm text-slate-600">The photograph upload is the pending step. Sarathi enforces a strict 10KB - 20KB JPEG rule.</p>
+                <p className="mt-2 text-sm text-slate-600">The photograph upload is the pending step before you can proceed to the fee.</p>
               </div>
             </div>
 
@@ -167,21 +167,11 @@ export default function VahanPortal() {
 
               <div className="space-y-5">
                 <div className="rounded-2xl border bg-white p-6 shadow-sm" style={{ borderColor: COLORS.legacyBorder }}>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8a5a00]">The tightest upload rule in Indian gov portals</p>
-                  <h2 className="mt-2 text-3xl font-bold text-[#0b1f4d]">Your photograph must be under 20 KB</h2>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8a5a00]">Next step</p>
+                  <h2 className="mt-2 text-3xl font-bold text-[#0b1f4d]">Complete your photograph upload</h2>
                   <p className="mt-3 text-sm leading-6 text-slate-600">
-                    A modern phone photo is 2-5 MB — over a hundred times too large. Sarathi&apos;s automated check rejects most uploads on the first try.
+                    This is the remaining step before your application moves to the fee. Continue to upload your photograph and signature.
                   </p>
-                  <div className="mt-5 grid gap-4 md:grid-cols-2">
-                    <div className="rounded-xl bg-[#f8fafc] p-4">
-                      <p className="text-sm font-semibold text-[#0b3c92]">Current task</p>
-                      <p className="mt-2 text-sm text-slate-600">Upload a 35mm x 45mm JPEG with a 70-80% face before the fee step.</p>
-                    </div>
-                    <div className="rounded-xl bg-[#fff8e1] p-4">
-                      <p className="text-sm font-semibold text-[#8a5a00]">Pain point</p>
-                      <p className="mt-2 text-sm text-slate-600">“You may use online option to compress them” — the portal offers no built-in tool.</p>
-                    </div>
-                  </div>
                   <button
                     type="button"
                     onClick={() => setStep('upload')}
@@ -263,35 +253,6 @@ export default function VahanPortal() {
                 </div>
 
                 <div className="p-6">
-                  <div className="mb-6 rounded-lg p-4" style={{ backgroundColor: COLORS.errorLight, border: `1px solid ${COLORS.error}` }}>
-                    <div className="flex items-start gap-3">
-                      <svg className="mt-0.5 h-5 w-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" style={{ color: COLORS.error }}>
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
-                      <div>
-                        <h4 className="font-semibold" style={{ color: COLORS.error }}>
-                          Strict automated check
-                        </h4>
-                        <p className="mt-1 text-sm" style={{ color: '#991B1B' }}>
-                          Photograph in JPEG between 10KB and 20KB, 35mm x 45mm. Signature in JPEG between 10KB and 20KB.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Standard upload fails before DocBridge */}
-                  <div className="mb-6 rounded-lg border bg-white p-4" style={{ borderColor: COLORS.gray[300] }}>
-                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Trying the standard upload</p>
-                    <div className="mt-3 rounded-md p-3 text-sm" style={{ backgroundColor: COLORS.errorLight, color: COLORS.error }}>
-                      <span className="font-semibold">File size should be between 10KB and 20KB.</span>
-                      <p className="mt-1 text-xs text-[#991B1B]">
-                        "Document need to be single jpeg copy or PDF file in the given size only. You may use online option to compress them." — a typical 3MB phone photo fails instantly.
-                      </p>
-                    </div>
-                    <div className="mt-3 rounded-lg p-3 text-sm" style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}>
-                      <strong>Why DocBridge:</strong> fetch the photo from DigiLocker, force the 35mm x 45mm crop and 70-80% face, then compress to 10-20KB without blurring the face.
-                    </div>
-                  </div>
 
                   <div className="mb-4">
                     <label className="mb-2 block text-sm font-medium" style={{ color: COLORS.gray[700] }}>
