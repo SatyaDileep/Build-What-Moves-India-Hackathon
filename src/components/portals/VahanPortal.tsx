@@ -4,12 +4,14 @@ import Link from 'next/link';
 import { useState } from 'react';
 import DocBridgeWidget from '@/components/DocBridgeWidget';
 import GovernmentHeader from '@/components/ui/GovernmentHeader';
+import PortalNudge from '@/components/ui/PortalNudge';
 import { COLORS } from '@/lib/constants';
 
 type JourneyStep = 'login' | 'dashboard' | 'upload' | 'submitted';
 
 export default function VahanPortal() {
   const [step, setStep] = useState<JourneyStep>('login');
+  const [nudgeDismissed, setNudgeDismissed] = useState(false);
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: COLORS.legacyBg }}>
@@ -64,6 +66,21 @@ export default function VahanPortal() {
               <div className="space-y-4 p-5">
                 <Field label="Learner No / Mobile" value="DL2026-0092451" />
                 <Field label="Password" value="••••••••••" />
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">Captcha</label>
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-md border bg-[#f8fafc] px-4 py-3 font-mono tracking-[0.28em] text-[#0b3c92]" style={{ borderColor: COLORS.gray[300] }}>
+                      7 3 9 2
+                    </div>
+                    <input
+                      readOnly
+                      value="7392"
+                      className="w-full rounded-md border px-4 py-3 text-sm text-slate-700"
+                      style={{ borderColor: COLORS.gray[300], backgroundColor: COLORS.white }}
+                    />
+                  </div>
+                  <p className="mt-1 text-xs text-slate-400">Demo is pre-filled — just click Sign In.</p>
+                </div>
                 <button
                   type="button"
                   onClick={() => setStep('dashboard')}
@@ -82,48 +99,124 @@ export default function VahanPortal() {
         )}
 
         {step === 'dashboard' && (
-          <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-            <div className="rounded-2xl border bg-white p-6 shadow-sm" style={{ borderColor: COLORS.legacyBorder }}>
-              <h2 className="text-xl font-bold text-[#0b1f4d]">Application checklist</h2>
-              <ul className="mt-4 space-y-3 text-sm">
-                {['Learner details completed', 'Fee started', 'Photograph upload pending', 'Signature upload pending'].map((item, index) => (
-                  <li key={item} className="flex items-start gap-3">
-                    <span
-                      className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white"
-                      style={{ backgroundColor: index < 1 ? COLORS.green : COLORS.saffronDark }}
-                    >
-                      {index < 1 ? '✓' : '!'}
-                    </span>
-                    <span className="text-slate-600">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+          <section className="space-y-6">
+            {!nudgeDismissed ? (
+              <PortalNudge
+                eyebrow="Application DL2026-0092451 · Action required"
+                title="Photograph upload is pending — upload a 10-20 KB JPEG before fee payment"
+                description="Sarathi caps the photo at 20 KB (your phone photo is 2-5 MB). Click to open the upload section — DocBridge will crop to 35mm × 45mm and compress without blurring."
+                ctaLabel="Continue to Photograph Upload"
+                onAction={() => setStep('upload')}
+                onDismiss={() => setNudgeDismissed(true)}
+                tone="amber"
+              />
+            ) : (
+              <div className="flex items-center justify-between rounded-lg border bg-amber-50/70 px-4 py-2.5 text-sm" style={{ borderColor: '#FDE68A' }}>
+                <span className="text-amber-800">Nudge dismissed — use the card below to continue.</span>
+                <button type="button" onClick={() => setNudgeDismissed(false)} className="font-semibold text-amber-700 underline">
+                  Show again
+                </button>
+              </div>
+            )}
 
-            <div className="rounded-2xl border bg-white p-6 shadow-sm" style={{ borderColor: COLORS.legacyBorder }}>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8a5a00]">The tightest upload rule in Indian gov portals</p>
-              <h2 className="mt-2 text-3xl font-bold text-[#0b1f4d]">Your photograph must be under 20KB</h2>
-              <p className="mt-3 text-sm leading-6 text-slate-600">
-                A modern phone photo is 2-5 MB — over a hundred times too large. Sarathi&apos;s automated check rejects most uploads on the first try.
-              </p>
-              <div className="mt-5 grid gap-4 md:grid-cols-2">
-                <div className="rounded-xl bg-[#f8fafc] p-4">
-                  <p className="text-sm font-semibold text-[#0b3c92]">Current task</p>
-                  <p className="mt-2 text-sm text-slate-600">Upload a 35mm x 45mm JPEG with a 70-80% face before the fee step.</p>
-                </div>
-                <div className="rounded-xl bg-[#fff8e1] p-4">
-                  <p className="text-sm font-semibold text-[#8a5a00]">Pain point</p>
-                  <p className="mt-2 text-sm text-slate-600">"You may use online option to compress them" — the portal offers no built-in tool.</p>
+            <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+              <div className="space-y-5">
+                <div className="rounded-2xl border bg-white p-6 shadow-sm" style={{ borderColor: COLORS.legacyBorder }}>
+                  <h2 className="text-xl font-bold text-[#0b1f4d]">Application home</h2>
+                  <div className="mt-4 rounded-lg bg-[#f8fafc] p-4" style={{ borderColor: COLORS.legacyBorder }}>
+                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Application</p>
+                    <p className="mt-1 text-sm font-bold text-[#0b1f4d]">DL2026-0092451 — Learner Licence (MCWG)</p>
+                    <p className="text-xs text-slate-500">RTO: Delhi — Central · Applied: 26 Aug 2026</p>
+                    <div className="mt-3 flex items-center gap-2">
+                      <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">60% complete</span>
+                      <span className="text-xs text-slate-500">2 steps remaining</span>
+                    </div>
+                  </div>
+                  <h3 className="mt-5 text-sm font-bold uppercase tracking-[0.16em] text-slate-500">Progress tracker</h3>
+                  <ul className="mt-3 space-y-3 text-sm">
+                    {[
+                      ['Learner details', 'completed', true],
+                      ['Fee — not started', 'pending', false],
+                      ['Photograph upload', 'pending', false],
+                      ['Signature upload', 'pending', false],
+                      ['Slot booking', 'locked', false],
+                    ].map(([label, _s, done]) => (
+                      <li key={label as string} className="flex items-center gap-3">
+                        <span
+                          className="flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white"
+                          style={{ backgroundColor: done ? COLORS.green : '#E5E7EB', color: done ? 'white' : '#6B7280' }}
+                        >
+                          {done ? '✓' : '·'}
+                        </span>
+                        <span className={done ? 'text-slate-700' : 'text-slate-500'}>{label as string}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-4 rounded-lg border bg-white p-3" style={{ borderColor: COLORS.legacyBorder }}>
+                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Services</p>
+                    <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                      {['Licence Services', 'Vehicle Services', 'Permit', 'Fee Payment'].map((s) => (
+                        <span key={s} className="rounded-full border bg-white px-2.5 py-1 font-medium text-slate-600" style={{ borderColor: COLORS.gray[300] }}>
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setStep('upload')}
-                className="mt-6 rounded-md px-4 py-3 text-sm font-semibold text-white"
-                style={{ backgroundColor: COLORS.saffronDark }}
-              >
-                Continue to Photograph Upload
-              </button>
+
+              <div className="space-y-5">
+                <div className="rounded-2xl border bg-white p-6 shadow-sm" style={{ borderColor: COLORS.legacyBorder }}>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8a5a00]">The tightest upload rule in Indian gov portals</p>
+                  <h2 className="mt-2 text-3xl font-bold text-[#0b1f4d]">Your photograph must be under 20 KB</h2>
+                  <p className="mt-3 text-sm leading-6 text-slate-600">
+                    A modern phone photo is 2-5 MB — over a hundred times too large. Sarathi&apos;s automated check rejects most uploads on the first try.
+                  </p>
+                  <div className="mt-5 grid gap-4 md:grid-cols-2">
+                    <div className="rounded-xl bg-[#f8fafc] p-4">
+                      <p className="text-sm font-semibold text-[#0b3c92]">Current task</p>
+                      <p className="mt-2 text-sm text-slate-600">Upload a 35mm x 45mm JPEG with a 70-80% face before the fee step.</p>
+                    </div>
+                    <div className="rounded-xl bg-[#fff8e1] p-4">
+                      <p className="text-sm font-semibold text-[#8a5a00]">Pain point</p>
+                      <p className="mt-2 text-sm text-slate-600">“You may use online option to compress them” — the portal offers no built-in tool.</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setStep('upload')}
+                    className="mt-6 rounded-md px-4 py-3 text-sm font-semibold text-white"
+                    style={{ backgroundColor: COLORS.saffronDark }}
+                  >
+                    Continue to Photograph Upload →
+                  </button>
+                </div>
+
+                <div className="rounded-xl border bg-white p-5" style={{ borderColor: COLORS.legacyBorder }}>
+                  <h3 className="text-sm font-bold uppercase tracking-[0.16em] text-slate-500">Applicant snapshot</h3>
+                  <div className="mt-3 grid gap-4 sm:grid-cols-2 text-sm">
+                    <div>
+                      <p className="text-xs text-slate-500">Name</p>
+                      <p className="font-semibold text-slate-800">Priya Sharma</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500">DOB</p>
+                      <p className="font-semibold text-slate-800">12 May 2004</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500">Mobile</p>
+                      <p className="font-semibold text-slate-800">87654 32109</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500">State</p>
+                      <p className="font-semibold text-slate-800">Delhi</p>
+                    </div>
+                  </div>
+                  <p className="mt-4 rounded-lg bg-blue-50 p-3 text-xs leading-5 text-blue-800">
+                    Fee module unlocks after photograph and signature are accepted. All data shown is mock for demo.
+                  </p>
+                </div>
+              </div>
             </div>
           </section>
         )}

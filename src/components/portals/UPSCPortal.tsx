@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import DocBridgeWidget from '@/components/DocBridgeWidget';
 import GovernmentHeader from '@/components/ui/GovernmentHeader';
+import PortalNudge from '@/components/ui/PortalNudge';
 import { COLORS } from '@/lib/constants';
 
 type JourneyStep = 'login' | 'dashboard' | 'upload' | 'submitted';
@@ -27,6 +28,7 @@ const requirements = [
 
 export default function UPSCPortal() {
   const [step, setStep] = useState<JourneyStep>('login');
+  const [nudgeDismissed, setNudgeDismissed] = useState(false);
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: COLORS.legacyBg }}>
@@ -89,6 +91,21 @@ export default function UPSCPortal() {
                 <Field label="Registration ID" value="UPSC2024001234" />
                 <Field label="Password" value="••••••••••" />
                 <Field label="One-Time Passcode" value="582914" />
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">Captcha</label>
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-md border bg-[#f8fafc] px-4 py-3 font-mono tracking-[0.28em] text-[#0b3c92]" style={{ borderColor: COLORS.gray[300] }}>
+                      5 8 2 9
+                    </div>
+                    <input
+                      readOnly
+                      value="5829"
+                      className="w-full rounded-md border px-4 py-3 text-sm text-slate-700"
+                      style={{ borderColor: COLORS.gray[300], backgroundColor: COLORS.white }}
+                    />
+                  </div>
+                  <p className="mt-1 text-xs text-slate-400">Demo is pre-filled — just click Sign In.</p>
+                </div>
                 <button
                   type="button"
                   onClick={() => setStep('dashboard')}
@@ -97,54 +114,125 @@ export default function UPSCPortal() {
                 >
                   Sign In and Continue
                 </button>
+                <div className="flex justify-between text-xs text-[#0b3c92]">
+                  <span>New Registration (OTR)</span>
+                  <span>Forgot Password</span>
+                </div>
               </div>
             </div>
           </section>
         )}
 
         {step === 'dashboard' && (
-          <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-            <div className="rounded-2xl border bg-white p-6 shadow-sm" style={{ borderColor: COLORS.legacyBorder }}>
-              <h2 className="text-xl font-bold text-[#0b1f4d]">Application checklist</h2>
-              <ul className="mt-4 space-y-3 text-sm">
-                {checklist.map((item, index) => (
-                  <li key={item} className="flex items-start gap-3">
-                    <span
-                      className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white"
-                      style={{ backgroundColor: index < 2 ? COLORS.green : COLORS.saffronDark }}
-                    >
-                      {index < 2 ? '✓' : '!'}
-                    </span>
-                    <span className="text-slate-600">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+          <section className="space-y-6">
+            {!nudgeDismissed ? (
+              <PortalNudge
+                eyebrow="UPSC CSE 2026 · Registration UPSC2024001234"
+                title="Photograph upload pending — complete before payment & final submission"
+                description="UPSC needs a 20-200 KB JPEG (350-1000px, 75% face) plus a live-photo match. Open the upload section — DocBridge will prepare it from DigiLocker to pass both checks."
+                ctaLabel="Continue to Photograph Upload"
+                onAction={() => setStep('upload')}
+                onDismiss={() => setNudgeDismissed(true)}
+                tone="amber"
+              />
+            ) : (
+              <div className="flex items-center justify-between rounded-lg border bg-amber-50/70 px-4 py-2.5 text-sm" style={{ borderColor: '#FDE68A' }}>
+                <span className="text-amber-800">Nudge dismissed — use the card below to continue.</span>
+                <button type="button" onClick={() => setNudgeDismissed(false)} className="font-semibold text-amber-700 underline">
+                  Show again
+                </button>
+              </div>
+            )}
 
-            <div className="rounded-2xl border bg-white p-6 shadow-sm" style={{ borderColor: COLORS.legacyBorder }}>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8a5a00]">Application review</p>
-              <h2 className="mt-2 text-3xl font-bold text-[#0b1f4d]">Photograph upload is still pending</h2>
-              <p className="mt-3 text-sm leading-6 text-slate-600">
-                Please continue to the document upload section to complete the photograph requirement before moving to payment.
-              </p>
-              <div className="mt-5 grid gap-4 md:grid-cols-2">
-                <div className="rounded-xl bg-[#f8fafc] p-4">
-                  <p className="text-sm font-semibold text-[#0b3c92]">Current task</p>
-                  <p className="mt-2 text-sm text-slate-600">Upload passport photograph before payment and final submission.</p>
+            <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+              <div className="rounded-2xl border bg-white p-6 shadow-sm" style={{ borderColor: COLORS.legacyBorder }}>
+                <h2 className="text-xl font-bold text-[#0b1f4d]">Candidate home</h2>
+                <div className="mt-4 rounded-lg bg-[#f8fafc] p-4">
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Registration</p>
+                  <p className="mt-1 text-sm font-bold text-[#0b1f4d]">UPSC2024001234</p>
+                  <p className="text-xs text-slate-500">Priya Sharma · CSE 2026 · OTR: UTR2024008841</p>
+                  <div className="mt-3 flex items-center gap-2">
+                    <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">In progress</span>
+                    <span className="text-xs text-slate-500">Step 3 of 5</span>
+                  </div>
                 </div>
-                <div className="rounded-xl bg-[#fff8e1] p-4">
-                  <p className="text-sm font-semibold text-[#8a5a00]">Pain point</p>
-                  <p className="mt-2 text-sm text-slate-600">The portal gives exact size and dimension rules, but no friendly tooling to help meet them.</p>
+                <h3 className="mt-5 text-sm font-bold uppercase tracking-[0.16em] text-slate-500">Application checklist</h3>
+                <ul className="mt-3 space-y-3 text-sm">
+                  {checklist.map((item, index) => (
+                    <li key={item} className="flex items-start gap-3">
+                      <span
+                        className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white"
+                        style={{ backgroundColor: index < 2 ? COLORS.green : COLORS.saffronDark }}
+                      >
+                        {index < 2 ? '✓' : '!'}
+                      </span>
+                      <span className="text-slate-600">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-4 rounded-lg border bg-white p-3" style={{ borderColor: COLORS.legacyBorder }}>
+                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">My applications</p>
+                  <table className="mt-2 w-full text-left text-xs">
+                    <thead className="text-slate-500">
+                      <tr>
+                        <th className="py-1 pr-2">Exam</th>
+                        <th className="py-1 pr-2">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-slate-700">
+                      <tr className="border-t" style={{ borderColor: COLORS.legacyBorder }}>
+                        <td className="py-1.5 pr-2">CSE 2026</td>
+                        <td className="py-1.5 pr-2">
+                          <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">Incomplete</span>
+                        </td>
+                      </tr>
+                      <tr className="border-t" style={{ borderColor: COLORS.legacyBorder }}>
+                        <td className="py-1.5 pr-2">CAPF 2025</td>
+                        <td className="py-1.5 pr-2">
+                          <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">Submitted</span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div className="mt-4 rounded-lg bg-blue-50 p-3 text-xs leading-5 text-blue-800">
+                  Tip: Complete uploads before “Pay & Submit” — the portal locks edits after payment.
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setStep('upload')}
-                className="mt-6 rounded-md px-4 py-3 text-sm font-semibold text-white"
-                style={{ backgroundColor: COLORS.saffronDark }}
-              >
-                Continue to Photograph Upload
-              </button>
+
+              <div className="rounded-2xl border bg-white p-6 shadow-sm" style={{ borderColor: COLORS.legacyBorder }}>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8a5a00]">Application review</p>
+                <h2 className="mt-2 text-3xl font-bold text-[#0b1f4d]">Photograph upload is still pending</h2>
+                <p className="mt-3 text-sm leading-6 text-slate-600">
+                  Please continue to the document upload section to complete the photograph requirement before moving to payment and final submission.
+                </p>
+                <div className="mt-5 grid gap-4 md:grid-cols-2">
+                  <div className="rounded-xl bg-[#f8fafc] p-4">
+                    <p className="text-sm font-semibold text-[#0b3c92]">Current task</p>
+                    <p className="mt-2 text-sm text-slate-600">Upload passport photo before payment; UPSC will also run a live-photo match.</p>
+                  </div>
+                  <div className="rounded-xl bg-[#fff8e1] p-4">
+                    <p className="text-sm font-semibold text-[#8a5a00]">Pain point</p>
+                    <p className="mt-2 text-sm text-slate-600">Exact size and dimension rules, but no friendly tooling to help meet them.</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setStep('upload')}
+                  className="mt-6 rounded-md px-4 py-3 text-sm font-semibold text-white"
+                  style={{ backgroundColor: COLORS.saffronDark }}
+                >
+                  Continue to Photograph Upload →
+                </button>
+                <div className="mt-6 rounded-lg border bg-slate-50 p-4" style={{ borderColor: COLORS.legacyBorder }}>
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Important instructions</p>
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-xs leading-5 text-slate-600">
+                    <li>Keep your OTR details consistent across exams.</li>
+                    <li>Live photograph must match uploaded photo (same lighting/pose).</li>
+                    <li>Editing window closes before admit card release.</li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </section>
         )}

@@ -1,6 +1,7 @@
 'use client';
 
 import { COLORS, GOV_CONFIG } from '@/lib/constants';
+import AshokaChakra from '@/components/ui/AshokaChakra';
 
 interface GovernmentHeaderProps {
   portalName: string;
@@ -19,11 +20,15 @@ export default function GovernmentHeader({
 }: GovernmentHeaderProps) {
   return (
     <header className="relative">
-      {/* Tricolor Bar - Indian Flag (pinned to the viewport top the whole scroll) */}
+      {/* Tricolor Bar - subtle Ashoka Chakra on white band (outline, low-opacity motif — not a flag reproduction) */}
       <div className="fixed inset-x-0 top-0 z-50 h-2 overflow-hidden shadow-sm">
         <div className="flex h-full">
           <div className="flex-1" style={{ backgroundColor: COLORS.saffron }} />
-          <div className="flex-1" style={{ backgroundColor: COLORS.white }} />
+          <div className="relative flex-1" style={{ backgroundColor: COLORS.white }}>
+            <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+              <AshokaChakra size={16} stroke="#1E3A8A" opacity={0.38} />
+            </span>
+          </div>
           <div className="flex-1" style={{ backgroundColor: COLORS.green }} />
         </div>
         <div className="flag-sheen pointer-events-none absolute inset-y-0 left-0 w-1/3" />

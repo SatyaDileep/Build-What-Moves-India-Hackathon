@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import DocBridgeWidget from '@/components/DocBridgeWidget';
 import GovernmentHeader from '@/components/ui/GovernmentHeader';
+import PortalNudge from '@/components/ui/PortalNudge';
 import { COLORS } from '@/lib/constants';
 
 type JourneyStep = 'login' | 'home' | 'kyc' | 'submitted';
@@ -29,6 +30,7 @@ const kycItems = [
 
 export default function EPFOPortal() {
   const [step, setStep] = useState<JourneyStep>('login');
+  const [nudgeDismissed, setNudgeDismissed] = useState(false);
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#eef1f4' }}>
@@ -132,83 +134,184 @@ export default function EPFOPortal() {
           )}
 
           {step === 'home' && (
-            <section className="grid gap-6 p-4 lg:grid-cols-[260px_1fr] lg:p-6">
-              <aside className="space-y-4">
-                <div className="rounded-lg border bg-white p-4" style={{ borderColor: COLORS.legacyBorder }}>
-                  <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-slate-500">Manage</h2>
-                  <nav className="mt-3 space-y-2 text-sm">
-                    {['Profile', 'Service History', 'KYC', 'Mark Exit', 'Contact Details'].map((item) => (
-                      <button
-                        key={item}
-                        type="button"
-                        onClick={() => item === 'KYC' && setStep('kyc')}
-                        className="block w-full rounded-md px-3 py-2 text-left transition-colors"
-                        style={{
-                          color: item === 'KYC' ? COLORS.primary : COLORS.gray[700],
-                          backgroundColor: item === 'KYC' ? COLORS.primaryLight : 'transparent',
-                        }}
-                      >
-                        {item}
-                      </button>
-                    ))}
-                  </nav>
-                </div>
-
-                <div className="rounded-lg border bg-[#f8fafc] p-4" style={{ borderColor: COLORS.legacyBorder }}>
-                  <p className="text-sm font-semibold text-[#0b1f4d]">Member Snapshot</p>
-                  <dl className="mt-3 space-y-2 text-sm text-slate-600">
-                    <div className="flex justify-between gap-3">
-                      <dt>Status</dt>
-                      <dd className="font-medium text-slate-800">Active</dd>
-                    </div>
-                    <div className="flex justify-between gap-3">
-                      <dt>Mobile</dt>
-                      <dd className="font-medium text-slate-800">98765 43210</dd>
-                    </div>
-                    <div className="flex justify-between gap-3">
-                      <dt>Last login</dt>
-                      <dd className="font-medium text-slate-800">Today, 10:42 AM</dd>
-                    </div>
-                  </dl>
-                </div>
-              </aside>
-
-              <div className="space-y-6">
-                <div className="rounded-lg border bg-[#fff8e8] p-5" style={{ borderColor: '#f2cf7f' }}>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8a5a00]">Account update</p>
-                  <h2 className="mt-2 text-2xl font-bold text-[#0b1f4d]">Bank account KYC is pending document verification</h2>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
-                    Please open the KYC section to review bank details and submit supporting proof for verification.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setStep('kyc')}
-                    className="mt-4 rounded-md px-4 py-3 text-sm font-semibold text-white"
-                    style={{ backgroundColor: COLORS.saffronDark }}
-                  >
-                    Open Manage → KYC
+            <section className="space-y-6 p-4 lg:p-6">
+              {/* Persistent banner / nudge — this is the click that reveals DocBridge in the KYC upload screen */}
+              {!nudgeDismissed ? (
+                <PortalNudge
+                  eyebrow="Action required · Manage → KYC"
+                  title="Bank account KYC is pending document verification"
+                  description="Your bank proof needs a clear PDF under 500 KB with account number and IFSC visible. Open KYC to fetch from DigiLocker and prepare it in one step — no external compressor."
+                  ctaLabel="Open Manage → KYC now"
+                  onAction={() => setStep('kyc')}
+                  onDismiss={() => setNudgeDismissed(true)}
+                  tone="amber"
+                />
+              ) : (
+                <div className="flex items-center justify-between rounded-lg border bg-amber-50/70 px-4 py-2.5 text-sm" style={{ borderColor: '#FDE68A' }}>
+                  <span className="text-amber-800">KYC nudge dismissed — you can still open it from the sidebar.</span>
+                  <button type="button" onClick={() => setNudgeDismissed(false)} className="font-semibold text-amber-700 underline">
+                    Show again
                   </button>
                 </div>
+              )}
 
-                <div className="grid gap-4 md:grid-cols-3">
-                  {kycItems.map(([label, status, bg, color]) => (
-                    <div key={label} className="rounded-lg border bg-white p-4" style={{ borderColor: COLORS.legacyBorder }}>
-                      <p className="text-sm font-semibold text-slate-800">{label}</p>
-                      <span className="mt-3 inline-flex rounded-full px-3 py-1 text-xs font-semibold" style={{ backgroundColor: bg, color }}>
-                        {status}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="rounded-lg border bg-white p-5" style={{ borderColor: COLORS.legacyBorder }}>
-                  <h3 className="text-lg font-bold text-[#0b1f4d]">Why the passbook proof matters</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
-                    EPFO guidance says members can seed bank account KYC online, and bank proof such as the first page of the passbook is commonly required so the name, account number, and IFSC are visible.
-                  </p>
-                  <div className="mt-3 rounded-lg p-3 text-sm" style={{ backgroundColor: '#FFF1F2', color: '#BE123C' }}>
-                    <strong>Real friction:</strong> a missing or poorly formatted profile photograph can block e-nomination filing and delay claim settlement — EPFO flags it with an &ldquo;Unable to proceed&rdquo; error.
+              <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
+                <aside className="space-y-4">
+                  <div className="rounded-lg border bg-white p-4" style={{ borderColor: COLORS.legacyBorder }}>
+                    <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-slate-500">Manage</h2>
+                    <nav className="mt-3 space-y-2 text-sm">
+                      {['Profile', 'Service History', 'KYC', 'Mark Exit', 'Contact Details'].map((item) => (
+                        <button
+                          key={item}
+                          type="button"
+                          onClick={() => item === 'KYC' && setStep('kyc')}
+                          className="block w-full rounded-md px-3 py-2 text-left transition-colors"
+                          style={{
+                            color: item === 'KYC' ? COLORS.primary : COLORS.gray[700],
+                            backgroundColor: item === 'KYC' ? COLORS.primaryLight : 'transparent',
+                          }}
+                        >
+                          {item}
+                          {item === 'KYC' && <span className="ml-2 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-700">1 pending</span>}
+                        </button>
+                      ))}
+                    </nav>
                   </div>
+
+                  <div className="rounded-lg border bg-[#f8fafc] p-4" style={{ borderColor: COLORS.legacyBorder }}>
+                    <p className="text-sm font-semibold text-[#0b1f4d]">Member Snapshot</p>
+                    <dl className="mt-3 space-y-2 text-sm text-slate-600">
+                      <div className="flex justify-between gap-3">
+                        <dt>UAN</dt>
+                        <dd className="font-medium text-slate-800">10098765432</dd>
+                      </div>
+                      <div className="flex justify-between gap-3">
+                        <dt>Status</dt>
+                        <dd className="font-medium text-slate-800">Active</dd>
+                      </div>
+                      <div className="flex justify-between gap-3">
+                        <dt>Mobile</dt>
+                        <dd className="font-medium text-slate-800">98765 43210</dd>
+                      </div>
+                      <div className="flex justify-between gap-3">
+                        <dt>Last login</dt>
+                        <dd className="font-medium text-slate-800">Today, 10:42 AM</dd>
+                      </div>
+                    </dl>
+                  </div>
+
+                  <div className="rounded-lg border bg-white p-4" style={{ borderColor: COLORS.legacyBorder }}>
+                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Establishment</p>
+                    <p className="mt-2 text-sm font-semibold text-[#0b3c92]">M/S Example Pvt Ltd</p>
+                    <p className="text-xs text-slate-500">Est. ID: DS/12345/789 · DOE: 01/04/2018</p>
+                    <div className="mt-3 flex items-center gap-2 text-xs">
+                      <span className="rounded-full bg-emerald-50 px-2 py-1 font-semibold text-emerald-700">Active</span>
+                      <span className="text-slate-500">Member since 2019</span>
+                    </div>
+                  </div>
+                </aside>
+
+                <div className="space-y-6">
+                  {/* Welcome + quick stats — mimic real Member Home */}
+                  <div className="rounded-lg border bg-white p-5" style={{ borderColor: COLORS.legacyBorder }}>
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <h2 className="text-xl font-bold text-[#0b1f4d]">Welcome, Ramesh Kumar</h2>
+                      <span className="rounded-full bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">Member Home · UAN dashboard</span>
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      Review your service history, passbook, and KYC. Bank proof is the pending item before your employer can approve the update.
+                    </p>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                      <div className="rounded-lg bg-slate-50 p-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">PF Balance</p>
+                        <p className="mt-1 text-lg font-bold text-[#0b1f4d]">₹ 2,84,350</p>
+                        <p className="text-xs text-slate-500">As on 27 Aug 2026</p>
+                      </div>
+                      <div className="rounded-lg bg-slate-50 p-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Last contribution</p>
+                        <p className="mt-1 text-sm font-bold text-[#0b1f4d]">July 2026 — ₹ 3,600</p>
+                        <p className="text-xs text-slate-500">Employer: M/S Example</p>
+                      </div>
+                      <div className="rounded-lg bg-slate-50 p-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Service length</p>
+                        <p className="mt-1 text-sm font-bold text-[#0b1f4d]">7 years, 4 months</p>
+                        <p className="text-xs text-slate-500">3 establishments</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-3">
+                    {kycItems.map(([label, status, bg, color]) => (
+                      <div key={label} className="rounded-lg border bg-white p-4" style={{ borderColor: COLORS.legacyBorder }}>
+                        <p className="text-sm font-semibold text-slate-800">{label}</p>
+                        <span className="mt-3 inline-flex rounded-full px-3 py-1 text-xs font-semibold" style={{ backgroundColor: bg, color }}>
+                          {status}
+                        </span>
+                        {label === 'Bank Account' && <p className="mt-2 text-xs text-slate-500">Tap the banner above to fix this.</p>}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Quick links — mimics real portal service tiles */}
+                  <div className="rounded-lg border bg-white p-5" style={{ borderColor: COLORS.legacyBorder }}>
+                    <h3 className="text-sm font-bold uppercase tracking-[0.18em] text-slate-500">Quick services</h3>
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                      {[
+                        ['View Passbook', 'Month-wise credits'],
+                        ['Transfer Claim', 'Move PF on job change'],
+                        ['Track Claim Status', 'Withdrawals & advances'],
+                        ['e-Nomination', 'Add/update nominee'],
+                      ].map(([title, sub]) => (
+                        <div key={title} className="rounded-lg border bg-[#f8fafc] p-3" style={{ borderColor: COLORS.legacyBorder }}>
+                          <p className="text-sm font-semibold text-[#0b3c92]">{title}</p>
+                          <p className="text-xs text-slate-500">{sub}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border bg-white p-5" style={{ borderColor: COLORS.legacyBorder }}>
+                    <h3 className="text-lg font-bold text-[#0b1f4d]">Why the passbook proof matters</h3>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      EPFO guidance says members can seed bank account KYC online, and bank proof such as the first page of the passbook is commonly required so the name, account number, and IFSC are visible.
+                    </p>
+                    <div className="mt-3 rounded-lg p-3 text-sm" style={{ backgroundColor: '#FFF1F2', color: '#BE123C' }}>
+                      <strong>Real friction:</strong> a scanned passbook is often over 500 KB; the portal rejects it with “File size should be less than 500KB” and members hunt for online compressors.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent activity — adds realism below fold */}
+              <div className="rounded-lg border bg-white p-5" style={{ borderColor: COLORS.legacyBorder }}>
+                <h3 className="text-sm font-bold uppercase tracking-[0.18em] text-slate-500">Recent activity</h3>
+                <div className="mt-3 overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="text-xs uppercase tracking-[0.16em] text-slate-500">
+                      <tr>
+                        <th className="py-2 pr-4">Date</th>
+                        <th className="py-2 pr-4">Service</th>
+                        <th className="py-2 pr-4">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-slate-600">
+                      <tr className="border-t" style={{ borderColor: COLORS.legacyBorder }}>
+                        <td className="py-2 pr-4">27 Aug 2026</td>
+                        <td className="py-2 pr-4">Bank KYC update</td>
+                        <td className="py-2 pr-4"><span className="rounded-full bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700">Document required</span></td>
+                      </tr>
+                      <tr className="border-t" style={{ borderColor: COLORS.legacyBorder }}>
+                        <td className="py-2 pr-4">19 Aug 2026</td>
+                        <td className="py-2 pr-4">e-KYC via Aadhaar</td>
+                        <td className="py-2 pr-4"><span className="rounded-full bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700">Completed</span></td>
+                      </tr>
+                      <tr className="border-t" style={{ borderColor: COLORS.legacyBorder }}>
+                        <td className="py-2 pr-4">04 Jul 2026</td>
+                        <td className="py-2 pr-4">Passbook viewed</td>
+                        <td className="py-2 pr-4"><span className="rounded-full bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-600">Viewed</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </section>

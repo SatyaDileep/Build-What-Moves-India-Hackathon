@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import TricolorBar from '@/components/ui/TricolorBar';
 
 const steps = [
   ['01', 'Understand the portal', 'DocBridge reads upload instructions and turns them into clear, structured requirements.'],
@@ -17,11 +17,9 @@ const principles = [
 ];
 
 export default function Home() {
-  const [isExperienceOpen, setIsExperienceOpen] = useState(false);
-
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#FDFBF7] text-[#1F2937]">
-      <div className="h-1.5 bg-gradient-to-r from-[#f28c28] via-white via-50% to-[#138808]" />
+      <TricolorBar className="h-1.5" />
 
       <header className="border-b border-stone-200/60 bg-[#fffdf9]/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-6">
@@ -32,13 +30,9 @@ export default function Home() {
               <span className="block text-xs font-medium uppercase tracking-[0.18em] text-slate-500">Document readiness for public services</span>
             </span>
           </Link>
-          <button
-            type="button"
-            onClick={() => setIsExperienceOpen(true)}
-            className="rounded-2xl px-4 py-2.5 text-sm font-semibold text-[#1E3A8A] transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1E3A8A] sm:px-5"
-          >
-            Explore the experience
-          </button>
+          <span className="rounded-full border border-stone-200/60 bg-white px-3 py-1.5 text-xs font-bold tracking-[0.14em] text-slate-500">
+            Hackathon demo · DigiLocker-ready
+          </span>
         </div>
       </header>
 
@@ -57,15 +51,14 @@ export default function Home() {
               UPSC, Sarathi, and EPFO each enforce a different size, format, and dimension — so the same photo that clears one portal bounces on another. Complying often means handing that document to a third-party tool. DocBridge prepares it in the browser to match each portal&apos;s own rules — so the upload you came to do, finally goes through.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <button
-                type="button"
-                onClick={() => setIsExperienceOpen(true)}
+              <a
+                href="#portals"
                 className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#EA580C] px-6 py-3.5 font-semibold text-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-[#C2410C] hover:shadow-[0_16px_40px_rgba(234,88,12,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C] focus-visible:ring-offset-2"
               >
-                Explore how it works
+                Login to see it in action
                 <span aria-hidden="true">→</span>
-              </button>
-              <span className="text-sm text-slate-500">A drop-in layer for legacy portals—no backend rewrite required.</span>
+              </a>
+              <span className="text-sm text-slate-500">Pick a portal below — login is pre-filled for demo.</span>
             </div>
           </div>
 
@@ -140,6 +133,58 @@ export default function Home() {
         </div>
       </section>
 
+      <section id="portals" className="mx-auto max-w-6xl px-5 py-16 sm:px-6">
+        <div className="max-w-3xl">
+          <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#EA580C]">Login to see it in action</p>
+          <h2 className="mt-3 text-3xl font-bold tracking-[-0.03em] text-[#1E3A8A] sm:text-4xl">Three real portals. One calm upload layer.</h2>
+          <p className="mt-4 text-lg leading-8 text-slate-600">
+            Each portal has its own strict rule — and its own upload dead-end. Login below (pre-filled for demo) to reach the portal&apos;s home, then follow the nudge to the upload where DocBridge does the work in your browser.
+          </p>
+        </div>
+
+        <div className="mt-10 grid gap-6 md:grid-cols-3">
+          <PortalCard
+            step="01"
+            accent="#1E3A8A"
+            eyebrow="UPSC · CSE 2026"
+            title="Login to UPSC portal to see it in action"
+            description="20-200 KB JPEG · 350-1000px · white background · 75% face + live-photo match. See it clear in one try."
+            href="/upsc"
+            cta="Open UPSC login →"
+            hint="Pre-filled: UPSC2024001234 · OTP & captcha ready"
+          />
+          <PortalCard
+            step="02"
+            accent="#EA580C"
+            eyebrow="Vahan · Sarathi"
+            title="Login to Vahan portal to see it in action"
+            description="Sarathi caps the photo at 10-20 KB — a phone photo is 100× too large. Watch it shrink without blur."
+            href="/vahan"
+            cta="Open Vahan login →"
+            hint="Pre-filled: DL2026-0092451 · captcha ready"
+          />
+          <PortalCard
+            step="03"
+            accent="#138808"
+            eyebrow="EPFO · Member Portal"
+            title="Login to EPFO portal to see it in action"
+            description="Passbook must be PDF ≤ 500 KB with account number visible. See it prepared with no online compressor hunt."
+            href="/epfo"
+            cta="Open EPFO login →"
+            hint="Pre-filled: UAN 10098765432 · captcha ready"
+          />
+        </div>
+
+        <div className="mt-8 flex flex-col items-start justify-between gap-3 rounded-2xl border border-stone-200/60 bg-white/70 px-5 py-4 sm:flex-row sm:items-center">
+          <p className="text-sm leading-6 text-slate-600">
+            <strong className="text-[#1E3A8A]">How the demo flows:</strong> Login (one click) → portal home (realistic dashboard) → banner nudge → upload where DocBridge fetches from DigiLocker and prepares the file.
+          </p>
+          <span className="inline-flex shrink-0 items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">
+            <span className="h-2 w-2 rounded-full bg-[#059669]" /> No external tool needed
+          </span>
+        </div>
+      </section>
+
       <section className="bg-[#1E3A8A] px-5 py-16 sm:px-6">
         <div className="mx-auto flex max-w-6xl flex-col justify-between gap-8 rounded-3xl border border-white/15 bg-white/5 p-8 sm:p-10 lg:flex-row lg:items-center">
           <div className="max-w-2xl">
@@ -147,9 +192,9 @@ export default function Home() {
             <h2 className="mt-3 text-3xl font-bold tracking-[-0.03em] text-white">Universal ingestion middleware for public services.</h2>
             <p className="mt-4 leading-7 text-blue-100">From pensions and KYC to admissions, recruitment, benefits, and licences—one integration can make every distinct attachment rule feel consistent, secure, and simple.</p>
           </div>
-          <button type="button" onClick={() => setIsExperienceOpen(true)} className="shrink-0 rounded-2xl bg-[#EA580C] px-6 py-3.5 font-semibold text-white transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-[#C2410C] hover:shadow-[0_16px_40px_rgba(234,88,12,0.22)]">
-            See it in action
-          </button>
+          <a href="#portals" className="shrink-0 rounded-2xl bg-[#EA580C] px-6 py-3.5 text-center font-semibold text-white transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-[#C2410C] hover:shadow-[0_16px_40px_rgba(234,88,12,0.22)]">
+            Login to see it in action
+          </a>
         </div>
       </section>
 
@@ -193,58 +238,48 @@ export default function Home() {
           <span className="text-blue-200">Built for Build What Moves India Hackathon</span>
         </div>
       </footer>
-
-      {isExperienceOpen && <ExperienceModal onClose={() => setIsExperienceOpen(false)} />}
     </main>
   );
 }
 
-function ExperienceModal({ onClose }: { onClose: () => void }) {
+function PortalCard({
+  step,
+  accent,
+  eyebrow,
+  title,
+  description,
+  href,
+  cta,
+  hint,
+}: {
+  step: string;
+  accent: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+  href: string;
+  cta: string;
+  hint: string;
+}) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/55 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="experience-title">
-      <div className="w-full max-w-4xl rounded-3xl border border-stone-200/60 bg-[#fffdf9] p-6 shadow-[0_16px_40px_rgba(0,0,0,0.08)] sm:p-8">
-        <div className="flex items-start justify-between gap-5">
-          <div className="max-w-3xl">
-            <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#EA580C]">Interactive walkthrough</p>
-            <h2 id="experience-title" className="mt-2 text-2xl font-bold tracking-[-0.03em] text-[#1E3A8A] sm:text-3xl">Real governments, real upload dead-ends — and how DocBridge clears them</h2>
-            <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
-              Millions of Indians hit a subtle wall on official portals: the file they have doesn&apos;t match the rule the site silently expects. Pick a journey to walk through the friction — and the fix.
-            </p>
-          </div>
-          <button type="button" onClick={onClose} className="rounded-2xl p-2 text-slate-500 transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-slate-100 hover:text-slate-900" aria-label="Close experience chooser">✕</button>
-        </div>
-
-        <div className="mt-8 grid gap-5 sm:grid-cols-3">
-          <JourneyCard step="01" accent="#1E3A8A" href="/upsc" title="UPSC" label="Apply for a government job" description="A single over-large or dim photo can stall the application — and 2026 adds a live-photo match check. See it clear in one try." onNavigate={onClose} />
-          <JourneyCard step="02" accent="#EA580C" href="/vahan" title="Vahan / Sarathi" label="Get a driving licence" description="Sarathi caps the photo far below a phone screenshot size, so most uploads bounce. See the fix that keeps you moving." onNavigate={onClose} />
-          <JourneyCard step="03" accent="#138808" href="/epfo" title="EPFO" label="Update my bank KYC" description="Every member must seed a bank proof to get claims moving. See a passbook prepared with no online compressor hunt." onNavigate={onClose} />
-        </div>
-
-        <div className="mt-7 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
-          <p className="rounded-2xl bg-slate-50 p-3 text-xs leading-5 text-slate-500">
-            DocBridge uses consent-based DigiLocker access. No documents are stored on our servers — everything is prepared in your browser.
-          </p>
-          <span className="inline-flex shrink-0 items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">
-            <span className="h-2 w-2 rounded-full bg-[#059669]" /> Live demo · no setup needed
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function JourneyCard({ href, step, accent, title, label, description, onNavigate }: { href: string; step: string; accent: string; title: string; label: string; description: string; onNavigate: () => void }) {
-  return (
-    <Link href={href} onClick={onNavigate} className="group flex flex-col rounded-3xl border border-stone-200/60 bg-white/70 p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 ease-in-out hover:-translate-y-1 hover:border-blue-300 hover:shadow-[0_16px_40px_rgba(30,58,138,0.14)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1E3A8A]">
+    <Link
+      href={href}
+      className="group flex flex-col rounded-3xl border border-stone-200/60 bg-white/80 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 ease-in-out hover:-translate-y-1 hover:border-blue-300 hover:shadow-[0_16px_40px_rgba(30,58,138,0.14)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1E3A8A]"
+    >
       <div className="flex items-start justify-between">
-        <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-bold text-white" style={{ backgroundColor: accent }}>{step}</span>
-        <span className="rounded-full border border-stone-200/60 bg-white px-3 py-1 text-xs font-semibold" style={{ color: accent }}>{title}</span>
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-bold text-white" style={{ backgroundColor: accent }}>
+          {step}
+        </span>
+        <span className="rounded-full border border-stone-200/60 bg-white px-3 py-1 text-xs font-semibold" style={{ color: accent }}>
+          {eyebrow}
+        </span>
       </div>
-      <h3 className="mt-5 text-lg font-bold tracking-tight text-[#1E3A8A]">{label}</h3>
+      <h3 className="mt-5 text-lg font-bold tracking-tight text-[#1E3A8A]">{title}</h3>
       <p className="mt-2 flex-1 text-sm leading-6 text-slate-600">{description}</p>
       <span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#1E3A8A]">
-        Open journey <span className="transition group-hover:translate-x-1">→</span>
+        {cta} <span className="transition group-hover:translate-x-1">→</span>
       </span>
+      <span className="mt-3 text-xs leading-5 text-slate-400">{hint}</span>
     </Link>
   );
 }
