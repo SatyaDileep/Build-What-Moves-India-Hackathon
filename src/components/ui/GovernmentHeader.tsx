@@ -26,7 +26,7 @@ export default function GovernmentHeader({
           <div className="flex-1" style={{ backgroundColor: COLORS.saffron }} />
           <div className="relative flex-1" style={{ backgroundColor: COLORS.white }}>
             <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-              <AshokaChakra size={16} stroke="#1E3A8A" opacity={0.38} />
+              <AshokaChakra size={16} stroke="#1E3A8A" opacity={0.62} />
             </span>
           </div>
           <div className="flex-1" style={{ backgroundColor: COLORS.green }} />

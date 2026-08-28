@@ -360,19 +360,6 @@ export default function EPFOPortal() {
                 </div>
 
                 <div className="space-y-6 p-6">
-                  <div className="rounded-lg border p-4" style={{ backgroundColor: '#fff8e1', borderColor: '#f59e0b' }}>
-                    <div className="flex items-start gap-3">
-                      <svg className="mt-0.5 h-5 w-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" style={{ color: '#d97706' }}>
-                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
-                      <div>
-                        <h3 className="font-semibold text-[#92400e]">Legacy upload constraint</h3>
-                        <p className="mt-1 text-sm text-[#78350f]">
-                          Upload only a clear bank passbook document in PDF format, not exceeding 500 KB, with account details visible.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
 
                   <div>
                     <label className="mb-2 block text-sm font-medium text-slate-700">Account Number *</label>
@@ -393,19 +380,6 @@ export default function EPFOPortal() {
                       </svg>
                       <p className="font-medium">Standard upload expects a ready PDF</p>
                       <p className="mt-1 text-sm">PDF only, maximum 500 KB, with bank details visible</p>
-                    </div>
-                    <div className="mt-3 rounded-lg border p-4" style={{ backgroundColor: '#FFF1F2', borderColor: '#FECDD3' }}>
-                      <div className="flex items-start gap-3">
-                        <svg className="mt-0.5 h-5 w-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" style={{ color: '#BE123C' }}>
-                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                        </svg>
-                        <div>
-                          <p className="text-sm font-semibold text-[#BE123C]">Direct uploads usually fail</p>
-                          <p className="mt-1 text-sm text-[#9F1239]">
-                            A scanned passbook or a downloaded bank statement is often over 500 KB, and the portal rejects it with &ldquo;File size should be less than 500KB&rdquo;. Members end up hunting for online compressors that strip page clarity.
-                          </p>
-                        </div>
-                      </div>
                     </div>
                   </div>
 

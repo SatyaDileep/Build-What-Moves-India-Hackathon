@@ -4,7 +4,7 @@ export default function AshokaChakra({
   size = 16,
   className = '',
   stroke = '#1E3A8A',
-  opacity = 0.42,
+  opacity = 0.62,
 }: {
   size?: number;
   className?: string;

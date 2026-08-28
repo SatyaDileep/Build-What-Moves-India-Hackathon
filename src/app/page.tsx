@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import TricolorBar from '@/components/ui/TricolorBar';
 
 const steps = [
@@ -17,6 +18,19 @@ const principles = [
 ];
 
 export default function Home() {
+  const [isPortalModalOpen, setIsPortalModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isPortalModalOpen) return;
+    const onEsc = (e: KeyboardEvent) => e.key === 'Escape' && setIsPortalModalOpen(false);
+    document.addEventListener('keydown', onEsc);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onEsc);
+      document.body.style.overflow = '';
+    };
+  }, [isPortalModalOpen]);
+
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#FDFBF7] text-[#1F2937]">
       <TricolorBar className="h-1.5" />
@@ -40,10 +54,6 @@ export default function Home() {
         <div className="jaali-mesh absolute inset-x-0 top-0 -z-10 h-[38rem]" />
         <div className="mx-auto grid max-w-6xl gap-14 px-5 py-20 sm:px-6 lg:grid-cols-[1.06fr_0.94fr] lg:items-center lg:py-28">
           <div>
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-stone-200/60 bg-white/80 px-4 py-2 text-sm font-semibold uppercase tracking-[0.18em] text-[#1E3A8A] shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-              <span className="h-2 w-2 rounded-full bg-[#059669]" />
-              No two Indian portals agree on a file upload
-            </div>
             <h1 className="max-w-3xl text-4xl font-bold leading-[1.04] tracking-[-0.04em] text-[#1E3A8A] sm:text-5xl lg:text-6xl">
               One upload layer for India&apos;s many official portals.
             </h1>
@@ -51,14 +61,15 @@ export default function Home() {
               UPSC, Sarathi, and EPFO each enforce a different size, format, and dimension — so the same photo that clears one portal bounces on another. Complying often means handing that document to a third-party tool. DocBridge prepares it in the browser to match each portal&apos;s own rules — so the upload you came to do, finally goes through.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <a
-                href="#portals"
+              <button
+                type="button"
+                onClick={() => setIsPortalModalOpen(true)}
                 className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#EA580C] px-6 py-3.5 font-semibold text-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-[#C2410C] hover:shadow-[0_16px_40px_rgba(234,88,12,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C] focus-visible:ring-offset-2"
               >
                 Login to see it in action
                 <span aria-hidden="true">→</span>
-              </a>
-              <span className="text-sm text-slate-500">Pick a portal below — login is pre-filled for demo.</span>
+              </button>
+              <span className="text-sm text-slate-500">Pick a portal — login lands you on its real home.</span>
             </div>
           </div>
 
@@ -138,7 +149,7 @@ export default function Home() {
           <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#EA580C]">Login to see it in action</p>
           <h2 className="mt-3 text-3xl font-bold tracking-[-0.03em] text-[#1E3A8A] sm:text-4xl">Three real portals. One calm upload layer.</h2>
           <p className="mt-4 text-lg leading-8 text-slate-600">
-            Each portal has its own strict rule — and its own upload dead-end. Login below (pre-filled for demo) to reach the portal&apos;s home, then follow the nudge to the upload where DocBridge does the work in your browser.
+            Each portal tells a familiar story — a form stalls on a document, and the fix lives somewhere else. Login to land on that portal&apos;s own home, follow the nudge, and watch DocBridge streamline the upload in your browser.
           </p>
         </div>
 
@@ -148,40 +159,28 @@ export default function Home() {
             accent="#1E3A8A"
             eyebrow="UPSC · CSE 2026"
             title="Login to UPSC portal to see it in action"
-            description="20-200 KB JPEG · 350-1000px · white background · 75% face + live-photo match. See it clear in one try."
+            description="A job application pauses on a photograph that doesn&apos;t match the portal&apos;s expectation — we&apos;ll show how it sails through on the next screen."
             href="/upsc"
             cta="Open UPSC login →"
-            hint="Pre-filled: UPSC2024001234 · OTP & captcha ready"
           />
           <PortalCard
             step="02"
             accent="#EA580C"
             eyebrow="Vahan · Sarathi"
             title="Login to Vahan portal to see it in action"
-            description="Sarathi caps the photo at 10-20 KB — a phone photo is 100× too large. Watch it shrink without blur."
+            description="A learner&apos;s licence waits on a single photo upload — see how it becomes portal-ready without a separate compressor."
             href="/vahan"
             cta="Open Vahan login →"
-            hint="Pre-filled: DL2026-0092451 · captcha ready"
           />
           <PortalCard
             step="03"
             accent="#138808"
             eyebrow="EPFO · Member Portal"
             title="Login to EPFO portal to see it in action"
-            description="Passbook must be PDF ≤ 500 KB with account number visible. See it prepared with no online compressor hunt."
+            description="A bank KYC update asks for a passbook proof — we&apos;ll fetch it from DigiLocker and make it click-ready."
             href="/epfo"
             cta="Open EPFO login →"
-            hint="Pre-filled: UAN 10098765432 · captcha ready"
           />
-        </div>
-
-        <div className="mt-8 flex flex-col items-start justify-between gap-3 rounded-2xl border border-stone-200/60 bg-white/70 px-5 py-4 sm:flex-row sm:items-center">
-          <p className="text-sm leading-6 text-slate-600">
-            <strong className="text-[#1E3A8A]">How the demo flows:</strong> Login (one click) → portal home (realistic dashboard) → banner nudge → upload where DocBridge fetches from DigiLocker and prepares the file.
-          </p>
-          <span className="inline-flex shrink-0 items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">
-            <span className="h-2 w-2 rounded-full bg-[#059669]" /> No external tool needed
-          </span>
         </div>
       </section>
 
@@ -192,9 +191,13 @@ export default function Home() {
             <h2 className="mt-3 text-3xl font-bold tracking-[-0.03em] text-white">Universal ingestion middleware for public services.</h2>
             <p className="mt-4 leading-7 text-blue-100">From pensions and KYC to admissions, recruitment, benefits, and licences—one integration can make every distinct attachment rule feel consistent, secure, and simple.</p>
           </div>
-          <a href="#portals" className="shrink-0 rounded-2xl bg-[#EA580C] px-6 py-3.5 text-center font-semibold text-white transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-[#C2410C] hover:shadow-[0_16px_40px_rgba(234,88,12,0.22)]">
+          <button
+            type="button"
+            onClick={() => setIsPortalModalOpen(true)}
+            className="shrink-0 rounded-2xl bg-[#EA580C] px-6 py-3.5 text-center font-semibold text-white transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-[#C2410C] hover:shadow-[0_16px_40px_rgba(234,88,12,0.22)]"
+          >
             Login to see it in action
-          </a>
+          </button>
         </div>
       </section>
 
@@ -238,6 +241,57 @@ export default function Home() {
           <span className="text-blue-200">Built for Build What Moves India Hackathon</span>
         </div>
       </footer>
+
+      {isPortalModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="portal-modal-title"
+        >
+          {/* Glassmorphic backdrop */}
+          <button
+            type="button"
+            aria-label="Close portal chooser"
+            onClick={() => setIsPortalModalOpen(false)}
+            className="absolute inset-0 bg-[#0f172a]/30 backdrop-blur-[14px] backdrop-saturate-150 transition-opacity duration-300"
+          />
+          {/* Subtle gradient sheen */}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-[#1E3A8A]/10" />
+
+          <div className="relative w-full max-w-5xl animate-[modalIn_420ms_cubic-bezier(0.16,1,0.3,1)] rounded-[2rem] border border-white/40 bg-white/70 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.22),0_8px_30px_rgba(0,0,0,0.08)] backdrop-blur-[18px] sm:p-8">
+            <div className="flex items-start justify-between gap-5">
+              <div className="max-w-2xl">
+                <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#EA580C]">Choose a portal</p>
+                <h2 id="portal-modal-title" className="mt-2 text-2xl font-bold tracking-[-0.03em] text-[#1E3A8A] sm:text-3xl">
+                  Login to see it in action — then follow the nudge inside
+                </h2>
+                <p className="mt-3 text-sm leading-6 text-slate-600">
+                  Each login lands you on that portal&apos;s own home — not directly on an upload. A gentle banner then takes you to where DocBridge quietly fixes the document.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPortalModalOpen(false)}
+                className="rounded-2xl bg-white/80 p-2.5 text-slate-500 shadow-sm ring-1 ring-black/5 transition-all hover:-translate-y-0.5 hover:bg-white hover:text-slate-900"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="mt-8 grid gap-5 md:grid-cols-3">
+              <ModalPortalCard step="01" accent="#1E3A8A" eyebrow="UPSC · CSE 2026" title="UPSC portal" description="A photograph holds up a job application — watch it become portal-ready in one flow." href="/upsc" cta="Login to UPSC →" onNavigate={() => setIsPortalModalOpen(false)} />
+              <ModalPortalCard step="02" accent="#EA580C" eyebrow="Vahan · Sarathi" title="Vahan portal" description="A licence upload waits on one photo — see it streamline without a second tool." href="/vahan" cta="Login to Vahan →" onNavigate={() => setIsPortalModalOpen(false)} />
+              <ModalPortalCard step="03" accent="#138808" eyebrow="EPFO · Member Portal" title="EPFO portal" description="A KYC update asks for a passbook — fetched and finished in place." href="/epfo" cta="Login to EPFO →" onNavigate={() => setIsPortalModalOpen(false)} />
+            </div>
+
+            <p className="mt-6 rounded-2xl bg-white/60 px-4 py-3 text-xs leading-5 text-slate-500 ring-1 ring-black/5">
+              All logins are pre-filled for demo. You&apos;ll land on the portal&apos;s home and a subtle nudge will guide you to the upload where DocBridge works.
+            </p>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
@@ -250,7 +304,6 @@ function PortalCard({
   description,
   href,
   cta,
-  hint,
 }: {
   step: string;
   accent: string;
@@ -259,7 +312,6 @@ function PortalCard({
   description: string;
   href: string;
   cta: string;
-  hint: string;
 }) {
   return (
     <Link
@@ -279,7 +331,48 @@ function PortalCard({
       <span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#1E3A8A]">
         {cta} <span className="transition group-hover:translate-x-1">→</span>
       </span>
-      <span className="mt-3 text-xs leading-5 text-slate-400">{hint}</span>
+    </Link>
+  );
+}
+
+function ModalPortalCard({
+  step,
+  accent,
+  eyebrow,
+  title,
+  description,
+  href,
+  cta,
+  onNavigate,
+}: {
+  step: string;
+  accent: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+  href: string;
+  cta: string;
+  onNavigate: () => void;
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onNavigate}
+      className="group flex flex-col rounded-3xl border border-white/50 bg-white/80 p-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] backdrop-blur transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-white hover:shadow-[0_16px_40px_rgba(30,58,138,0.16)]"
+    >
+      <div className="flex items-start justify-between">
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-bold text-white" style={{ backgroundColor: accent }}>
+          {step}
+        </span>
+        <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold ring-1 ring-black/5" style={{ color: accent }}>
+          {eyebrow}
+        </span>
+      </div>
+      <h3 className="mt-4 text-base font-bold tracking-tight text-[#1E3A8A]">{title}</h3>
+      <p className="mt-2 flex-1 text-sm leading-6 text-slate-600">{description}</p>
+      <span className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-[#1E3A8A]">
+        {cta} <span className="transition group-hover:translate-x-1">→</span>
+      </span>
     </Link>
   );
 }

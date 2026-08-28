@@ -41,15 +41,10 @@ export default function UPSCPortal() {
       />
 
       <div className="mx-auto mt-6 max-w-6xl px-4">
-        <div className="mb-4 flex items-center justify-between rounded-2xl border border-stone-200/60 bg-white/80 px-4 py-3 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-          <div className="text-sm text-slate-600">
-            <span className="font-semibold text-[#1E3A8A]">Online Application Portal</span>
-            <span className="mx-2 text-slate-300">/</span>
-            <span>Photograph Upload</span>
-          </div>
+        <div className="mb-4 flex justify-end">
           <Link
             href="/"
-            className="rounded-2xl px-4 py-2 text-sm font-semibold text-[#1E3A8A] transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-blue-50"
+            className="rounded-2xl border border-stone-200/60 bg-white/80 px-4 py-2 text-sm font-semibold text-[#1E3A8A] shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-blue-50"
           >
             Back to DocBridge Home
           </Link>
@@ -68,18 +63,7 @@ export default function UPSCPortal() {
                 </p>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-xl border bg-[#fff8e8] p-5" style={{ borderColor: '#f2cf7f' }}>
-                  <p className="text-sm font-semibold text-[#8a5a00]">Status</p>
-                  <p className="mt-2 text-2xl font-bold text-[#0b1f4d]">Application in progress</p>
-                  <p className="mt-2 text-sm text-slate-600">Sections 1 and 2 are complete. The portal is waiting on photo and signature uploads.</p>
-                </div>
-                <div className="rounded-xl border bg-white p-5" style={{ borderColor: COLORS.legacyBorder }}>
-                  <p className="text-sm font-semibold text-[#0b3c92]">Recruitment cycle</p>
-                  <p className="mt-2 text-2xl font-bold text-[#0b1f4d]">Civil Services Examination 2026</p>
-                  <p className="mt-2 text-sm text-slate-600">Application editing window is open. Complete document uploads before payment.</p>
-                </div>
-              </div>
+
             </div>
 
             <div className="rounded-2xl border bg-white shadow-sm" style={{ borderColor: COLORS.legacyBorder }}>
@@ -302,16 +286,7 @@ export default function UPSCPortal() {
                       <p className="mt-1 text-sm">20KB - 200KB · 350 - 1000px · white background · 75% face</p>
                     </div>
 
-                    {/* Live photo capture & match */}
-                    <div className="mb-4 rounded-lg border bg-white p-4" style={{ borderColor: COLORS.gray[300] }}>
-                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">UPSC 2026 · Live photograph capture</p>
-                      <p className="mt-2 text-sm text-slate-600">
-                        UPSC now requires a live photograph captured during the form — via webcam or a mobile QR scan — and it is checked against your uploaded photo. A mismatch rejects the application.
-                      </p>
-                      <div className="mt-3 rounded-lg p-3 text-sm" style={{ backgroundColor: COLORS.primaryLight, color: COLORS.primary }}>
-                        <strong>Why DocBridge:</strong> your DigiLocker photo arrives consistent with your live capture, so the match check passes without an in-person re-shoot.
-                      </div>
-                    </div>
+
 
                     <div className="rounded-2xl border border-stone-200/60 bg-[#fffaf3] p-4">
                       <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#EA580C]">DocBridge assist</p>
