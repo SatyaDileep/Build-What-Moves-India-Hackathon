@@ -10,17 +10,19 @@ interface DigiLockerModalProps {
   signInName: string;
   onClose: () => void;
   onAssetSelected: (asset: DigiLockerAsset) => void;
+  onAuthenticated?: () => void;
 }
 
 export default function DigiLockerModal({ 
   portalId, 
   signInName,
   onClose, 
-  onAssetSelected 
+  onAssetSelected,
+  onAuthenticated,
 }: DigiLockerModalProps) {
   const [step, setStep] = useState<'aadhaar' | 'otp' | 'select'>('aadhaar');
-  const [aadhaarId, setAadhaarId] = useState('');
-  const [otp, setOtp] = useState('');
+  const [aadhaarId, setAadhaarId] = useState('9876543210');
+  const [otp, setOtp] = useState('582914');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [assets, setAssets] = useState<DigiLockerAsset[]>([]);
@@ -58,6 +60,10 @@ export default function DigiLockerModal({
     const result = await supabase.verifyOTP(otp);
     
     if (result.success) {
+      if (onAuthenticated) {
+        onAuthenticated();
+        return;
+      }
       const userAssets = supabase.getAssets();
       setAssets(userAssets);
       setStep('select');
@@ -129,9 +135,17 @@ export default function DigiLockerModal({
           {/* Aadhaar Step */}
           {step === 'aadhaar' && (
             <div>
-              <h3 className="text-lg font-semibold mb-2" style={{ color: COLORS.gray[800] }}>
-                Enter your Aadhaar-linked number
-              </h3>
+              <div className="mb-2 flex items-center gap-2">
+                <h3 className="text-lg font-semibold" style={{ color: COLORS.gray[800] }}>
+                  Enter your Aadhaar-linked number
+                </h3>
+                <span className="group relative inline-flex">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full border text-xs font-bold" style={{ borderColor: COLORS.gray[300], color: COLORS.gray[500] }} aria-hidden="true">i</span>
+                  <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 hidden w-56 -translate-x-1/2 rounded-lg border bg-white px-3 py-2 text-xs leading-5 shadow-lg group-hover:block" style={{ borderColor: COLORS.gray[200], color: COLORS.gray[600] }}>
+                    Any 10-digit number works — already filled for you.
+                  </span>
+                </span>
+              </div>
               <p className="text-sm mb-4" style={{ color: COLORS.gray[500] }}>
                 Enter your Aadhaar-linked number to receive an OTP
               </p>
@@ -141,7 +155,7 @@ export default function DigiLockerModal({
                   type="tel"
                   value={aadhaarId}
                   onChange={(e) => setAadhaarId(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                  placeholder="1234567890"
+                  placeholder="9876543210"
                   className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-lg"
                   style={{ 
                     borderColor: COLORS.gray[300],
@@ -175,8 +189,8 @@ export default function DigiLockerModal({
                 )}
               </button>
 
-              <p className="text-xs mt-4 text-center" style={{ color: COLORS.gray[400] }}>
-                Your Aadhaar-linked mobile number
+              <p className="text-xs mt-3 text-center" style={{ color: COLORS.gray[400] }}>
+                Demo — any number works for the story.
               </p>
             </div>
           )}
@@ -184,9 +198,17 @@ export default function DigiLockerModal({
           {/* OTP Step */}
           {step === 'otp' && (
             <div>
-              <h3 className="text-lg font-semibold mb-2" style={{ color: COLORS.gray[800] }}>
-                Enter OTP
-              </h3>
+              <div className="mb-2 flex items-center gap-2">
+                <h3 className="text-lg font-semibold" style={{ color: COLORS.gray[800] }}>
+                  Enter OTP
+                </h3>
+                <span className="group relative inline-flex">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full border text-xs font-bold" style={{ borderColor: COLORS.gray[300], color: COLORS.gray[500] }} aria-hidden="true">i</span>
+                  <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 hidden w-56 -translate-x-1/2 rounded-lg border bg-white px-3 py-2 text-xs leading-5 shadow-lg group-hover:block" style={{ borderColor: COLORS.gray[200], color: COLORS.gray[600] }}>
+                    Any 6-digit code works — already filled for you.
+                  </span>
+                </span>
+              </div>
               <p className="text-sm mb-4" style={{ color: COLORS.gray[500] }}>
                 We&apos;ve sent a 6-digit code to {aadhaarId}
               </p>
@@ -196,7 +218,7 @@ export default function DigiLockerModal({
                   type="text"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="000000"
+                  placeholder="582914"
                   className="w-full px-4 py-3 border rounded-lg text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ 
                     borderColor: COLORS.gray[300],
@@ -230,8 +252,8 @@ export default function DigiLockerModal({
                 )}
               </button>
 
-              <p className="text-xs mt-4 text-center" style={{ color: COLORS.gray[400] }}>
-                Enter the OTP sent to your registered mobile
+              <p className="text-xs mt-3 text-center" style={{ color: COLORS.gray[400] }}>
+                Demo — any code works for the story.
               </p>
             </div>
           )}

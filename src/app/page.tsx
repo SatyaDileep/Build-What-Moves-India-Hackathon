@@ -19,17 +19,18 @@ const principles = [
 
 export default function Home() {
   const [isPortalModalOpen, setIsPortalModalOpen] = useState(false);
+  const [portalNav, setPortalNav] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isPortalModalOpen) return;
-    const onEsc = (e: KeyboardEvent) => e.key === 'Escape' && setIsPortalModalOpen(false);
+    const onEsc = (e: KeyboardEvent) => e.key === 'Escape' && !portalNav && setIsPortalModalOpen(false);
     document.addEventListener('keydown', onEsc);
     document.body.style.overflow = 'hidden';
     return () => {
       document.removeEventListener('keydown', onEsc);
       document.body.style.overflow = '';
     };
-  }, [isPortalModalOpen]);
+  }, [isPortalModalOpen, portalNav]);
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#FDFBF7] text-[#1F2937]">
@@ -162,6 +163,8 @@ export default function Home() {
             description="A job application pauses on a photograph that doesn&apos;t match the portal&apos;s expectation — we&apos;ll show how it sails through on the next screen."
             href="/upsc"
             cta="Open UPSC login →"
+            busy={portalNav === '/upsc'}
+            onNavigateStart={() => setPortalNav('/upsc')}
           />
           <PortalCard
             step="02"
@@ -171,6 +174,8 @@ export default function Home() {
             description="A learner&apos;s licence waits on a single photo upload — see how it becomes portal-ready without a separate compressor."
             href="/vahan"
             cta="Open Vahan login →"
+            busy={portalNav === '/vahan'}
+            onNavigateStart={() => setPortalNav('/vahan')}
           />
           <PortalCard
             step="03"
@@ -180,6 +185,8 @@ export default function Home() {
             description="A bank KYC update asks for a passbook proof — we&apos;ll fetch it from DigiLocker and make it click-ready."
             href="/epfo"
             cta="Open EPFO login →"
+            busy={portalNav === '/epfo'}
+            onNavigateStart={() => setPortalNav('/epfo')}
           />
         </div>
       </section>
@@ -253,13 +260,13 @@ export default function Home() {
           <button
             type="button"
             aria-label="Close portal chooser"
-            onClick={() => setIsPortalModalOpen(false)}
+            onClick={() => !portalNav && setIsPortalModalOpen(false)}
             className="absolute inset-0 bg-[#0f172a]/30 backdrop-blur-[14px] backdrop-saturate-150 transition-opacity duration-300"
           />
           {/* Subtle gradient sheen */}
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-[#1E3A8A]/10" />
 
-          <div className="relative w-full max-w-5xl animate-[modalIn_420ms_cubic-bezier(0.16,1,0.3,1)] rounded-[2rem] border border-white/40 bg-white/70 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.22),0_8px_30px_rgba(0,0,0,0.08)] backdrop-blur-[18px] sm:p-8">
+          <div className="relative w-full max-w-5xl animate-[modalIn_420ms_cubic-bezier(0.16,1,0.3,1)] overflow-hidden rounded-[2rem] border border-white/40 bg-white/70 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.22),0_8px_30px_rgba(0,0,0,0.08)] backdrop-blur-[18px] sm:p-8">
             <div className="flex items-start justify-between gap-5">
               <div className="max-w-2xl">
                 <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#EA580C]">Choose a portal</p>
@@ -272,8 +279,9 @@ export default function Home() {
               </div>
               <button
                 type="button"
-                onClick={() => setIsPortalModalOpen(false)}
-                className="rounded-2xl bg-white/80 p-2.5 text-slate-500 shadow-sm ring-1 ring-black/5 transition-all hover:-translate-y-0.5 hover:bg-white hover:text-slate-900"
+                onClick={() => !portalNav && setIsPortalModalOpen(false)}
+                disabled={!!portalNav}
+                className="rounded-2xl bg-white/80 p-2.5 text-slate-500 shadow-sm ring-1 ring-black/5 transition-all hover:-translate-y-0.5 hover:bg-white hover:text-slate-900 disabled:opacity-50"
                 aria-label="Close"
               >
                 ✕
@@ -281,14 +289,22 @@ export default function Home() {
             </div>
 
             <div className="mt-8 grid gap-5 md:grid-cols-3">
-              <ModalPortalCard step="01" accent="#1E3A8A" eyebrow="UPSC · CSE 2026" title="UPSC portal" description="A photograph holds up a job application — watch it become portal-ready in one flow." href="/upsc" cta="Login to UPSC →" onNavigate={() => setIsPortalModalOpen(false)} />
-              <ModalPortalCard step="02" accent="#EA580C" eyebrow="Vahan · Sarathi" title="Vahan portal" description="A licence upload waits on one photo — see it streamline without a second tool." href="/vahan" cta="Login to Vahan →" onNavigate={() => setIsPortalModalOpen(false)} />
-              <ModalPortalCard step="03" accent="#138808" eyebrow="EPFO · Member Portal" title="EPFO portal" description="A KYC update asks for a passbook — fetched and finished in place." href="/epfo" cta="Login to EPFO →" onNavigate={() => setIsPortalModalOpen(false)} />
+              <ModalPortalCard step="01" accent="#1E3A8A" eyebrow="UPSC · CSE 2026" title="UPSC portal" description="A photograph holds up a job application — watch it become portal-ready in one flow." href="/upsc" cta="Login to UPSC →" busy={portalNav === '/upsc'} onNavigateStart={() => setPortalNav('/upsc')} onNavigate={() => {}} />
+              <ModalPortalCard step="02" accent="#EA580C" eyebrow="Vahan · Sarathi" title="Vahan portal" description="A licence upload waits on one photo — see it streamline without a second tool." href="/vahan" cta="Login to Vahan →" busy={portalNav === '/vahan'} onNavigateStart={() => setPortalNav('/vahan')} onNavigate={() => {}} />
+              <ModalPortalCard step="03" accent="#138808" eyebrow="EPFO · Member Portal" title="EPFO portal" description="A KYC update asks for a passbook — fetched and finished in place." href="/epfo" cta="Login to EPFO →" busy={portalNav === '/epfo'} onNavigateStart={() => setPortalNav('/epfo')} onNavigate={() => {}} />
             </div>
 
             <p className="mt-6 rounded-2xl bg-white/60 px-4 py-3 text-xs leading-5 text-slate-500 ring-1 ring-black/5">
               All logins are pre-filled for demo. You&apos;ll land on the portal&apos;s home and a subtle nudge will guide you to the upload where DocBridge works.
             </p>
+
+            {portalNav && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-white/72 backdrop-blur-[10px]">
+                <span className="h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-[#EA580C]" aria-hidden="true" />
+                <span className="text-sm font-semibold tracking-[0.12em] text-[#1E3A8A]">Opening {portalNav.replace('/', '').toUpperCase()} portal…</span>
+                <span className="text-xs text-slate-500">Preparing the login — this is instant on Netlify, just a moment locally.</span>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -304,6 +320,8 @@ function PortalCard({
   description,
   href,
   cta,
+  busy = false,
+  onNavigateStart,
 }: {
   step: string;
   accent: string;
@@ -312,11 +330,16 @@ function PortalCard({
   description: string;
   href: string;
   cta: string;
+  busy?: boolean;
+  onNavigateStart?: () => void;
 }) {
   return (
     <Link
       href={href}
-      className="group flex flex-col rounded-3xl border border-stone-200/60 bg-white/80 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 ease-in-out hover:-translate-y-1 hover:border-blue-300 hover:shadow-[0_16px_40px_rgba(30,58,138,0.14)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1E3A8A]"
+      prefetch
+      aria-busy={busy}
+      onClick={() => onNavigateStart?.()}
+      className={`group relative flex flex-col overflow-hidden rounded-3xl border border-stone-200/60 bg-white/80 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 ease-in-out hover:-translate-y-1 hover:border-blue-300 hover:shadow-[0_16px_40px_rgba(30,58,138,0.14)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1E3A8A] ${busy ? 'pointer-events-none' : ''}`}
     >
       <div className="flex items-start justify-between">
         <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-bold text-white" style={{ backgroundColor: accent }}>
@@ -329,8 +352,18 @@ function PortalCard({
       <h3 className="mt-5 text-lg font-bold tracking-tight text-[#1E3A8A]">{title}</h3>
       <p className="mt-2 flex-1 text-sm leading-6 text-slate-600">{description}</p>
       <span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#1E3A8A]">
-        {cta} <span className="transition group-hover:translate-x-1">→</span>
+        {busy ? (
+          <>
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-200 border-t-[#1E3A8A]" aria-hidden="true" />
+            Opening…
+          </>
+        ) : (
+          <>
+            {cta} <span className="transition group-hover:translate-x-1">→</span>
+          </>
+        )}
       </span>
+      {busy && <span className="absolute inset-0 rounded-3xl bg-white/45 backdrop-blur-[1px]" aria-hidden="true" />}
     </Link>
   );
 }
@@ -343,6 +376,8 @@ function ModalPortalCard({
   description,
   href,
   cta,
+  busy = false,
+  onNavigateStart,
   onNavigate,
 }: {
   step: string;
@@ -352,13 +387,20 @@ function ModalPortalCard({
   description: string;
   href: string;
   cta: string;
+  busy?: boolean;
+  onNavigateStart?: () => void;
   onNavigate: () => void;
 }) {
   return (
     <Link
       href={href}
-      onClick={onNavigate}
-      className="group flex flex-col rounded-3xl border border-white/50 bg-white/80 p-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] backdrop-blur transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-white hover:shadow-[0_16px_40px_rgba(30,58,138,0.16)]"
+      prefetch
+      aria-busy={busy}
+      onClick={() => {
+        onNavigateStart?.();
+        onNavigate();
+      }}
+      className={`group relative flex flex-col overflow-hidden rounded-3xl border border-white/50 bg-white/80 p-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] backdrop-blur transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-white hover:shadow-[0_16px_40px_rgba(30,58,138,0.16)] ${busy ? 'pointer-events-none' : ''}`}
     >
       <div className="flex items-start justify-between">
         <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-bold text-white" style={{ backgroundColor: accent }}>
@@ -371,8 +413,18 @@ function ModalPortalCard({
       <h3 className="mt-4 text-base font-bold tracking-tight text-[#1E3A8A]">{title}</h3>
       <p className="mt-2 flex-1 text-sm leading-6 text-slate-600">{description}</p>
       <span className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-[#1E3A8A]">
-        {cta} <span className="transition group-hover:translate-x-1">→</span>
+        {busy ? (
+          <>
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-200 border-t-[#EA580C]" aria-hidden="true" />
+            Opening…
+          </>
+        ) : (
+          <>
+            {cta} <span className="transition group-hover:translate-x-1">→</span>
+          </>
+        )}
       </span>
+      {busy && <span className="absolute inset-0 rounded-3xl bg-white/40 backdrop-blur-[1px]" aria-hidden="true" />}
     </Link>
   );
 }

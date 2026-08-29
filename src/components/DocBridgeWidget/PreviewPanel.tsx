@@ -7,15 +7,21 @@ import { COLORS } from '@/lib/constants';
 interface PreviewPanelProps {
   result: ProcessingResult;
   portalId: 'epfo' | 'upsc' | 'vahan';
+  source: 'digilocker' | 'device';
   onSubmit: (saveToDigiLocker: boolean) => void;
   onCancel: () => void;
+  onRequestSaveAuth?: () => void;
+  isSaveAuthed?: boolean;
 }
 
 export default function PreviewPanel({ 
   result, 
   portalId, 
+  source,
   onSubmit, 
-  onCancel 
+  onCancel,
+  onRequestSaveAuth,
+  isSaveAuthed = false,
 }: PreviewPanelProps) {
   const [saveToDigiLocker, setSaveToDigiLocker] = useState(true);
 
@@ -26,6 +32,20 @@ export default function PreviewPanel({
     : 0;
 
   const portalName = portalId === 'epfo' ? 'EPFO' : portalId === 'vahan' ? 'Sarathi' : 'UPSC';
+
+  const handleDownload = () => {
+    const ext = result.constraint.format === 'pdf' ? 'pdf' : result.constraint.format === 'png' ? 'png' : 'jpg';
+    const mime = ext === 'pdf' ? 'application/pdf' : ext === 'png' ? 'image/png' : 'image/jpeg';
+    const blob = result.processed.blob.slice(0, result.processed.blob.size, mime);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `docbridge-${portalId}-optimized.${ext}`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
 
   return (
     <div className="space-y-6">
@@ -62,7 +82,7 @@ export default function PreviewPanel({
           )}
         </div>
 
-        <div className="rounded-lg border-2 p-4 text-center" style={{ borderColor: COLORS.success, backgroundColor: COLORS.successLight }}>
+        <div className="relative rounded-lg border-2 p-4 text-center" style={{ borderColor: COLORS.success, backgroundColor: COLORS.successLight }}>
           <p className="text-xs font-bold uppercase tracking-wide" style={{ color: COLORS.success }}>Optimized ✓</p>
           <p className="mt-2 text-2xl font-bold" style={{ color: COLORS.success }}>
             {formatSize(processedSizeKB)}
@@ -70,6 +90,18 @@ export default function PreviewPanel({
           <p className="mt-1 text-xs" style={{ color: COLORS.success }}>
             Meets {portalName} rules
           </p>
+          <button
+            type="button"
+            onClick={handleDownload}
+            aria-label="Download optimized file"
+            className="mt-3 inline-flex items-center gap-1.5 rounded-full border bg-white px-3 py-1.5 text-xs font-bold shadow-sm transition-all hover:-translate-y-0.5 hover:shadow"
+            style={{ borderColor: COLORS.success, color: COLORS.success }}
+          >
+            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16" />
+            </svg>
+            Download
+          </button>
         </div>
       </div>
 
@@ -97,26 +129,55 @@ export default function PreviewPanel({
         </ul>
       </div>
 
-      {/* Save to DigiLocker */}
-      <label
-        className="flex cursor-pointer items-center gap-3 rounded-lg border p-4"
-        style={{ borderColor: COLORS.primary, backgroundColor: COLORS.primaryLight }}
-      >
-        <input
-          type="checkbox"
-          checked={saveToDigiLocker}
-          onChange={(e) => setSaveToDigiLocker(e.target.checked)}
-          className="h-5 w-5 accent-[#1E3A8A]"
-        />
-        <div>
-          <p className="text-sm font-semibold" style={{ color: COLORS.primary }}>
-            Save the optimized copy back to DigiLocker
-          </p>
-          <p className="text-xs" style={{ color: COLORS.gray[600] }}>
-            Next time you need this document for another portal, it&apos;s already correctly sized.
-          </p>
-        </div>
-      </label>
+      {/* Save to DigiLocker — DigiLocker source shows checkbox, device source shows sign-in button flow */}
+      {source === 'device' ? (
+        isSaveAuthed ? (
+          <div className="flex items-center gap-3 rounded-lg border p-4" style={{ borderColor: COLORS.success, backgroundColor: COLORS.successLight }}>
+            <span className="flex h-8 w-8 items-center justify-center rounded-full text-white" style={{ backgroundColor: COLORS.success }}>✓</span>
+            <div className="flex-1">
+              <p className="text-sm font-semibold" style={{ color: COLORS.success }}>Signed in — will save to DigiLocker</p>
+              <p className="text-xs" style={{ color: COLORS.gray[600] }}>This optimized file will be linked to your DigiLocker for reuse.</p>
+            </div>
+            <button type="button" onClick={() => onRequestSaveAuth?.()} className="text-xs font-semibold underline" style={{ color: COLORS.success }}>Change</button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => onRequestSaveAuth?.()}
+            className="flex w-full items-center gap-3 rounded-lg border p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(30,58,138,0.08)]"
+            style={{ borderColor: COLORS.primary, backgroundColor: COLORS.primaryLight }}
+          >
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white" style={{ color: COLORS.primary }}>
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+            </span>
+            <div className="flex-1">
+              <p className="text-sm font-semibold" style={{ color: COLORS.primary }}>Sign in and save to DigiLocker</p>
+              <p className="text-xs leading-5" style={{ color: COLORS.gray[600] }}>Connect your DigiLocker — this optimized file will be ready for reuse on other portals.</p>
+            </div>
+            <span className="rounded-full bg-white px-3 py-1 text-xs font-bold" style={{ color: COLORS.primary }}>Sign in →</span>
+          </button>
+        )
+      ) : (
+        <label
+          className="flex cursor-pointer items-center gap-3 rounded-lg border p-4"
+          style={{ borderColor: COLORS.primary, backgroundColor: COLORS.primaryLight }}
+        >
+          <input
+            type="checkbox"
+            checked={saveToDigiLocker}
+            onChange={(e) => setSaveToDigiLocker(e.target.checked)}
+            className="h-5 w-5 accent-[#1E3A8A]"
+          />
+          <div>
+            <p className="text-sm font-semibold" style={{ color: COLORS.primary }}>
+              Save the optimized copy back to DigiLocker
+            </p>
+            <p className="text-xs" style={{ color: COLORS.gray[600] }}>
+              Next time you need this document for another portal, it&apos;s already correctly sized.
+            </p>
+          </div>
+        </label>
+      )}
 
       {/* Action Buttons */}
       <div className="flex gap-4">
@@ -137,7 +198,7 @@ export default function PreviewPanel({
           Cancel
         </button>
         <button
-          onClick={() => onSubmit(saveToDigiLocker)}
+          onClick={() => onSubmit(source === 'device' ? isSaveAuthed : saveToDigiLocker)}
           className="flex-1 py-3 px-4 rounded-lg font-semibold text-white transition-colors"
           style={{ backgroundColor: COLORS.success }}
           onMouseEnter={(e) => {

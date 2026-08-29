@@ -23,6 +23,8 @@ export default function DocBridgeWidget({
 }: DocBridgeWidgetProps) {
   const [state, setState] = useState<WidgetState>('idle');
   const [showModal, setShowModal] = useState(false);
+  const [showSaveAuthModal, setShowSaveAuthModal] = useState(false);
+  const [isSaveAuthed, setIsSaveAuthed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [processingResult, setProcessingResult] = useState<any>(null);
   const [selectedAsset, setSelectedAsset] = useState<DigiLockerAsset | null>(null);
@@ -145,6 +147,8 @@ export default function DocBridgeWidget({
     setError(null);
     setProcessingResult(null);
     setSelectedAsset(null);
+    setIsSaveAuthed(false);
+    setShowSaveAuthModal(false);
   };
 
   return (
@@ -211,6 +215,9 @@ export default function DocBridgeWidget({
         <PreviewPanel
           result={processingResult}
           portalId={portalId}
+          source={source}
+          isSaveAuthed={isSaveAuthed}
+          onRequestSaveAuth={() => setShowSaveAuthModal(true)}
           onSubmit={handleSubmit}
           onCancel={handleReset}
         />
@@ -246,7 +253,7 @@ export default function DocBridgeWidget({
         </div>
       )}
 
-      {/* DigiLocker Modal */}
+      {/* DigiLocker Modal — fetch flow */}
       {showModal && (
         <DigiLockerModal
           portalId={portalId}
@@ -256,6 +263,20 @@ export default function DocBridgeWidget({
             setState('idle');
           }}
           onAssetSelected={handleAssetSelected}
+        />
+      )}
+
+      {/* DigiLocker Modal — save-auth flow for device uploads */}
+      {showSaveAuthModal && (
+        <DigiLockerModal
+          portalId={portalId}
+          signInName={PORTALS.find(p => p.id === portalId)?.persona?.name || 'the citizen'}
+          onClose={() => setShowSaveAuthModal(false)}
+          onAssetSelected={() => {}}
+          onAuthenticated={() => {
+            setIsSaveAuthed(true);
+            setShowSaveAuthModal(false);
+          }}
         />
       )}
     </div>
