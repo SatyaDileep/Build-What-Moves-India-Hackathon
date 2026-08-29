@@ -38,6 +38,8 @@ export interface ProcessingResult {
     blob: Blob;
     size_kb: number;
     dimensions?: { width: number; height: number };
+    warning?: string;
+    wasScaled?: boolean;
   };
   constraint: DocumentConstraint;
 }

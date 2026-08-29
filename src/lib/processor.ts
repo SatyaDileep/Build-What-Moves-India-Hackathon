@@ -33,48 +33,87 @@ async function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: nu
   });
 }
 
-// Compress image to target size in KB
+// Helper: scale canvas uniformly to new dimensions
+function scaleCanvas(source: HTMLCanvasElement, targetW: number, targetH: number): HTMLCanvasElement {
+  const c = document.createElement('canvas');
+  c.width = targetW;
+  c.height = targetH;
+  const ctx = c.getContext('2d')!;
+  ctx.drawImage(source, 0, 0, source.width, source.height, 0, 0, targetW, targetH);
+  return c;
+}
+
+// Compress image to target size in KB — now also scales down if quality alone cannot hit the cap
 async function compressToTargetSize(
   canvas: HTMLCanvasElement,
   format: 'jpeg' | 'png',
   targetKB: number,
-  minKB?: number
-): Promise<Blob> {
-  let low = 0.1;
-  let high = 1.0;
-  // Start from the highest quality as the best candidate so that if the
-  // target is unreachable (small canvas, high cap) we return the largest,
-  // highest-quality file instead of collapsing toward the smallest.
-  let bestBlob: Blob = await canvasToBlob(canvas, `image/${format}`, 1.0);
+  minKB?: number,
+  aggressive = false
+): Promise<{ blob: Blob; canvas: HTMLCanvasElement; wasScaled: boolean; qualityWarning?: string }> {
+  let workingCanvas = canvas;
+  let wasScaled = false;
+  let qualityWarning: string | undefined;
 
-  // For JPEG, iterate quality to hit target keeping the highest quality
-  // that stays at or below the target size.
-  if (format === 'jpeg') {
-    for (let attempt = 0; attempt < 12; attempt++) {
-      const mid = (low + high) / 2;
-      const blob = await canvasToBlob(canvas, 'image/jpeg', mid);
-      const sizeKB = blob.size / 1024;
-
-      if (sizeKB <= targetKB) {
-        // Within the cap: keep this higher-quality candidate and try higher.
-        bestBlob = blob;
-        low = mid;
-      } else {
-        // Over the cap: back off to lower quality.
-        high = mid;
+  const tryQuality = async (c: HTMLCanvasElement): Promise<Blob> => {
+    let low = aggressive ? 0.05 : 0.1;
+    let high = 1.0;
+    let bestBlob: Blob = await canvasToBlob(c, `image/${format}`, 1.0);
+    if (format === 'jpeg') {
+      // track smallest blob seen so we can fall back to it if nothing hits target
+      let smallestBlob = bestBlob;
+      for (let attempt = 0; attempt < 12; attempt++) {
+        const mid = (low + high) / 2;
+        const blob = await canvasToBlob(c, 'image/jpeg', mid);
+        const sizeKB = blob.size / 1024;
+        if (blob.size < smallestBlob.size) smallestBlob = blob;
+        if (sizeKB <= targetKB) {
+          bestBlob = blob;
+          low = mid;
+        } else {
+          high = mid;
+        }
+        if (high - low < 0.005) break;
       }
-
-      if (high - low < 0.005) break;
+      // if even the smallest quality still over target, use it as best (will trigger scaling)
+      if (bestBlob.size / 1024 > targetKB) bestBlob = smallestBlob;
     }
+    return bestBlob;
+  };
+
+  let bestBlob = await tryQuality(workingCanvas);
+
+  // If still over target, iteratively scale down (keeps aspect ratio) and re-try quality
+  let scaleAttempts = 0;
+  const maxScaleAttempts = aggressive ? 8 : 6;
+  const scaleBase = aggressive ? 0.78 : 0.82;
+  while (bestBlob.size / 1024 > targetKB && scaleAttempts < maxScaleAttempts) {
+    const scale = scaleBase - scaleAttempts * 0.04;
+    const pow = Math.pow(scale, scaleAttempts + 1);
+    const newW = Math.max(aggressive ? 90 : 120, Math.round(canvas.width * pow));
+    const newH = Math.max(aggressive ? 90 : 120, Math.round(canvas.height * pow));
+    if (newW >= canvas.width && newH >= canvas.height) break;
+    workingCanvas = scaleCanvas(canvas, newW, newH);
+    wasScaled = true;
+    bestBlob = await tryQuality(workingCanvas);
+    if (bestBlob.size / 1024 <= targetKB) break;
+    scaleAttempts++;
+  }
+
+  if (bestBlob.size / 1024 > targetKB) {
+    qualityWarning = `Even after ${aggressive ? 'strong' : ''} compression the file is ${Math.round(bestBlob.size / 1024)}KB — over the ${targetKB}KB limit. Uploading a smaller source photo will keep clarity, or we can compress harder (quality will drop).`;
+  } else if (wasScaled) {
+    qualityWarning = `Compressed ${aggressive ? 'strongly ' : ''}with scaling to meet ${targetKB}KB — clarity is ${aggressive ? 'noticeably' : 'slightly'} reduced to fit the portal's strict limit.`;
   }
 
   // If the portal requires a minimum size, add subtle photo grain and re-encode
-  // until the file clears the floor (simple images can compress below it).
   if (minKB && bestBlob.size / 1024 < minKB) {
-    bestBlob = await reachMinimumSize(canvas, format, targetKB, minKB);
+    const grained = await reachMinimumSize(workingCanvas, format, targetKB, minKB);
+    // only use grained if it still respects the cap
+    if (grained.size / 1024 <= targetKB) bestBlob = grained;
   }
 
-  return bestBlob;
+  return { blob: bestBlob, canvas: workingCanvas, wasScaled, qualityWarning };
 }
 
 // Nudge a too-small document above the portal's minimum-size floor by
@@ -175,11 +214,11 @@ function normalizeBackground(canvas: HTMLCanvasElement): HTMLCanvasElement {
 }
 
 // Convert Canvas to PDF using pdf-lib
-async function canvasToPDF(canvas: HTMLCanvasElement): Promise<Blob> {
+async function canvasToPDF(canvas: HTMLCanvasElement, quality = 0.9): Promise<Blob> {
   const pdfDoc = await PDFDocument.create();
   
   // Convert canvas to JPEG for PDF embedding
-  const jpegBlob = await canvasToBlob(canvas, 'image/jpeg', 0.9);
+  const jpegBlob = await canvasToBlob(canvas, 'image/jpeg', quality);
   const jpegArrayBuffer = await jpegBlob.arrayBuffer();
   const jpegImage = await pdfDoc.embedJpg(new Uint8Array(jpegArrayBuffer));
   
@@ -198,6 +237,83 @@ async function canvasToPDF(canvas: HTMLCanvasElement): Promise<Blob> {
   
   const pdfBytes = await pdfDoc.save();
   return new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' });
+}
+
+// Prod-grade PDF compression via pdfjs rendering + pdf-lib rebuild.
+// Renders each PDF page to canvas and re-encodes at lower scale/quality
+// until it fits the portal's max_kb. Falls back to original on error.
+async function compressPDFBlob(
+  file: Blob,
+  targetKB: number,
+  aggressive = false
+): Promise<{ blob: Blob; wasScaled: boolean; warning?: string }> {
+  try {
+    const pdfjsLib: any = await import('pdfjs-dist');
+    // Use CDN worker in browser; disable if unavailable
+    try {
+      const workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+      pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
+    } catch {}
+    const data = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data, useSystemFonts: true }).promise;
+    const numPages = pdf.numPages;
+
+    // Try quality/scale combos from gentle to aggressive
+    const qualities = aggressive ? [0.7, 0.55, 0.4, 0.25] : [0.82, 0.7, 0.55];
+    const scales = aggressive ? [1.2, 1.0, 0.8, 0.65] : [1.5, 1.2, 1.0];
+
+    let bestBlob: Blob | null = null;
+    let bestWasScaled = false;
+    let triedOver = false;
+
+    for (const q of qualities) {
+      for (const s of scales) {
+        const newDoc = await PDFDocument.create();
+        for (let i = 1; i <= numPages; i++) {
+          const page = await pdf.getPage(i);
+          const viewport = page.getViewport({ scale: s });
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.round(viewport.width);
+          canvas.height = Math.round(viewport.height);
+          const ctx = canvas.getContext('2d')!;
+          // @ts-ignore
+          await page.render({ canvasContext: ctx, viewport }).promise;
+          const jpegBlob = await canvasToBlob(canvas, 'image/jpeg', q);
+          const arr = await jpegBlob.arrayBuffer();
+          const img = await newDoc.embedJpg(new Uint8Array(arr));
+          const pdfPage = newDoc.addPage([img.width, img.height]);
+          pdfPage.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
+        }
+        const bytes = await newDoc.save();
+        const blob = new Blob([new Uint8Array(bytes)], { type: 'application/pdf' });
+        const sizeKB = blob.size / 1024;
+        if (sizeKB <= targetKB) {
+          const wasScaled = q < 0.8 || s < 1.2;
+          const warning = wasScaled
+            ? `PDF compressed ${aggressive ? 'strongly ' : ''}to ${Math.round(sizeKB)}KB to meet the ${targetKB}KB limit — clarity is ${aggressive ? 'noticeably' : 'slightly'} reduced.`
+            : undefined;
+          return { blob, wasScaled, warning };
+        }
+        triedOver = true;
+        if (!bestBlob || blob.size < bestBlob.size) bestBlob = blob;
+      }
+    }
+
+    // No combo hit target — return smallest we made with warning
+    if (bestBlob) {
+      const sizeKB = bestBlob.size / 1024;
+      return {
+        blob: bestBlob,
+        wasScaled: true,
+        warning: `Even after ${aggressive ? 'strong' : ''} PDF compression the file is ${Math.round(sizeKB)}KB — over the ${targetKB}KB limit. Try a lighter scan or split the PDF.`,
+      };
+    }
+    // Fallback to original if rendering failed to beat it
+    return { blob: file, wasScaled: false, warning: triedOver ? `PDF still ${Math.round(file.size / 1024)}KB after compression — over ${targetKB}KB.` : undefined };
+  } catch (e) {
+    // pdfjs unavailable or corrupted PDF — fall back to original with warning
+    return { blob: file, wasScaled: false, warning: `Could not recompress this PDF in the browser — try exporting a lighter scan.` };
+  }
 }
 
 // Build a representative canvas for the requested portal. Used when the
@@ -246,12 +362,62 @@ function createSyntheticCanvas(constraint: DocumentConstraint): HTMLCanvasElemen
 export async function processDocument(
   file: Blob,
   constraint: DocumentConstraint,
-  assetMeta?: { name: string; type: string; size_mb: number }
+  assetMeta?: { name: string; type: string; size_mb: number },
+  opts?: { aggressive?: boolean }
 ): Promise<ProcessingResult> {
+  const isPDFSource = file.type === 'application/pdf' || assetMeta?.type === 'application/pdf' || assetMeta?.name?.toLowerCase().endsWith('.pdf');
+  const wantsPDF = constraint.format === 'pdf';
+
+  // PDF → PDF: prod-grade — try real compression via pdfjs if over limit, else pass through
+  if (isPDFSource && wantsPDF) {
+    const sizeKB = file.size / 1024;
+    const maxKB = constraint.max_kb;
+    const over = maxKB ? sizeKB > maxKB : false;
+    if (!over) {
+      return {
+        success: true,
+        original: {
+          blob: file,
+          size_mb: assetMeta?.size_mb ?? file.size / (1024 * 1024),
+          dimensions: undefined,
+          assetName: assetMeta?.name,
+          assetType: assetMeta?.type,
+        },
+        processed: {
+          blob: file,
+          size_kb: sizeKB,
+          dimensions: undefined,
+          warning: `Verified — your PDF is ${Math.round(sizeKB)}KB, within the ${maxKB}KB limit. Preserved original quality without re-encoding.`,
+          wasScaled: false,
+        },
+        constraint,
+      };
+    }
+    // Over limit — attempt browser-side PDF recompression (image-based PDFs shrink well)
+    const compressed = await compressPDFBlob(file, maxKB!, !!opts?.aggressive);
+    return {
+      success: true,
+      original: {
+        blob: file,
+        size_mb: assetMeta?.size_mb ?? file.size / (1024 * 1024),
+        dimensions: undefined,
+        assetName: assetMeta?.name,
+        assetType: assetMeta?.type,
+      },
+      processed: {
+        blob: compressed.blob,
+        size_kb: compressed.blob.size / 1024,
+        dimensions: undefined,
+        warning: compressed.warning || `Your PDF is ${Math.round(sizeKB)}KB — over the ${maxKB}KB limit.`,
+        wasScaled: compressed.wasScaled,
+      },
+      constraint,
+    };
+  }
+
   // Try to decode the uploaded file as an image. Files that can't be rendered
-  // as an image (PDF, DOCX, etc.) are safely "converted" to a representative
-  // document in the portal's target format so the demo never fails with a
-  // generic error — whatever the user uploads, we still deliver a usable file.
+  // as an image (PDF for photo, DOCX, etc.) fall back to synthetic only for
+  // non-PDF targets — but we surface that as a warning.
   let decodedCanvas: HTMLCanvasElement | null = null;
   try {
     decodedCanvas = await fileToCanvas(file);
@@ -264,6 +430,7 @@ export async function processDocument(
     : undefined;
 
   // Use the decoded source image, or synthesize one matching the portal rule.
+  const usedSyntheticFallback = !decodedCanvas;
   let processedCanvas = decodedCanvas || createSyntheticCanvas(constraint);
   
   // Apply transformations based on constraint
@@ -281,17 +448,80 @@ export async function processDocument(
   }
   
   let processedBlob: Blob;
+  let wasScaled = false;
+  let qualityWarning: string | undefined;
+
+  // If we fell back to synthetic because the file couldn't be decoded (e.g. PDF for photo),
+  // surface that so the UI doesn't silently show a dummy
+  let syntheticWarning: string | undefined;
+  if (usedSyntheticFallback && !(isPDFSource && wantsPDF)) {
+    syntheticWarning = `We couldn't render your original file as an image (it may be a PDF or unsupported format) — showing a placeholder that meets the portal's format. For best results, upload a JPEG photo.`;
+    qualityWarning = syntheticWarning;
+  }
   
   if (constraint.format === 'pdf') {
-    processedBlob = await canvasToPDF(processedCanvas);
+    // If synthetic fallback was used for PDF target, we already handled PDF→PDF early return;
+    // this path is image → PDF conversion — try multiple qualities/scales to hit the cap
+    processedBlob = await canvasToPDF(processedCanvas, 0.9);
+    if (constraint.max_kb && processedBlob.size / 1024 > constraint.max_kb) {
+      const targetKB = constraint.max_kb;
+      let bestBlob = processedBlob;
+      let bestScaled = false;
+      const qualities = opts?.aggressive ? [0.7, 0.55, 0.4, 0.25] : [0.7, 0.55];
+      const scales = opts?.aggressive ? [0.85, 0.7, 0.55] : [0.85, 0.7];
+      outer: for (const q of qualities) {
+        for (const sc of scales) {
+          const scaled = scaleCanvas(processedCanvas, Math.max(120, Math.round(processedCanvas.width * sc)), Math.max(120, Math.round(processedCanvas.height * sc)));
+          const blob = await canvasToPDF(scaled, q);
+          if (blob.size < bestBlob.size) bestBlob = blob;
+          if (blob.size / 1024 <= targetKB) {
+            processedBlob = blob;
+            processedCanvas = scaled;
+            wasScaled = true;
+            qualityWarning = `PDF re-encoded ${opts?.aggressive ? 'strongly ' : ''}to ${Math.round(blob.size / 1024)}KB to meet the ${targetKB}KB limit — quality is ${opts?.aggressive ? 'noticeably' : 'slightly'} reduced.`;
+            break outer;
+          }
+        }
+      }
+      if (bestBlob.size / 1024 > targetKB && bestBlob !== processedBlob) {
+        // No combo hit target — keep smallest but warn
+        const extra = syntheticWarning ? ` ${syntheticWarning}` : '';
+        if (bestBlob.size < processedBlob.size) {
+          processedBlob = bestBlob;
+          wasScaled = true;
+        }
+        qualityWarning = `PDF is ${Math.round(processedBlob.size / 1024)}KB — over the ${targetKB}KB limit. Try a lighter source image.${extra}`;
+      } else if (processedBlob.size / 1024 > targetKB) {
+        const extra = usedSyntheticFallback ? '' : ` ${qualityWarning || ''}`;
+        qualityWarning = `PDF is ${Math.round(processedBlob.size / 1024)}KB — over the ${targetKB}KB limit. Try a lighter source image.${extra}`;
+      }
+    }
   } else {
     const targetKB = constraint.max_kb || 100;
-    processedBlob = await compressToTargetSize(
+    const result = await compressToTargetSize(
       processedCanvas,
       constraint.format === 'jpeg' ? 'jpeg' : 'png',
       targetKB,
-      constraint.min_kb
+      constraint.min_kb,
+      !!opts?.aggressive
     );
+    processedBlob = result.blob;
+    processedCanvas = result.canvas;
+    wasScaled = result.wasScaled;
+    // Merge synthetic fallback warning with compression warning so dummy is not silent
+    if (syntheticWarning && result.qualityWarning) {
+      qualityWarning = `${syntheticWarning} ${result.qualityWarning}`;
+    } else if (result.qualityWarning) {
+      qualityWarning = result.qualityWarning;
+    } else if (syntheticWarning) {
+      qualityWarning = syntheticWarning;
+    }
+    // Final guard: if still over, keep warning (UI will offer aggressive recompress)
+    if (processedBlob.size / 1024 > targetKB && !qualityWarning) {
+      qualityWarning = `File is ${Math.round(processedBlob.size / 1024)}KB — over the ${targetKB}KB limit.`;
+    } else if (processedBlob.size / 1024 > targetKB && syntheticWarning && !result.qualityWarning) {
+      qualityWarning = `${syntheticWarning} File is still ${Math.round(processedBlob.size / 1024)}KB — over the ${targetKB}KB limit.`;
+    }
   }
   
   return {
@@ -310,6 +540,8 @@ export async function processDocument(
         width: processedCanvas.width,
         height: processedCanvas.height,
       },
+      warning: qualityWarning,
+      wasScaled,
     },
     constraint,
   };

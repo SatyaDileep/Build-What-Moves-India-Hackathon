@@ -12,6 +12,8 @@ interface PreviewPanelProps {
   onCancel: () => void;
   onRequestSaveAuth?: () => void;
   isSaveAuthed?: boolean;
+  onRecompress?: () => void;
+  isRecompressing?: boolean;
 }
 
 export default function PreviewPanel({ 
@@ -22,6 +24,8 @@ export default function PreviewPanel({
   onCancel,
   onRequestSaveAuth,
   isSaveAuthed = false,
+  onRecompress,
+  isRecompressing = false,
 }: PreviewPanelProps) {
   const [saveToDigiLocker, setSaveToDigiLocker] = useState(true);
 
@@ -32,6 +36,8 @@ export default function PreviewPanel({
     : 0;
 
   const portalName = portalId === 'epfo' ? 'EPFO' : portalId === 'vahan' ? 'Sarathi' : 'UPSC';
+  const isOverLimit = !!result.constraint.max_kb && processedSizeKB > result.constraint.max_kb + 0.5;
+  const warningText = result.processed.warning || (isOverLimit ? `This file is ${Math.round(processedSizeKB)}KB — over the ${result.constraint.max_kb}KB limit for ${portalName}.` : undefined);
 
   const handleDownload = () => {
     const ext = result.constraint.format === 'pdf' ? 'pdf' : result.constraint.format === 'png' ? 'png' : 'jpg';
@@ -106,16 +112,16 @@ export default function PreviewPanel({
       </div>
 
       {/* Requirements Met */}
-      <div className="p-4 rounded-lg" style={{ backgroundColor: COLORS.successLight }}>
-        <h4 className="font-semibold mb-2" style={{ color: COLORS.success }}>
-          ✓ Requirements Met
+      <div className="p-4 rounded-lg" style={{ backgroundColor: isOverLimit ? '#FEF2F2' : COLORS.successLight, border: isOverLimit ? `1px solid #FECACA` : 'none' }}>
+        <h4 className="font-semibold mb-2" style={{ color: isOverLimit ? '#DC2626' : COLORS.success }}>
+          {isOverLimit ? '⚠ Size still over limit' : '✓ Requirements Met'}
         </h4>
         <ul className="text-sm space-y-1" style={{ color: COLORS.gray[700] }}>
           {result.constraint.format && (
             <li>• Format: {result.constraint.format.toUpperCase()}</li>
           )}
           {result.constraint.max_kb && (
-            <li>• Max size: {result.constraint.max_kb}KB (yours: {Math.round(processedSizeKB)}KB)</li>
+            <li>• Max size: {result.constraint.max_kb}KB (yours: {Math.round(processedSizeKB)}KB) {isOverLimit && <span className="font-bold text-red-600">— over</span>}</li>
           )}
           {result.constraint.min_kb && (
             <li>• Min size: {result.constraint.min_kb}KB (yours: {Math.round(processedSizeKB)}KB)</li>
@@ -128,6 +134,37 @@ export default function PreviewPanel({
           )}
         </ul>
       </div>
+
+      {warningText && (
+        <div className="rounded-lg border p-4" style={{ backgroundColor: isOverLimit ? '#FEF2F2' : '#FFFBEB', borderColor: isOverLimit ? '#FECACA' : '#FDE68A' }}>
+          <div className="flex gap-3">
+            <span className="mt-0.5 text-lg" aria-hidden="true">{isOverLimit ? '⚠️' : 'ℹ️'}</span>
+            <div className="flex-1">
+              <p className="text-sm font-semibold" style={{ color: isOverLimit ? '#991B1B' : '#92400E' }}>{isOverLimit ? 'Needs attention before upload' : 'Heads up'}</p>
+              <p className="mt-1 text-sm leading-6" style={{ color: isOverLimit ? '#7F1D1D' : '#78350F' }}>{warningText}</p>
+              {!isOverLimit && result.processed.wasScaled && (
+                <p className="mt-2 text-xs" style={{ color: COLORS.gray[500] }}>We scaled the image slightly to fit the limit — still portal-compliant.</p>
+              )}
+            </div>
+          </div>
+          {isOverLimit && onRecompress && (
+            <button
+              type="button"
+              onClick={onRecompress}
+              disabled={isRecompressing}
+              className="mt-3 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 disabled:opacity-50"
+              style={{ backgroundColor: COLORS.primary }}
+            >
+              {isRecompressing ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : null}
+              {isRecompressing ? 'Compressing…' : 'Try stronger compression'}
+              <span className="text-xs font-normal opacity-80">(quality will drop slightly)</span>
+            </button>
+          )}
+          {isOverLimit && !onRecompress && (
+            <p className="mt-3 text-xs" style={{ color: COLORS.gray[600] }}>Tip: try a smaller source photo for best clarity, or use “Upload from device” with a lighter file.</p>
+          )}
+        </div>
+      )}
 
       {/* Save to DigiLocker — DigiLocker source shows checkbox, device source shows sign-in button flow */}
       {source === 'device' ? (

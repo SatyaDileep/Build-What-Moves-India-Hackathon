@@ -77,13 +77,13 @@ export default function GovernmentHeader({
                     cx="12" cy="12" r="3" 
                     fill="white"
                   />
-                  {/* 24 Spokes */}
+                  {/* 24 Spokes — toFixed to avoid hydration mismatch (server vs client float) */}
                   {Array.from({ length: 24 }).map((_, i) => {
-                    const angle = (i * 15) * (Math.PI / 180);
-                    const x1 = 12 + 4 * Math.cos(angle);
-                    const y1 = 12 + 4 * Math.sin(angle);
-                    const x2 = 12 + 9.5 * Math.cos(angle);
-                    const y2 = 12 + 9.5 * Math.sin(angle);
+                    const angle = (i * 15 * Math.PI) / 180;
+                    const x1 = (12 + 4 * Math.cos(angle)).toFixed(3);
+                    const y1 = (12 + 4 * Math.sin(angle)).toFixed(3);
+                    const x2 = (12 + 9.5 * Math.cos(angle)).toFixed(3);
+                    const y2 = (12 + 9.5 * Math.sin(angle)).toFixed(3);
                     return (
                       <line
                         key={i}

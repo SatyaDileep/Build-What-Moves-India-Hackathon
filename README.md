@@ -1,118 +1,204 @@
-# DocBridge
+# DocBridge — One Upload Layer for India’s Many Official Portals
 
-> A trusted document-preparation layer for Indian public-service portals.
+> **A DigiLocker-first, browser-native document layer that makes any government upload just work.**
 
-**🔗 Live demo → [https://incredible-taffy-db08a6.netlify.app](https://incredible-taffy-db08a6.netlify.app)**
+**🔗 Live → [incredible-taffy-db08a6.netlify.app](https://incredible-taffy-db08a6.netlify.app)** · Built for **Build What Moves India** Hackathon
 
-DocBridge turns the most frustrating step in a public-service application — getting an attachment accepted — into a guided, one-click experience. It is built for the millions of people who face cryptic upload rules, repeated rejection messages, and session timeouts while applying for essential services like UPSC exams, driving licences, and EPFO claims. One layer, many portals, zero detours.
+We got tired of watching the same story repeat on every Indian portal — a villager, a pensioner, a student, all stuck on *one photo* or *one passbook PDF* that the site silently rejects. So we built the layer that should have existed: **one calm upload experience that adapts to each portal’s own rules, without asking citizens to leak sensitive docs to random converter sites.**
 
-## Why DocBridge matters
+---
 
-Across Indian government and public-service websites, citizens are routinely asked to submit documents with exact requirements:
+## The problem we’re obsessed with
 
-- A specific format such as PDF or JPEG
-- Tight file-size limits, often measured in kilobytes
-- Pixel-perfect photograph dimensions
-- A white or plain background
-- Critical details that must remain clearly visible
+UPSC, Sarathi (Vahan), and EPFO all ask for the *same kind of thing* — a photo / a passbook — but each one enforces a **different, cryptic rule**:
 
-Today, the typical workaround is risky and exhausting: download a sensitive document, upload it to an unfamiliar third-party conversion website, resize or compress it manually, and retry the government form until it accepts the file. That experience is especially difficult for senior citizens, first-time applicants, and people accessing services from low-end phones or constrained networks.
+* PDF vs JPEG, exactly
+* 10–20 KB vs 20–200 KB vs 500 KB
+* 3.5×4.5 cm, 350–1000 px, 70–80% face, plain white background
+* “Account number must be visible”
 
-**DocBridge removes that detour.**
+The citizen’s workaround today? **Download the Aadhaar/passbook → upload it to an unknown “resize PDF online” site → compress → retry → fail → retry.** Especially brutal for:
 
-## Our core proposition: DigiLocker-powered trust
+* **Remote & first-time users** — who’ve never heard of “KB, DPI, crop tools”
+* **Elderly citizens** — for whom a rejected KYC means another trip, another helper, another day lost
+* **Even coders** — who still end up pasting an Aadhaar onto a shady tool and wondering if they just leaked it
 
-DocBridge connects to a citizen's authorised DigiLocker documents rather than asking them to hand sensitive files to random converter sites. With clear consent, the user selects the document they need from their own vault; DocBridge then prepares only what the destination portal requires.
+**DocBridge kills that detour.** We fetch from a *trusted source* (DigiLocker), prepare *in the browser* to the portal’s own spec, and submit a file that the portal’s **existing validation already accepts** — no backend rewrite needed.
 
-This creates a better privacy and trust model:
+---
 
-- **Fewer risky hand-offs:** citizens do not need to circulate identity documents through unfamiliar file tools.
-- **Consent-first access:** the user chooses the source document and reviews the processed result before submission.
-- **Privacy by design:** processing happens in the browser, limiting unnecessary movement of document data through additional services.
-- **Production-ready security direction:** a real DigiLocker and storage integration can use authenticated, encrypted transport and access controls, while preserving the same seamless experience.
+## What we shipped (and we’re bragging for a reason)
 
-The current prototype uses mock DigiLocker data and authentication to demonstrate the flow safely; its architecture is built around a real consent-based DigiLocker integration.
+This isn’t a Figma prototype. It’s a **working Next.js app with three real portal journeys** that you can demo end-to-end right now.
 
-## How it works
+### 🏠 Home — `src/app/page.tsx:20`
 
-1. **Drop in DocBridge** beside a legacy portal's existing file input.
-2. **Read the rules with OpenAI** — our text-capable models parse the portal's human-written upload instructions into a precise, machine-readable constraint set.
-3. **Fetch with consent** from the user's DigiLocker vault.
-4. **Prepare with AI** in the browser: an AI-guided pipeline decides the exact crop, format (JPG vs PDF), and compression level needed for *this* document against *this* portal's rules, then converts and optimises the file in one pass.
-5. **Preview before sending** so the citizen stays in control.
-6. **Submit a compliant attachment** to the portal's existing backend.
+* No “No two portals…” pill clutter. Clean hero + **TricolorBar** at `src/components/ui/TricolorBar.tsx:1` — a 1.5px `saffron / white / green` bar with a **subtle 24-spoke Ashoka Chakra** (`src/components/ui/AshokaChakra.tsx:3`, `0.62` opacity outline, not a flag reproduction).
+* Hero CTA **Login to see it in action** doesn’t just scroll — it opens a **glassmorphic modal** (`backdrop-blur-[14px]`, `bg-white/70`, `modalIn` at `src/app/globals.css:270`) with a loader. Inline portal cards below do the same: **UPSC / Vahan / EPFO** — each says *“Login to X portal to see it in action”* in plain scenario language (no KB/JPEG jargon), with `prefetch` + spinner `Opening UPSC…` (`src/app/page.tsx:246`) so dev compile delay never feels dead.
+* Structure brag: `principles` → `Made for millions` → `One simple bridge` → `Portals` → `Designed to scale` → `Digital bridge` — all Tailwind + `glass-card` (`globals.css:229`) with `jaali-mesh` and `bridge-line` animation.
 
-The portal does not need to replace its legacy validation stack. DocBridge meets that stack where it is.
+### 🏛️ Portal homes that actually feel like the portals — `src/components/portals/*.tsx`
 
-## Built with AI (yes, we brag about it)
+We stopped landing you directly on an upload. Now **Login → Real Home → Nudge → Upload** — the way a judge *feels* the portal:
 
-DocBridge is genuinely AI-powered — not just "modern." We lean on OpenAI models at two critical moments:
+* **EPFO** `src/components/portals/EPFOPortal.tsx:31` — `login` (UAN `10098765432` + `4821` captcha autofilled) → `home` (Member Snapshot + Establishment `DS/12345/789` + PF Balance `₹2,84,350` + Quick services: View Passbook / Transfer / Claim / e-Nomination + Recent activity table) → persistent amber **PortalNudge** (`src/components/ui/PortalNudge.tsx:22`, with ✕ + “Show again”) `Open Manage → KYC now` → `kyc` (real upload + `DocBridge assist`) → `submitted`.
+* **Vahan / Sarathi** `src/components/portals/VahanPortal.tsx:12` — `DL2026-0092451` + `7392` captcha → `dashboard` (Application home `60% complete`, Progress tracker, Services chips) → nudge `Photograph upload is pending` → `upload` (clean, no “Current task / Pain point” demo refs, only `DocBridge assist`) → `submitted`.
+* **UPSC** `src/components/portals/UPSCPortal.tsx:28` — `UPSC2024001234` + `5829` captcha → `dashboard` (Candidate home `CSE 2026`, checklist, My applications) → nudge `Photograph upload pending` → `upload` (no mock breadcrumb, no “Status” card, no “Why DocBridge” essay) → `submitted`.
 
-- **Understanding each portal:** every upload rule a government form describes in plain language — "JPEG, 20–50 KB, 3.5 × 4.5 cm, white background" — is turned into an exact machine-readable specification by an OpenAI model, so DocBridge knows precisely what to produce.
-- **Doing the conversion right:** the compression and conversion decisions (shrink it, re-encode it, change the format) are driven by that AI-derived spec, so the resulting attachment is optimised for acceptance, not just guessed at.
+All logins are **one-click, no validation friction** — autofilled and ready for stage demo.
 
-And we built the whole thing with **OpenAI Codex** — the UI, the journeys, the processing pipeline, and this README were written with AI-assisted coding. Human judgement steers; the models do the heavy lifting.
+### 🔐 DigiLocker — `src/components/DocBridgeWidget/DigiLockerModal.tsx:21` + `src/lib/supabase.ts:6`
 
-## Built for real public-service journeys
+* Mock DigiLocker vault (`USER_PROFILES`, `DIGILOCKER_ASSETS` at `src/lib/constants.ts:72`) generates **synthetic canvases** for passbook/selfie so demo never needs real Aadhaar.
+* Modal now has **subtle ⓘ tooltip** beside labels (*“Any 10-digit number / 6-digit code works — already filled for you.”* at `DigiLockerModal.tsx:132`), autofilled `9876543210` / `582914` — no “Demo hint” shouting.
+* **From DigiLocker** vs **Upload from device** chooser at `src/components/DocBridgeWidget/index.tsx:152`. If you pick *device*, the **Save to DigiLocker checkbox becomes a `Sign in and save to DigiLocker` button** (`PreviewPanel.tsx:132`) that re-opens the same DigiLocker login and shows `✓ Signed in — will save` (`PreviewPanel.tsx:135`) — finally feels connected, not disconnected.
 
-### EPFO KYC: a pensioner’s passbook upload
+### ✨ Optimised preview — `src/components/DocBridgeWidget/PreviewPanel.tsx:17`
 
-Ramesh needs to upload a passbook copy for EPFO KYC, but the portal accepts only a PDF under 500 KB with the account number visible. DocBridge retrieves the selected passbook image from DigiLocker, converts it to PDF, compresses it to the required size, and prepares it for the existing EPFO submission flow.
+* Before/After (`Original` strikethrough → `Optimized ✓`), reduction %, `Download` pill (`handleDownload` at `:36` does a real `URL.createObjectURL(blob)` download as `docbridge-vahan-optimized.jpg` / `pdf`).
+* **Requirements Met vs Size still over limit** logic (`:108`). If still over `max_kb`, red warning + button `Try stronger compression (quality will drop slightly)` (`:165`) that triggers `handleRecompress` at `DocBridgeWidget/index.tsx:43` (`{aggressive:true}`).
 
-### UPSC application: a compliant passport photograph
+### 📄 Prod-grade PDF + Image engine — `src/lib/processor.ts:5`
 
-Priya is applying through a UPSC-style portal that requires a JPEG passport photo between 20 KB and 50 KB, precisely 3.5 cm × 4.5 cm, with a white background. DocBridge takes her selected photo, applies the necessary crop, background normalisation, and compression, then lets her review the result before submitting.
+We don’t mock the transform. It’s **real Canvas + pdf-lib + pdfjs-dist**:
 
-## What makes DocBridge different
+* `fileToCanvas` (`:5`) via `Image` + `createObjectURL` → `cropToAspectRatio` (`:160`, `300 DPI` for 3.5×4.5 cm → `413×531 px`) → `normalizeBackground` (`:191`) → `compressToTargetSize` (`:46`) with binary-search quality + **iterative scaling** (`scaleCanvas` at `:37`) down to `90 px` if needed (8 passes when aggressive).
+* **PDF → PDF** `processDocument` (`:368`): if under `500 KB` (your `341 KB` case), **verified pass-through** — *“Verified — your PDF is 341KB, within the 500KB limit. Preserved original quality without re-encoding.”* (`:386`). If `1.6 MB` over, **real recompression** via `compressPDFBlob` (`:243`) — renders each page with `pdfjs-dist` at scales `1.5→0.65` + qualities `0.82→0.25`, rebuilds with `pdf-lib`, returns smallest under cap with `“PDF compressed … clarity slightly reduced”`.
+* Image → PDF at `:462` retries `canvasToPDF` at `0.7/0.55` + scales `0.85/0.55` before warning.
 
-- **Portal-aware AI:** converts raw, human-written upload rules into machine-readable constraints.
-- **DigiLocker-first workflow:** keeps citizens close to a familiar, authorised document source.
-- **Client-side transformation:** uses the browser Canvas API and `pdf-lib` to avoid a heavy document-processing backend.
-- **Legacy-compatible:** works as a drop-in middleware in front of existing upload endpoints and strict validation rules.
-- **Human-centred:** replaces trial-and-error with a transparent progress flow: connect, analyse, optimise, review, submit.
-- **Reusable by design:** the same integration can support pensions, admissions, scholarships, licenses, jobs, welfare schemes, and more.
+### 🛡️ Stability — `scripts/clean-next-cache.mjs:16`
+
+We hit the classic Next dev bug `Cannot find module './948.js'` when `prebuild` nuked `.next/server` while dev was live. Fixed: script now **detects `:3000/:3001 LISTENING` and skips** → no more corruption. Tell the judge to hard-refresh if they ever see it: `Stop-Process -Name node; Remove-Item -Recurse -Force .next`.
+
+---
+
+## How it works (the flow judges actually click)
+
+```
+Home “Login to see it in action” → glass modal → pick UPSC / Vahan / EPFO
+  → Portal Login (one click Sign In, captcha pre-filled)
+    → Portal Home (realistic dashboard)
+      → Amber Nudge banner [✕] → “Open Manage → KYC / Continue to Photograph Upload”
+        → Upload screen → DocBridge widget
+          → From DigiLocker (autofilled 9876543210 / 582914 + ⓘ) OR Upload from device
+            → AI parses portal text (src/lib/openai.ts:5 mock, real OpenAI hook ready at :76)
+            → Browser Canvas prepares (crop/format/compress/normalize)
+            → Preview (Original → Optimized, Download, warning/recompress if needed, sign-in-to-save)
+              → Submit → /api/legacy-* validates exactly like the real portal
+                → Success
+```
+
+**Test it locally in 30 seconds:**
+
+* `/epfo` — Upload your `1.6 MB` PDF → see it recompress to `~420 KB` green + Download. Upload your `341 KB` PDF → see `Verified — preserved original quality`.
+* `/vahan` — Upload a `7 MB` photo → watch it scale+compress to `10–20 KB` (`Sarathi` tolerance `413±10%`) with scaling warning → `Try stronger compression` if still `365 KB`.
+* `/upsc` — `Upload from device` → `Sign in and save` → same DigiLocker modal → `✓ Signed in — will save`.
+
+---
+
+## Built with AI (and we mean it)
+
+* **Portal understanding:** every human-written upload rule (“JPEG, 20–200 KB, 3.5×4.5 cm, white background”) is parsed by `parsePortalConstraints` (`src/lib/openai.ts:5`) into `DocumentConstraint` (`src/types/index.ts:1`) — mock today, `gpt-4o-mini` JSON mode ready at `:76` with `OPENAI_API_KEY`.
+* **Conversion decisions:** `processDocument` + `compressToTargetSize` are AI-guided by that spec, not guessed.
+* **Code itself:** UI, journeys, Canvas pipeline, even this README — built with **OpenAI Codex / Muse Spark**. Human taste, model speed.
+
+---
 
 ## Architecture
 
 ```text
-Citizen → DigiLocker consent → DocBridge widget → AI constraint parser
-                                      ↓
-                           Browser-based file preparation
-                                      ↓
-                         Existing government portal backend
+Citizen → DigiLocker consent → DocBridge widget (src/components/DocBridgeWidget/index.tsx:19)
+                              → AI constraint parser (src/lib/openai.ts:5)
+                              → Browser file prep (src/lib/processor.ts:5 + pdf-lib + pdfjs-dist)
+                              → Existing portal backend (src/app/api/legacy-*/route.ts)
 ```
 
-- **Frontend:** Next.js 14, React, TypeScript, Tailwind CSS
-- **Document preparation:** Browser Canvas API and `pdf-lib`
-- **AI requirement parsing:** OpenAI structured output integration point
-- **Identity and document source:** DigiLocker integration point, demonstrated with Supabase-backed mock data
-- **Compatibility proof:** strict EPFO and UPSC-style legacy API routes validate the final attachment
+* **Frontend:** Next.js 14 App Router, React 18, TypeScript 5.4, Tailwind CSS 3.4 (`src/app/layout.tsx:1`, `globals.css:229`)
+* **Doc prep:** Browser Canvas API + `pdf-lib@1.17.1` + `pdfjs-dist@4.6.82`
+* **Mock vault:** `src/lib/supabase.ts:6` + `src/lib/constants.ts:72` (swap for real DigiLocker + encrypted transport in prod)
+* **Validation proof:** `src/app/api/legacy-epfo/route.ts:6` (`PDF ≤500KB`), `legacy-upsc` (`JPEG 20–200KB 350–1000px`), `legacy-vahan` (`JPEG 10–20KB 413×531 ±10%`)
+
+---
+
+## Project structure (we’re proud of this)
+
+```text
+src/
+  app/
+    page.tsx              # Home: hero, glass modal + loader, TricolorBar + 3 portal cards
+    globals.css           # glass-card, jaali-mesh, bridge-line, flag-sheen, modalIn
+    layout.tsx            # Inter font, metadata
+    epfo/page.tsx         # → EPFOPortal
+    upsc/page.tsx         # → UPSCPortal
+    vahan/page.tsx        # → VahanPortal
+    api/
+      legacy-epfo/route.ts    # strict PDF validation
+      legacy-upsc/route.ts    # JPEG 20–200KB + SOF dimension parsing
+      legacy-vahan/route.ts   # JPEG 10–20KB + 35×45mm ±10%
+      parse-constraints/route.ts
+  components/
+    ui/
+      GovernmentHeader.tsx  # pinned tricolor + subtle chakra + GoI bar (portals)
+      TricolorBar.tsx       # home top bar
+      AshokaChakra.tsx      # 24-spoke outline, 0.62 opacity (hydration-fixed with toFixed)
+      PortalNudge.tsx       # amber banner with ✕, reused in all homes
+    portals/
+      EPFOPortal.tsx        # login → home (member snapshot) → kyc → submitted
+      UPSCPortal.tsx        # login → dashboard (candidate home) → upload → submitted
+      VahanPortal.tsx       # login → dashboard (application home) → upload → submitted
+    DocBridgeWidget/
+      index.tsx             # source chooser, runProcessing, recompress, save-auth modal
+      DigiLockerModal.tsx   # aadhaar/otp/select + i tooltip, autofilled 9876543210/582914
+      PreviewPanel.tsx      # before/after, Download, warning/recompress, sign-in-to-save
+      ProcessingOverlay.tsx # authenticating → parsing → processing → submitting
+  lib/
+    processor.ts          # fileToCanvas, scaleCanvas, compressToTargetSize, canvasToPDF, compressPDFBlob
+    supabase.ts           # DigiLocker mock + generateDocumentImage
+    openai.ts             # constraint parser (mock + real hook)
+    constants.ts          # COLORS, PORTALS, DIGILOCKER_ASSETS, GOV_CONFIG
+  types/index.ts          # DocumentConstraint, ProcessingResult (+ warning/wasScaled), WidgetState
+public/
+  img_ind.png             # hero image
+scripts/
+  clean-next-cache.mjs    # dev-aware cache clear (no more 948.js)
+next.config.mjs           # images.unoptimized, output: standalone
+```
+
+---
 
 ## Run locally
 
 ```bash
 npm install
-npm run dev
+npm run dev        # http://localhost:3000  (if 3000 busy, 3001)
+# OR prod parity
+npm run build && npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000), then visit:
+Visit:
 
-- `/epfo` for the EPFO KYC passbook journey
-- `/upsc` for the UPSC passport-photo journey
-- `/vahan` for the Vahan / Sarathi Learner's Licence journey
+* `/epfo` — EPFO KYC passbook (`PDF 500KB`)
+* `/upsc` — UPSC photo (`JPEG 20–200KB, 3.5×4.5cm, white`)
+* `/vahan` — Sarathi photo (`JPEG 10–20KB, 35×45mm`)
+
+All logins are **prefilled** — one click `Sign In` → nudge → upload → `From DigiLocker` (ⓘ) or `Upload from device`.
+
+---
 
 ## Live deployment
 
-[**incredible-taffy-db08a6.netlify.app**](https://incredible-taffy-db08a6.netlify.app) — deployed on Netlify from this repository's `main` branch.
+**[incredible-taffy-db08a6.netlify.app](https://incredible-taffy-db08a6.netlify.app)** — `main` branch, Netlify Next.js runtime (`@netlify/plugin-nextjs`, `output: 'standalone'`).
 
-- **Approach:** Netlify's Next.js runtime (`@netlify/plugin-nextjs`) with `output: 'standalone'`. The page routes are static, while the `/api/legacy-*` and `/api/parse-constraints` endpoints run as serverless functions — which is what lets the demo's "submit" handoff to the simulated portal backends actually work.
-- **Redeploy:** push to `main` (or hit *Deploy* in the Netlify dashboard for a manual build).
-- **OpenAI (optional):** the built-in parser needs no key. To run real OpenAI models, add `OPENAI_API_KEY` under Netlify → Site configuration → Environment variables.
+* Pages are static, `/api/legacy-*` are serverless — the “Submit” actually hits validation.
+* Redeploy: `git push origin main` or Netlify dashboard → *Deploy*.
+* Real OpenAI: add `OPENAI_API_KEY` at Netlify → Site configuration → Environment variables (otherwise mock parser is used, no key needed).
+
+---
 
 ## Vision
 
-DocBridge makes public digital services feel as thoughtful as the people they serve. By combining trusted document access, privacy-conscious local processing, and portal-aware automation, it helps every citizen move from “file rejected” to “application complete.”
+We want public digital services to feel as thoughtful as the people they serve. DigiLocker trust + local processing + portal-aware AI turns “file rejected” into “application complete” — for pensions, licences, admissions, scholarships, and everything that still moves India.
 
 ## Acknowledgement
 
-This project is developed with assistance from OpenAI Codex.
+Built with **OpenAI Codex / Muse Spark** — human judgment steered, models did the heavy lifting.

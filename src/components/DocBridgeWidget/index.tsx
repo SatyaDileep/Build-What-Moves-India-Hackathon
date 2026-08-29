@@ -42,8 +42,14 @@ export default function DocBridgeWidget({
     fileInputRef.current?.click();
   };
 
-  const runProcessing = async (blob: Blob, meta: { name: string; type: string; size_mb: number }) => {
+  const [lastBlob, setLastBlob] = useState<Blob | null>(null);
+  const [lastMeta, setLastMeta] = useState<{ name: string; type: string; size_mb: number } | null>(null);
+  const [isRecompressing, setIsRecompressing] = useState(false);
+
+  const runProcessing = async (blob: Blob, meta: { name: string; type: string; size_mb: number }, opts?: { aggressive?: boolean }) => {
     try {
+      setLastBlob(blob);
+      setLastMeta(meta);
       const wait = (ms: number) => new Promise(res => setTimeout(res, ms));
 
       // Step 1: Access the file (fetched from DigiLocker or picked from device).
@@ -53,7 +59,7 @@ export default function DocBridgeWidget({
 
       // Step 2: DocBridge asks AI for the ideal compression / conversion.
       setState('processing');
-      const result = await processDocument(blob, constraint, meta);
+      const result = await processDocument(blob, constraint, meta, opts);
       await wait(900);
 
       setProcessingResult(result);
@@ -64,6 +70,15 @@ export default function DocBridgeWidget({
       setState('idle');
       return null;
     }
+  };
+
+  const handleRecompress = async () => {
+    if (!lastBlob || !lastMeta) return;
+    setIsRecompressing(true);
+    setError(null);
+    // Force more aggressive scaling — warn that quality will drop
+    await runProcessing(lastBlob, lastMeta, { aggressive: true });
+    setIsRecompressing(false);
   };
 
   const handleAssetSelected = async (asset: DigiLockerAsset) => {
@@ -218,6 +233,8 @@ export default function DocBridgeWidget({
           source={source}
           isSaveAuthed={isSaveAuthed}
           onRequestSaveAuth={() => setShowSaveAuthModal(true)}
+          onRecompress={handleRecompress}
+          isRecompressing={isRecompressing}
           onSubmit={handleSubmit}
           onCancel={handleReset}
         />

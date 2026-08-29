@@ -75,12 +75,19 @@ export default function Home() {
           </div>
 
           <figure className="glass-card overflow-hidden rounded-3xl">
-            <img
-              src="/img_ind.png"
-              alt="Indian citizens completing digital public-service uploads"
-              className="w-full object-cover"
-              style={{ aspectRatio: '16 / 10' }}
-            />
+            <picture>
+              <source srcSet="/img_ind.webp" type="image/webp" />
+              <img
+                src="/img_ind.png"
+                alt="Indian citizens completing digital public-service uploads"
+                className="w-full object-cover"
+                style={{ aspectRatio: '16 / 10' }}
+                width={1376}
+                height={768}
+                loading="lazy"
+                decoding="async"
+              />
+            </picture>
             <figcaption className="flex items-center justify-between gap-4 px-5 py-4 sm:px-6">
               <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#1E3A8A]">
                 <span className="h-2 w-2 rounded-full bg-[#059669]" />
