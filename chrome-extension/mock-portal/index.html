@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mock Gov Portal — Photo Upload Test</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Noto Sans', 'Segoe UI', Arial, sans-serif; background: #f0f2f5; color: #1a1a1a; }
+
+  /* Gov header bar */
+  .gov-header { background: #000080; color: #fff; padding: 6px 20px; font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
+  .gov-header a { color: #ccc; text-decoration: none; margin-left: 12px; }
+  .gov-header a:hover { color: #fff; }
+
+  /* Tricolor bar */
+  .tricolor { height: 4px; display: flex; }
+  .tricolor-saffron { flex: 1; background: #FF9933; }
+  .tricolor-white { flex: 1; background: #fff; }
+  .tricolor-green { flex: 1; background: #138808; }
+
+  /* Portal header */
+  .portal-header { background: #fff; border-bottom: 2px solid #000080; padding: 16px 20px; display: flex; align-items: center; gap: 16px; }
+  .portal-emblem { width: 48px; height: 48px; background: #000080; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #FF9933; font-size: 20px; font-weight: bold; }
+  .portal-title { font-size: 18px; font-weight: 700; color: #000080; }
+  .portal-subtitle { font-size: 12px; color: #757575; }
+
+  /* Main content */
+  .main { max-width: 800px; margin: 24px auto; padding: 0 20px; }
+
+  /* Breadcrumb */
+  .breadcrumb { font-size: 12px; color: #757575; margin-bottom: 16px; }
+  .breadcrumb a { color: #000080; text-decoration: none; }
+
+  /* Card */
+  .card { background: #fff; border-radius: 8px; border: 1px solid #e0e0e0; overflow: hidden; margin-bottom: 20px; }
+  .card-header { background: #f5f5f5; padding: 14px 20px; border-bottom: 1px solid #e0e0e0; font-size: 15px; font-weight: 600; color: #000080; }
+  .card-body { padding: 20px; }
+
+  /* Form */
+  .form-group { margin-bottom: 20px; }
+  .form-label { display: block; font-size: 13px; font-weight: 600; color: #424242; margin-bottom: 6px; }
+  .form-label .required { color: #d32f2f; }
+  .form-hint { font-size: 12px; color: #9e9e9e; margin-bottom: 8px; }
+
+  /* File upload area */
+  .upload-area {
+    border: 2px dashed #bdbdbd;
+    border-radius: 8px;
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .upload-area:hover, .upload-area.dragover {
+    border-color: #000080;
+    background: #f0f0ff;
+  }
+  .upload-area.has-file {
+    border-color: #138808;
+    background: #e8f5e9;
+  }
+  .upload-icon { font-size: 40px; color: #bdbdbd; margin-bottom: 8px; }
+  .upload-text { font-size: 14px; color: #424242; margin-bottom: 4px; }
+  .upload-subtext { font-size: 12px; color: #9e9e9e; margin-bottom: 12px; }
+  .upload-requirements {
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-size: 12px;
+    color: #616161;
+    text-align: left;
+    margin-top: 12px;
+  }
+  .upload-requirements strong { color: #e65100; }
+
+  /* Buttons */
+  .btn-primary {
+    background: #000080;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-primary:hover { background: #000066; }
+  .btn-primary:disabled { background: #bdbdbd; cursor: not-allowed; }
+  .btn-secondary {
+    background: #fff;
+    color: #000080;
+    border: 1px solid #000080;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-secondary:hover { background: #f0f0ff; }
+
+  .form-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid #eee; }
+
+  /* Status messages */
+  .status-bar { padding: 12px 16px; border-radius: 6px; font-size: 13px; margin-top: 12px; display: none; }
+  .status-success { background: #e8f5e9; color: #138808; border: 1px solid #c8e6c9; display: block; }
+  .status-error { background: #ffebee; color: #d32f2f; border: 1px solid #ffcdd2; display: block; }
+  .status-warning { background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; display: block; }
+
+  /* Test controls */
+  .test-panel {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background: #fff;
+    border: 2px solid #FF9933;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    max-width: 320px;
+    z-index: 9999;
+    font-size: 13px;
+  }
+  .test-panel h3 { font-size: 14px; color: #FF9933; margin-bottom: 8px; }
+  .test-panel p { font-size: 12px; color: #616161; margin-bottom: 8px; }
+  .test-btn {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 6px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #fafafa;
+    cursor: pointer;
+    font-size: 12px;
+    text-align: left;
+  }
+  .test-btn:hover { background: #f0f0ff; border-color: #000080; }
+</style>
+</head>
+<body>
+
+<!-- Gov header -->
+<div class="gov-header">
+  <span>Government of India</span>
+  <div>
+    <a href="#">Hindi</a>
+    <a href="#">English</a>
+    <a href="#">Help</a>
+  </div>
+</div>
+<div class="tricolor">
+  <div class="tricolor-saffron"></div>
+  <div class="tricolor-white"></div>
+  <div class="tricolor-green"></div>
+</div>
+
+<!-- Portal header -->
+<div class="portal-header">
+  <div class="portal-emblem">GOI</div>
+  <div>
+    <div class="portal-title">Mock Passport Seva Portal</div>
+    <div class="portal-subtitle">Ministry of External Affairs, Government of India</div>
+  </div>
+</div>
+
+<!-- Main content -->
+<div class="main">
+  <div class="breadcrumb">
+    <a href="#">Home</a> &gt; <a href="#">New Application</a> &gt; Upload Documents
+  </div>
+
+  <!-- Application Info -->
+  <div class="card">
+    <div class="card-header">Application Summary</div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px;">
+        <div><strong>Application ID:</strong> PS-2026-0098451</div>
+        <div><strong>Applicant:</strong> Ramesh Kumar</div>
+        <div><strong>Service Type:</strong> Fresh Passport</div>
+        <div><strong>Status:</strong> <span style="color:#e65100;">Documents Pending</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DocBridge Helper Banner -->
+  <div style="background:#e8e8ff;border:1px solid #c8c8ff;border-left:4px solid #000080;border-radius:8px;padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px;">
+    <span style="font-size:24px;">✤</span>
+    <div>
+      <div style="font-size:14px;font-weight:600;color:#000080;">Use DocBridge to prepare your photo</div>
+      <div style="font-size:12px;color:#616161;">Click the DocBridge banner in the bottom-right corner to crop, compress, and format your photo to meet these requirements — <strong>before uploading</strong>.</div>
+    </div>
+  </div>
+
+  <!-- Upload Card -->
+  <div class="card">
+    <div class="card-header">Upload Photograph</div>
+    <div class="card-body">
+      <div class="form-group">
+        <label class="form-label">
+          Passport Photograph <span class="required">*</span>
+        </label>
+        <div class="form-hint">
+          Upload a recent colour photograph as per the specifications below.
+          The photo must be against a plain white background with face covering 50-70% of the image.
+        </div>
+
+        <!-- Step 1: DocBridge first -->
+        <div id="stepDocBridge" style="background:#e8e8ff;border:2px solid #000080;border-radius:8px;padding:24px 20px;text-align:center;margin-bottom:16px;">
+          <div style="font-size:28px;margin-bottom:8px;">✤</div>
+          <div style="font-size:16px;font-weight:700;color:#000080;margin-bottom:8px;">Step 1: Prepare your photo with DocBridge</div>
+          <div style="font-size:13px;color:#616161;margin-bottom:12px;max-width:400px;margin-left:auto;margin-right:auto;">
+            This portal requires a JPEG photo at <strong>630×810px</strong> and <strong>under 250KB</strong>.<br>
+            Your phone camera produces much larger files. Use DocBridge to resize and compress it.
+          </div>
+          <div style="font-size:12px;color:#9e9e9e;background:#fff;display:inline-block;padding:8px 16px;border-radius:4px;">
+            👉 Click the <strong>DocBridge banner</strong> in the bottom-right corner of this page
+          </div>
+        </div>
+
+        <!-- Step 2: Upload processed file -->
+        <div id="stepUpload" style="opacity:0.4;pointer-events:none;">
+          <div style="background:#fff3e0;border:1px solid #ffe0b2;border-radius:6px;padding:10px 14px;font-size:12px;color:#e65100;margin-bottom:12px;">
+            ⏳ Complete Step 1 first — then come back here to upload your processed photo.
+          </div>
+          <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📷</div>
+            <div class="upload-text">Drop your <strong>processed</strong> photo here</div>
+            <div class="upload-subtext">(after using DocBridge)</div>
+            <input type="file" id="photoInput" accept="image/jpeg,image/jpg" style="display:none">
+            <button class="btn-secondary" onclick="document.getElementById('photoInput').click()">Browse Files</button>
+
+            <div class="upload-requirements">
+              <strong>Photo Requirements:</strong><br>
+              • Format: JPEG only<br>
+              • File size: 10 KB to 250 KB<br>
+              • Dimensions: 630 × 810 pixels<br>
+              • Background: Plain white<br>
+              • Face coverage: 50-70% of photo<br>
+              • Recent photograph (within 6 months)
+            </div>
+          </div>
+        </div>
+
+        <div id="statusBar" class="status-bar"></div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-secondary">Back</button>
+        <button class="btn-primary" id="submitBtn" disabled>Submit Application</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Test Controls Panel -->
+<div class="test-panel">
+  <h3>🧪 Test Controls</h3>
+  <p style="font-weight:600;color:#000080;">How to test:</p>
+  <ol style="font-size:11px;color:#616161;margin:0 0 8px 16px;">
+    <li>Click <strong>DocBridge nudge</strong> (bottom-right)</li>
+    <li>Drop photo into <strong>DocBridge panel</strong></li>
+    <li><strong>Download</strong> the optimized photo</li>
+    <li>Upload the optimized photo <strong>here</strong></li>
+  </ol>
+  <p style="font-weight:600;color:#FF9933;">Quick test (skip DocBridge):</p>
+  <button class="test-btn" id="btn-sim-large">
+    📸 Simulate DocBridge processing (large photo)
+  </button>
+  <button class="test-btn" id="btn-sim-landscape">
+    📸 Simulate DocBridge processing (landscape)
+  </button>
+  <hr style="margin:8px 0;border:none;border-top:1px solid #eee;">
+  <button class="test-btn" id="btn-clear">
+    🗑️ Reset everything
+  </button>
+</div>
+
+<script>
+  var uploadArea = document.getElementById('uploadArea');
+  var photoInput = document.getElementById('photoInput');
+  var statusBar = document.getElementById('statusBar');
+  var submitBtn = document.getElementById('submitBtn');
+
+  // Drag and drop
+  uploadArea.ondragover = function(e) {
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+  };
+  uploadArea.ondragleave = function() {
+    uploadArea.classList.remove('dragover');
+  };
+  uploadArea.ondrop = function(e) {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+    if (e.dataTransfer.files.length > 0) {
+      handleFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  photoInput.onchange = function() {
+    if (this.files.length > 0) handleFile(this.files[0]);
+  };
+
+  function handleFile(file) {
+    // Show file info
+    var sizeKB = Math.round(file.size / 1024);
+    var isJpeg = file.type === 'image/jpeg' || file.type === 'image/jpg';
+    var isCorrectSize = sizeKB >= 10 && sizeKB <= 250;
+
+    uploadArea.classList.add('has-file');
+    statusBar.className = 'status-bar';
+
+    if (!isJpeg) {
+      statusBar.className = 'status-bar status-error';
+      statusBar.textContent = '❌ Invalid format: ' + file.type + ' — JPEG only accepted.';
+      submitBtn.disabled = true;
+      return;
+    }
+
+    if (sizeKB > 250) {
+      statusBar.className = 'status-bar status-warning';
+      statusBar.textContent = '⚠️ File is ' + sizeKB + 'KB — over the 250KB limit. Please compress or resize.';
+      submitBtn.disabled = true;
+    } else if (sizeKB < 10) {
+      statusBar.className = 'status-bar status-warning';
+      statusBar.textContent = '⚠️ File is only ' + sizeKB + 'KB — minimum 10KB required.';
+      submitBtn.disabled = true;
+    } else {
+      statusBar.className = 'status-bar status-success';
+      statusBar.textContent = '✅ File accepted: ' + file.name + ' (' + sizeKB + 'KB, JPEG)';
+      submitBtn.disabled = false;
+    }
+
+    // Check dimensions via canvas
+    var img = new Image();
+    var url = URL.createObjectURL(file);
+    img.onload = function() {
+      var dimText = 'Dimensions: ' + img.width + ' × ' + img.height + 'px';
+      if (img.width !== 630 || img.height !== 810) {
+        statusBar.textContent += ' — ' + dimText + ' (expected 630×810)';
+        submitBtn.disabled = true;
+      } else {
+        statusBar.textContent += ' — ' + dimText + ' ✓';
+      }
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  }
+
+  function simulateProcessed(srcW, srcH, label) {
+    // Step 1: Generate a source image (simulating what user's phone camera takes)
+    var srcCanvas = document.createElement('canvas');
+    srcCanvas.width = srcW;
+    srcCanvas.height = srcH;
+    var srcCtx = srcCanvas.getContext('2d');
+
+    // Photo-like background
+    srcCtx.fillStyle = '#e8e8e8';
+    srcCtx.fillRect(0, 0, srcW, srcH);
+
+    // Simple face placeholder
+    var cx = srcW / 2;
+    var cy = srcH * 0.38;
+    var headR = Math.min(srcW, srcH) * 0.12;
+    srcCtx.fillStyle = '#d4a574';
+    srcCtx.beginPath();
+    srcCtx.arc(cx, cy, headR, 0, Math.PI * 2);
+    srcCtx.fill();
+    srcCtx.fillStyle = '#3366cc';
+    srcCtx.fillRect(cx - headR * 1.2, cy + headR, headR * 2.4, srcH * 0.35);
+    srcCtx.fillStyle = '#fff';
+    srcCtx.font = 'bold ' + Math.round(headR * 0.3) + 'px Arial';
+    srcCtx.textAlign = 'center';
+    srcCtx.fillText('TEST PHOTO', cx, cy + headR * 0.1);
+
+    // Step 2: Simulate DocBridge processing (crop + scale + compress)
+    // Crop to 630x810 aspect ratio, then scale to exact 630x810
+    var targetW = 630, targetH = 810;
+    var srcRatio = srcW / srcH;
+    var tgtRatio = targetW / targetH;
+    var sx = 0, sy = 0, sw = srcW, sh = srcH;
+    if (srcRatio > tgtRatio) {
+      sw = srcH * tgtRatio;
+      sx = (srcW - sw) / 2;
+    } else {
+      sh = srcW / tgtRatio;
+      sy = (srcH - sh) / 2;
+    }
+
+    var optCanvas = document.createElement('canvas');
+    optCanvas.width = targetW;
+    optCanvas.height = targetH;
+    var optCtx = optCanvas.getContext('2d');
+    optCtx.drawImage(srcCanvas, sx, sy, sw, sh, 0, 0, targetW, targetH);
+
+    // Compress to JPEG < 250KB (binary search on quality)
+    var low = 0.1, high = 1.0;
+    var bestBlob = null;
+    for (var i = 0; i < 10; i++) {
+      var mid = (low + high) / 2;
+      // We need to use a temp canvas for each quality test
+      var tmpCanvas = document.createElement('canvas');
+      tmpCanvas.width = targetW;
+      tmpCanvas.height = targetH;
+      tmpCanvas.getContext('2d').drawImage(optCanvas, 0, 0);
+      // toBlob is async, so we'll just pick a reasonable quality
+    }
+
+    // For simplicity, use a fixed quality that reliably gets under 250KB for 630x810
+    optCanvas.toBlob(function(blob) {
+      var sizeKB = Math.round(blob.size / 1024);
+      var file = new File([blob], 'docbridge-processed-' + label + '.jpg', { type: 'image/jpeg' });
+
+      // Step 3: Enable the upload area and set the file
+      var stepUpload = document.getElementById('stepUpload');
+      stepUpload.style.opacity = '1';
+      stepUpload.style.pointerEvents = 'auto';
+      var stepDb = document.getElementById('stepDocBridge');
+      stepDb.style.background = '#e8f5e9';
+      stepDb.style.borderColor = '#138808';
+      stepDb.innerHTML = '<div style="font-size:28px;margin-bottom:8px;">✅</div>' +
+        '<div style="font-size:16px;font-weight:700;color:#138808;margin-bottom:8px;">Photo processed by DocBridge!</div>' +
+        '<div style="font-size:13px;color:#616161;">' +
+          'Original: ' + srcW + '×' + srcH + 'px (' + Math.round(srcW*srcH*3/1024) + 'KB estimated)<br>' +
+          'Optimized: 630×810px, ' + sizeKB + 'KB JPEG ✓<br>' +
+          '<span style="color:#138808;font-weight:600;">Now upload below!</span>' +
+        '</div>';
+
+      // Set the file on the input
+      var dataTransfer = new DataTransfer();
+      dataTransfer.items.add(file);
+      photoInput.files = dataTransfer.files;
+      handleFile(file);
+    }, 'image/jpeg', 0.72);
+  }
+
+  function clearUpload() {
+    photoInput.value = '';
+    uploadArea.classList.remove('has-file');
+    statusBar.className = 'status-bar';
+    statusBar.textContent = '';
+    submitBtn.disabled = true;
+    var stepUpload = document.getElementById('stepUpload');
+    stepUpload.style.opacity = '0.4';
+    stepUpload.style.pointerEvents = 'none';
+    var stepDb = document.getElementById('stepDocBridge');
+    stepDb.style.background = '#e8e8ff';
+    stepDb.style.borderColor = '#000080';
+    stepDb.innerHTML = '<div style="font-size:28px;margin-bottom:8px;">✤</div>' +
+      '<div style="font-size:16px;font-weight:700;color:#000080;margin-bottom:8px;">Step 1: Prepare your photo with DocBridge</div>' +
+      '<div style="font-size:13px;color:#616161;margin-bottom:12px;max-width:400px;margin-left:auto;margin-right:auto;">This portal requires a JPEG photo at <strong>630×810px</strong> and <strong>under 250KB</strong>.<br>Your phone camera produces much larger files. Use DocBridge to resize and compress it.</div>' +
+      '<div style="font-size:12px;color:#9e9e9e;background:#fff;display:inline-block;padding:8px 16px;border-radius:4px;">👉 Click the <strong>DocBridge banner</strong> in the bottom-right corner of this page</div>';
+  }
+  window.simulateProcessed = simulateProcessed;
+  window.clearUpload = clearUpload;
+  window.handleFile = handleFile;
+  document.getElementById('btn-sim-large').addEventListener('click', function(){ simulateProcessed(3000, 4000, 'large'); });
+  document.getElementById('btn-sim-landscape').addEventListener('click', function(){ simulateProcessed(1920, 1080, 'landscape'); });
+  document.getElementById('btn-clear').addEventListener('click', clearUpload);
+</script>
+</body>
+</html>

@@ -9,6 +9,7 @@ import { processDocument } from '@/lib/processor';
 import DigiLockerModal from './DigiLockerModal';
 import ProcessingOverlay from './ProcessingOverlay';
 import PreviewPanel from './PreviewPanel';
+import PrivacyBadge from '@/components/ui/PrivacyBadge';
 
 interface DocBridgeWidgetProps {
   portalId: 'epfo' | 'upsc' | 'vahan';
@@ -46,21 +47,21 @@ export default function DocBridgeWidget({
   const [lastMeta, setLastMeta] = useState<{ name: string; type: string; size_mb: number } | null>(null);
   const [isRecompressing, setIsRecompressing] = useState(false);
 
-  const runProcessing = async (blob: Blob, meta: { name: string; type: string; size_mb: number }, opts?: { aggressive?: boolean }) => {
+  const runProcessing = async (blob: Blob, meta: { name: string; type: string; size_mb: number }, opts?: { aggressive?: boolean; rotation?: number; enhance?: boolean }) => {
+    const conn = (navigator as any)?.connection?.effectiveType;
+    if ((conn === '2g' || conn === 'slow-2g') && !opts?.aggressive && !opts?.rotation && !opts?.enhance) opts = { ...opts, aggressive: true };
     try {
       setLastBlob(blob);
       setLastMeta(meta);
       const wait = (ms: number) => new Promise(res => setTimeout(res, ms));
 
-      // Step 1: Access the file (fetched from DigiLocker or picked from device).
       setState('parsing');
-      await wait(900);
+      await wait(1600);
       const constraint = await parsePortalConstraints(requirements);
-
-      // Step 2: DocBridge asks AI for the ideal compression / conversion.
       setState('processing');
+      await wait(400);
       const result = await processDocument(blob, constraint, meta, opts);
-      await wait(900);
+      await wait(1400);
 
       setProcessingResult(result);
       setState('previewing');
@@ -76,9 +77,18 @@ export default function DocBridgeWidget({
     if (!lastBlob || !lastMeta) return;
     setIsRecompressing(true);
     setError(null);
-    // Force more aggressive scaling — warn that quality will drop
     await runProcessing(lastBlob, lastMeta, { aggressive: true });
     setIsRecompressing(false);
+  };
+  const handleAdjust = async (rotation: number) => {
+    if (!lastBlob || !lastMeta) return;
+    setError(null);
+    await runProcessing(lastBlob, lastMeta, { rotation });
+  };
+  const handleEnhance = async () => {
+    if (!lastBlob || !lastMeta) return;
+    setError(null);
+    await runProcessing(lastBlob, lastMeta, { enhance: true });
   };
 
   const handleAssetSelected = async (asset: DigiLockerAsset) => {
@@ -94,37 +104,41 @@ export default function DocBridgeWidget({
     });
   };
 
-  const handleManualFile = async (file: File | null) => {
-    if (!file) return;
+  const handleManualFile = async (input: File | FileList | null) => {
+    if (!input) return;
+    const isList = typeof (input as FileList).length === 'number' && ((input as FileList).length as number) > 0;
+    const files: File[] = isList ? Array.from(input as FileList) : [input as unknown as File];
+    const batch = files.filter(Boolean).slice(0, 3);
+    if (batch.length > 1) {
+      setSelectedAsset({ id: 'manual-batch', name: `${batch.length} files`, type: batch[0].type, size_mb: batch.reduce((s,f)=>s+f.size,0)/(1024*1024), url: '', owner: 'ramesh' });
+      setSource('device');
+      for (const f of batch) { await runProcessing(f, { name: f.name, type: f.type, size_mb: f.size/(1024*1024) }); await new Promise(r=>setTimeout(r,300)); }
+      return;
+    }
+    const file = batch[0] as File;
     setSelectedAsset({ id: 'manual', name: file.name, type: file.type, size_mb: file.size / (1024 * 1024), url: '', owner: 'ramesh' });
     setSource('device');
-    await runProcessing(file, {
-      name: file.name,
-      type: file.type,
-      size_mb: file.size / (1024 * 1024),
-    });
+    await runProcessing(file, { name: file.name, type: file.type, size_mb: file.size / (1024 * 1024) });
   };
 
   const handleSubmit = async (saveToDigiLocker: boolean = true) => {
     if (!processingResult) return;
-    
     setState('submitting');
-    
     try {
-      // Optionally save the optimized copy back to DigiLocker for reuse
+      let blobToSend: Blob = processingResult.processed.blob;
+      try {
+        const { embedDocBridgeMetadata } = await import('@/lib/processor');
+        const hash = await crypto.subtle.digest('SHA-256', await processingResult.original.blob.slice(0, 65536).arrayBuffer()).then(b => Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('').slice(0,16)).catch(()=>undefined);
+        blobToSend = await embedDocBridgeMetadata(blobToSend, { portalId, source, hash });
+      } catch {}
       if (saveToDigiLocker) {
         const ext = processingResult.constraint.format;
         const storedName = `${processingResult.original.assetName || 'Document'} (${portalId.toUpperCase()}-ready).${ext}`;
-        await supabase.storeAsset(
-          storedName,
-          `image/${ext}`,
-          processingResult.processed.size_kb / 1024
-        );
+        await supabase.storeAsset(storedName, `image/${ext}`, processingResult.processed.size_kb / 1024);
       }
-
       const formData = new FormData();
       const extension = processingResult.constraint.format === 'pdf' ? 'pdf' : 'jpg';
-      formData.append('file', processingResult.processed.blob, `docbridge-ready.${extension}`);
+      formData.append('file', blobToSend, `docbridge-ready.${extension}`);
 
       // EPFO's legacy endpoint expects the account number as a separate form value.
       if (portalId === 'epfo') {
@@ -164,41 +178,39 @@ export default function DocBridgeWidget({
     setSelectedAsset(null);
     setIsSaveAuthed(false);
     setShowSaveAuthModal(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   return (
     <div className="relative">
       {/* Source chooser */}
       {state === 'idle' && (
-        <div className="rounded-xl border p-4" style={{ borderColor: COLORS.gray[300], backgroundColor: COLORS.primaryLight }}>
-          <p className="text-sm font-semibold mb-1" style={{ color: COLORS.primary }}>Where is your document?</p>
-          <p className="text-xs mb-4" style={{ color: COLORS.gray[600] }}>
-            DocBridge works with either a trusted source or a file you already have.
-          </p>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <SourceOption
-              title="From DigiLocker"
-              description="Authorised, consent-based access to your issued documents."
-              icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>}
-              onClick={startDigiLocker}
-            />
-            <SourceOption
-              title="Upload from device"
-              description="Pick a photo or PDF you already have on your phone or computer."
-              icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>}
-              onClick={startManualUpload}
-            />
+        <div className="space-y-3">
+          <div className="rounded-xl border p-4" style={{ borderColor: COLORS.gray[300], backgroundColor: COLORS.primaryLight }}>
+            <p className="text-sm font-semibold mb-1" style={{ color: COLORS.primary }}>Where is your document?</p>
+            <p className="text-xs mb-4" style={{ color: COLORS.gray[600] }}>
+              DocBridge works with either a trusted source or a file you already have.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <SourceOption
+                title="From DigiLocker"
+                description="Authorised, consent-based access to your issued documents."
+                icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>}
+                onClick={startDigiLocker}
+              />
+              <SourceOption
+                title="Upload from device"
+                description="Pick a photo or PDF you already have on your phone or computer."
+                icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>}
+                onClick={startManualUpload}
+              />
+            </div>
           </div>
+          <PrivacyBadge />
         </div>
       )}
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*,.pdf"
-        className="hidden"
-        onChange={(e) => handleManualFile(e.target.files?.[0] || null)}
-      />
+      <input ref={fileInputRef} type="file" accept="image/*,.pdf" multiple className="hidden" onChange={(e) => handleManualFile(e.target.files?.[0] ? (e.target.files as any) : null)} />
 
       {/* Error Message */}
       {error && (
@@ -222,7 +234,7 @@ export default function DocBridgeWidget({
 
       {/* Loading States */}
       {['authenticating', 'parsing', 'processing', 'submitting'].includes(state) && (
-        <ProcessingOverlay state={state} source={source} />
+        <ProcessingOverlay state={state} source={source} portalId={portalId} />
       )}
 
       {/* Preview Panel */}
@@ -235,6 +247,8 @@ export default function DocBridgeWidget({
           onRequestSaveAuth={() => setShowSaveAuthModal(true)}
           onRecompress={handleRecompress}
           isRecompressing={isRecompressing}
+          onAdjust={handleAdjust}
+          onEnhance={handleEnhance}
           onSubmit={handleSubmit}
           onCancel={handleReset}
         />

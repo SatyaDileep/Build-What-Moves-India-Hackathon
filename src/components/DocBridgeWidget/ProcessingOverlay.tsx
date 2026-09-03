@@ -1,7 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import { WidgetState } from '@/types';
 import { COLORS } from '@/lib/constants';
+import { useVoiceGuide } from '@/hooks/useVoiceGuide';
 
 interface ProcessingOverlayProps {
   state: WidgetState;
@@ -40,14 +42,31 @@ function stepIcon(state: WidgetState): React.ReactNode {
   );
 }
 
-export default function ProcessingOverlay({ state, source = 'digilocker' }: ProcessingOverlayProps) {
+export default function ProcessingOverlay({ state, source = 'digilocker', portalId }: ProcessingOverlayProps & { portalId?: string }) {
   const active = currentStep(state);
+  const portalLabel = portalId === 'epfo' ? 'EPFO' : portalId === 'vahan' ? 'Sarathi' : portalId === 'upsc' ? 'UPSC' : 'portal';
+  const voiceText = state === 'parsing' ? `Reading ${portalLabel} rules` : state === 'processing' ? `Optimizing for ${portalLabel}` : state === 'submitting' ? 'Submitting to portal' : '';
+  const [voiceOn, setVoiceOn] = useState(() => typeof window !== 'undefined' && localStorage.getItem('docbridge-voice') === '1');
+  useVoiceGuide(voiceOn && !!voiceText, voiceText, 'en-IN');
+  const toggleVoice = () => {
+    const next = !voiceOn;
+    setVoiceOn(next);
+    try { localStorage.setItem('docbridge-voice', next ? '1' : '0'); } catch {}
+    if (!next && typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+  };
+  const portalHint = portalId === 'epfo' ? 'PDF ≤500KB' : portalId === 'vahan' ? 'JPEG 10–20KB' : portalId === 'upsc' ? 'JPEG 20–200KB' : '';
 
-  const STEPS: { label: string; tag?: string }[] = [
-    { label: source === 'device' ? 'File added from your device' : 'File accessed from DigiLocker' },
-    { label: 'DocBridge asks AI for the ideal compression', tag: 'AI' },
-    { label: 'Seamless upload in your portal’s format' },
-  ];
+  const STEPS: { label: string; tag?: string; sub?: string }[] = state === 'submitting'
+    ? [
+        { label: source === 'device' ? 'File ready from device' : 'Fetched from DigiLocker', sub: 'Verified' },
+        { label: `Optimized for ${portalLabel}`, sub: portalHint, tag: 'AI' },
+        { label: 'Validating & submitting', sub: 'Almost done…' },
+      ]
+    : [
+        { label: source === 'device' ? 'File added from your device' : 'Fetching from DigiLocker…', sub: source === 'device' ? 'Local file' : 'Consent-based' },
+        { label: `Optimizing for ${portalLabel}…`, sub: portalHint, tag: 'AI' },
+        { label: 'Validating…', sub: 'Checking format & size' },
+      ];
 
   return (
     <div
@@ -77,8 +96,14 @@ export default function ProcessingOverlay({ state, source = 'digilocker' }: Proc
       </div>
 
       <h3 className="text-xl font-bold mb-2 text-center" style={{ color: COLORS.gray[800] }}>
-        Working on your document
+        {state === 'parsing' ? 'Reading portal rules…' : state === 'processing' ? `Optimizing for ${portalLabel}…` : state === 'submitting' ? 'Submitting…' : 'Working on your document'}
       </h3>
+      <div className="mx-auto mb-3 flex justify-center gap-2">
+        <button type="button" onClick={toggleVoice} aria-pressed={voiceOn} className="rounded-full border px-2.5 py-1 text-[10px] font-bold" style={{ borderColor: COLORS.gray[300], color: COLORS.gray[600] }}>{voiceOn ? '🔊 Voice on' : '🔈 Voice off'}</button>
+      </div>
+      <div className="mx-auto mb-4 h-1.5 max-w-sm overflow-hidden rounded-full" style={{ backgroundColor: COLORS.gray[200] }} aria-hidden="true">
+        <div className="h-full rounded-full transition-all duration-700 ease-out" style={{ width: `${((active + 1) / 3) * 100}%`, background: `linear-gradient(90deg, ${COLORS.saffron}, ${COLORS.primary}, ${COLORS.success})` }} />
+      </div>
 
       {/* Narrated steps */}
       <div className="mx-auto mt-6 max-w-sm space-y-3">
@@ -111,7 +136,7 @@ export default function ProcessingOverlay({ state, source = 'digilocker' }: Proc
                 )}
               </div>
 
-              <span className="text-sm font-medium" style={{ color: COLORS.gray[800] }}>
+              <span className="text-sm font-medium leading-tight" style={{ color: COLORS.gray[800] }}>
                 {step.label}
                 {step.tag && (
                   <span
@@ -121,6 +146,7 @@ export default function ProcessingOverlay({ state, source = 'digilocker' }: Proc
                     {step.tag}
                   </span>
                 )}
+                {step.sub && <span className="ml-2 text-xs font-normal" style={{ color: COLORS.gray[500] }}>{step.sub}</span>}
               </span>
             </div>
           );

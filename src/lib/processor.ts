@@ -24,6 +24,46 @@ async function fileToCanvas(file: Blob): Promise<HTMLCanvasElement> {
   });
 }
 
+export function rotateCanvas(source: HTMLCanvasElement, degrees: number): HTMLCanvasElement {
+  if (degrees % 360 === 0) return source;
+  const rad = (degrees * Math.PI) / 180;
+  const w = source.width, h = source.height;
+  const cos = Math.abs(Math.cos(rad)), sin = Math.abs(Math.sin(rad));
+  const nw = Math.round(w * cos + h * sin), nh = Math.round(w * sin + h * cos);
+  const c = document.createElement('canvas'); c.width = nw; c.height = nh;
+  const ctx = c.getContext('2d')!; ctx.translate(nw / 2, nh / 2); ctx.rotate(rad); ctx.drawImage(source, -w / 2, -h / 2);
+  return c;
+}
+
+export async function enhanceCanvas(source: HTMLCanvasElement): Promise<HTMLCanvasElement> {
+  const c = document.createElement('canvas'); c.width = source.width * 2; c.height = source.height * 2;
+  const ctx = c.getContext('2d')!; ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(source, 0, 0, c.width, c.height);
+  const d = ctx.getImageData(0, 0, c.width, c.height); const data = d.data;
+  const w = c.width;
+  for (let y = 1; y < c.height - 1; y++) for (let x = 1; x < w - 1; x++) {
+    const i = (y * w + x) * 4;
+    for (let k = 0; k < 3; k++) {
+      const v = -data[i - w * 4 + k] - data[i - 4 + k] + 5 * data[i + k] - data[i + 4 + k] - data[i + w * 4 + k];
+      data[i + k] = Math.max(0, Math.min(255, v));
+    }
+  }
+  ctx.putImageData(d, 0, 0);
+  return c;
+}
+
+export async function embedDocBridgeMetadata(blob: Blob, meta: { portalId: string; source: string; hash?: string }): Promise<Blob> {
+  try {
+    if (blob.type === 'application/pdf') {
+      const bytes = await blob.arrayBuffer(); const doc = await PDFDocument.load(new Uint8Array(bytes));
+      doc.setSubject(`DocBridge v1 | portal:${meta.portalId} | source:${meta.source} | hash:${meta.hash || 'na'} | ${new Date().toISOString()}`);
+      doc.setKeywords(['DocBridge', 'DigiLocker', meta.portalId, 'authentic']);
+      const out = await doc.save(); return new Blob([new Uint8Array(out)], { type: 'application/pdf' });
+    }
+  } catch {}
+  return blob;
+}
+
 // Convert Canvas to Blob
 async function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob> {
   return new Promise((resolve) => {
@@ -363,7 +403,7 @@ export async function processDocument(
   file: Blob,
   constraint: DocumentConstraint,
   assetMeta?: { name: string; type: string; size_mb: number },
-  opts?: { aggressive?: boolean }
+  opts?: { aggressive?: boolean; rotation?: number; enhance?: boolean }
 ): Promise<ProcessingResult> {
   const isPDFSource = file.type === 'application/pdf' || assetMeta?.type === 'application/pdf' || assetMeta?.name?.toLowerCase().endsWith('.pdf');
   const wantsPDF = constraint.format === 'pdf';
@@ -432,6 +472,8 @@ export async function processDocument(
   // Use the decoded source image, or synthesize one matching the portal rule.
   const usedSyntheticFallback = !decodedCanvas;
   let processedCanvas = decodedCanvas || createSyntheticCanvas(constraint);
+  if (opts?.rotation) processedCanvas = rotateCanvas(processedCanvas, opts.rotation);
+  if (opts?.enhance) processedCanvas = await enhanceCanvas(processedCanvas);
   
   // Apply transformations based on constraint
   if (constraint.width_cm && constraint.height_cm) {

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DocBridge</title>
+<link rel="stylesheet" href="popup.css">
+</head>
+<body>
+<div class="popup">
+  <div class="popup-header">
+    <div class="popup-shield">✦ DocBridge</div>
+    <div class="popup-tagline">Sarkari Photo & Signature Resizer — 100% on-device</div>
+  </div>
+
+  <div id="detected-banner" class="popup-detected"></div>
+
+  <div id="context-card" class="popup-context">
+    <div class="popup-context-label">Active Tab</div>
+    <div id="context-url" class="popup-context-url">Detecting…</div>
+  </div>
+
+  <div id="preset-section" class="popup-section">
+    <div class="popup-section-title">Conversion Types</div>
+    <div id="preset-chips" class="popup-preset-list"></div>
+    <div id="preset-hint" class="popup-hint"></div>
+  </div>
+
+  <div id="custom-section" class="popup-section">
+    <div class="popup-section-title">Custom / Manual Sarkari Spec</div>
+    <div class="popup-search-wrap">
+      <input id="preset-search" type="search" placeholder="Search 50+ presets — e.g. SSC, UPSC, IBPS, Passport…">
+      <div id="preset-dropdown" class="popup-dropdown"></div>
+    </div>
+    <div class="popup-custom">
+      <label>Max KB<input id="custom-maxkb" type="number" placeholder="50"></label>
+      <label>Min KB<input id="custom-minkb" type="number" placeholder="20"></label>
+      <label>Width px<input id="custom-w" type="number" placeholder="200"></label>
+      <label>Height px<input id="custom-h" type="number" placeholder="230"></label>
+    </div>
+    <button id="custom-apply" class="popup-apply">Use Custom Spec</button>
+    <div id="custom-summary" class="popup-hint"></div>
+  </div>
+
+  <div class="popup-stats">
+    <div class="popup-stat">
+      <div class="popup-stat-value" id="stat-portals">17</div>
+      <div class="popup-stat-label">Portals</div>
+    </div>
+    <div class="popup-stat">
+      <div class="popup-stat-value" id="stat-processed">0</div>
+      <div class="popup-stat-label">Processed</div>
+    </div>
+    <div class="popup-stat">
+      <div class="popup-stat-value" id="stat-saved">—</div>
+      <div class="popup-stat-label">Selected</div>
+    </div>
+  </div>
+
+  <div class="popup-section">
+    <div class="popup-section-title">Supported Portals</div>
+    <div class="popup-portal-list" id="portal-list"></div>
+  </div>
+
+  <div class="popup-section">
+    <div class="popup-section-title">Settings</div>
+    <div class="popup-setting">
+      <span>Auto-nudge on portals</span>
+      <label class="toggle">
+        <input type="checkbox" id="toggle-nudge" checked>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="popup-footer">
+    <div class="popup-privacy">🔒 <strong>Zero leak</strong> — Canvas only, no upload</div>
+  </div>
+</div>
+<script src="../shared/portals.js"></script>
+<script src="../shared/utils.js"></script>
+<script src="popup.js"></script>
+</body>
+</html>

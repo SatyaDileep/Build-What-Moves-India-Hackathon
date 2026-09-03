@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "DocBridge - Sarkari Photo & Signature Resizer",
+  "version": "1.0.0",
+  "description": "Resize photos and signatures for SSC, UPSC, IBPS, and Indian government portals. 100% private and on-device.",
+  "permissions": ["activeTab", "downloads", "storage"],
+  "host_permissions": ["*://*.gov.in/*", "*://*.nic.in/*"],
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "assets/icon-16.svg",
+      "48": "assets/icon-48.svg",
+      "128": "assets/icon-128.svg"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.gov.in/*", "*://*.nic.in/*", "http://localhost/*", "http://127.0.0.1/*"],
+      "js": [
+        "shared/portals.js",
+        "shared/utils.js",
+        "content/processor.js",
+        "content/detector.js"
+      ],
+      "css": ["styles/content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["content/nudge.js", "content/panel.js", "content/share.js", "content/feedback.js"],
+      "matches": ["*://*.gov.in/*", "*://*.nic.in/*", "http://localhost/*", "http://127.0.0.1/*"]
+    }
+  ],
+  "icons": {
+    "16": "assets/icon-16.svg",
+    "48": "assets/icon-48.svg",
+    "128": "assets/icon-128.svg"
+  }
+}

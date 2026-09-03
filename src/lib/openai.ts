@@ -3,8 +3,10 @@ import { DocumentConstraint } from '@/types';
 // AI constraint parser — extracts structured upload rules from portal text
 
 export async function parsePortalConstraints(pageText: string): Promise<DocumentConstraint> {
-  // Simulate API latency
-  await new Promise(resolve => setTimeout(resolve, 1200));
+  if (typeof window !== 'undefined' && (window as any).__DOCBRIDGE_MOCK_LATENCY === 0) {
+    return parseLocal(pageText);
+  }
+  await new Promise(resolve => setTimeout(resolve, 900));
 
   // Parse constraints based on page text
   const lowerText = pageText.toLowerCase();
@@ -63,6 +65,16 @@ export async function parsePortalConstraints(pageText: string): Promise<Document
     format: 'pdf',
     max_kb: 500,
   };
+}
+
+function parseLocal(pageText: string): DocumentConstraint {
+  const lowerText = pageText.toLowerCase();
+  if (lowerText.includes('passbook') || lowerText.includes('epfo') || lowerText.includes('pf')) return { format: 'pdf', max_kb: 500, additional_requirements: ['Account number must be visible'] };
+  if (lowerText.includes('driving') || lowerText.includes('sarathi') || lowerText.includes('transport') || lowerText.includes('35mm')) return { format: 'jpeg', min_kb: 10, max_kb: 20, width_cm: 3.5, height_cm: 4.5, bg_color: 'white' };
+  if (lowerText.includes('passport photo') || lowerText.includes('upsc') || lowerText.includes('photograph')) return { format: 'jpeg', min_kb: 20, max_kb: 200, width_cm: 3.5, height_cm: 4.5, bg_color: 'white' };
+  if (lowerText.includes('pdf')) return { format: 'pdf', max_kb: 1000 };
+  if (lowerText.includes('image') || lowerText.includes('photo') || lowerText.includes('jpeg') || lowerText.includes('jpg')) return { format: 'jpeg', min_kb: 10, max_kb: 100 };
+  return { format: 'pdf', max_kb: 500 };
 }
 
 // Production OpenAI integration (available when OPENAI_API_KEY is set)

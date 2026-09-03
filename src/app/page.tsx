@@ -84,8 +84,9 @@ export default function Home() {
                 style={{ aspectRatio: '16 / 10' }}
                 width={1376}
                 height={768}
-                loading="lazy"
+                loading={typeof navigator !== 'undefined' && (navigator as any)?.connection?.effectiveType === 'slow-2g' ? 'eager' : 'lazy'}
                 decoding="async"
+                fetchPriority={typeof navigator !== 'undefined' && (navigator as any)?.connection?.effectiveType?.includes('2g') ? 'low' as any : 'auto' as any}
               />
             </picture>
             <figcaption className="flex items-center justify-between gap-4 px-5 py-4 sm:px-6">
