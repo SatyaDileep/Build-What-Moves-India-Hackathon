@@ -6,7 +6,7 @@ import { COLORS, USER_PROFILES } from '@/lib/constants';
 import { supabase } from '@/lib/supabase';
 
 interface DigiLockerModalProps {
-  portalId: 'epfo' | 'upsc' | 'vahan';
+  portalId: 'epfo' | 'upsc' | 'vahan' | 'passport' | 'ssc' | 'nsp';
   signInName: string;
   onClose: () => void;
   onAssetSelected: (asset: DigiLockerAsset) => void;
@@ -79,11 +79,18 @@ export default function DigiLockerModal({
   };
 
   // Filter assets based on portal (case-insensitive)
+  const lower = (s: string) => s.toLowerCase();
   const filteredAssets = portalId === 'epfo'
-    ? assets.filter(a => a.name.toLowerCase().includes('passbook') || a.name.toLowerCase().includes('pan'))
+    ? assets.filter(a => lower(a.name).includes('passbook') || lower(a.name).includes('pan'))
     : portalId === 'vahan'
-      ? assets.filter(a => a.name.toLowerCase().includes('photo') || a.name.toLowerCase().includes('selfie'))
-      : assets.filter(a => a.name.toLowerCase().includes('photo') || a.name.toLowerCase().includes('selfie') || a.name.toLowerCase().includes('signature'));
+      ? assets.filter(a => lower(a.name).includes('photo') || lower(a.name).includes('selfie'))
+      : portalId === 'passport'
+        ? assets.filter(a => lower(a.name).includes('photo') || lower(a.name).includes('signature') || lower(a.name).includes('selfie'))
+        : portalId === 'ssc'
+          ? assets.filter(a => lower(a.name).includes('photo') || lower(a.name).includes('selfie') || lower(a.name).includes('signature'))
+          : portalId === 'nsp'
+            ? assets.filter(a => lower(a.name).includes('photo') || lower(a.name).includes('cert') || lower(a.name).includes('scan'))
+            : assets.filter(a => lower(a.name).includes('photo') || lower(a.name).includes('selfie') || lower(a.name).includes('signature'));
 
   return (
     <div 

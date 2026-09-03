@@ -12,14 +12,16 @@ import PreviewPanel from './PreviewPanel';
 import PrivacyBadge from '@/components/ui/PrivacyBadge';
 
 interface DocBridgeWidgetProps {
-  portalId: 'epfo' | 'upsc' | 'vahan';
+  portalId: 'epfo' | 'upsc' | 'vahan' | 'passport' | 'ssc' | 'nsp';
   requirements: string;
+  docType?: string;
   onSuccess?: (result: any) => void;
 }
 
 export default function DocBridgeWidget({ 
   portalId, 
   requirements, 
+  docType,
   onSuccess 
 }: DocBridgeWidgetProps) {
   const [state, setState] = useState<WidgetState>('idle');
@@ -144,12 +146,23 @@ export default function DocBridgeWidget({
       if (portalId === 'epfo') {
         formData.append('account_number', '3847 2910 5678');
       }
+      // Dual-document portals (passport / ssc / nsp) tell the legacy
+      // endpoint which slot is being filled: photo, signature, or income.
+      if (docType) {
+        formData.append('doc', docType);
+      }
       
       const endpoint = portalId === 'epfo' 
         ? '/api/legacy-epfo' 
         : portalId === 'vahan'
           ? '/api/legacy-vahan'
-          : '/api/legacy-upsc';
+          : portalId === 'passport'
+            ? '/api/legacy-passport'
+            : portalId === 'ssc'
+              ? '/api/legacy-ssc'
+              : portalId === 'nsp'
+                ? '/api/legacy-nsp'
+                : '/api/legacy-upsc';
       
       const response = await fetch(endpoint, {
         method: 'POST',

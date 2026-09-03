@@ -67,6 +67,30 @@ export const PORTALS: PortalConfig[] = [
     constraint: { format: 'jpeg', min_kb: 10, max_kb: 20, width_cm: 3.5, height_cm: 4.5, bg_color: 'white' },
     persona: { name: 'Priya', age: 22, role: 'Applicant' },
   },
+  {
+    id: 'passport',
+    name: 'Passport Seva - Ministry of External Affairs',
+    description: 'Photo & Signature Upload - Fresh Application',
+    requirements: 'Passport Seva GPSP upload. Photo exactly 630x810 pixels, JPEG only, 10KB - 250KB, white background, 80-85% face coverage.',
+    constraint: { format: 'jpeg', min_kb: 10, max_kb: 250, width_px: 630, height_px: 810, bg_color: 'white' },
+    persona: { name: 'Kabir', age: 34, role: 'Traveller' },
+  },
+  {
+    id: 'ssc',
+    name: 'SSC - Staff Selection Commission (OTR)',
+    description: 'Photo & Signature Upload - CGL Application',
+    requirements: 'SSC OTR photo upload. JPEG only, 20KB - 50KB, exactly 200x230 pixels, white background.',
+    constraint: { format: 'jpeg', min_kb: 20, max_kb: 50, width_px: 200, height_px: 230, bg_color: 'white' },
+    persona: { name: 'Priya', age: 22, role: 'Applicant' },
+  },
+  {
+    id: 'nsp',
+    name: 'NSP - National Scholarship Portal (OTR)',
+    description: 'Photo & Income Certificate Upload',
+    requirements: 'NSP OTR scholarship photo. JPEG only, under 50KB, 200x230 pixels, white background.',
+    constraint: { format: 'jpeg', max_kb: 50, width_px: 200, height_px: 230, bg_color: 'white' },
+    persona: { name: 'Meera', age: 19, role: 'Student' },
+  },
 ];
 
 export const DIGILOCKER_ASSETS: DigiLockerAsset[] = [
@@ -74,11 +98,17 @@ export const DIGILOCKER_ASSETS: DigiLockerAsset[] = [
   { id: 'asset-2', name: 'Ramesh_PAN_Card.jpg', type: 'image/jpeg', size_mb: 3.0, url: '/assets/ramesh_pan_card.jpg', owner: 'ramesh' },
   { id: 'asset-3', name: 'Priya_Passport_Photo.jpg', type: 'image/jpeg', size_mb: 5.0, url: '/assets/priya_selfie_raw.jpg', owner: 'priya' },
   { id: 'asset-4', name: 'Priya_Signature.png', type: 'image/png', size_mb: 2.0, url: '/assets/priya_signature_raw.png', owner: 'priya' },
+  { id: 'asset-5', name: 'Kabir_PassportPhoto.jpg', type: 'image/jpeg', size_mb: 6.1, url: '/assets/kabir_photo_raw.jpg', owner: 'kabir' },
+  { id: 'asset-6', name: 'Kabir_Signature.jpg', type: 'image/jpeg', size_mb: 2.4, url: '/assets/kabir_signature_raw.jpg', owner: 'kabir' },
+  { id: 'asset-7', name: 'Meera_Student_Photo.jpg', type: 'image/jpeg', size_mb: 3.8, url: '/assets/meera_photo_raw.jpg', owner: 'meera' },
+  { id: 'asset-8', name: 'Meera_IncomeCert_Scan.jpg', type: 'image/jpeg', size_mb: 4.6, url: '/assets/meera_incomecert_raw.jpg', owner: 'meera' },
 ];
 
 export const USER_PROFILES: UserProfile[] = [
   { id: 'user-1', name: 'Ramesh Kumar', mobile: '9876543210', role: 'pensioner', assets: DIGILOCKER_ASSETS.filter(a => a.owner === 'ramesh') },
   { id: 'user-2', name: 'Priya Sharma', mobile: '8765432109', role: 'applicant', assets: DIGILOCKER_ASSETS.filter(a => a.owner === 'priya') },
+  { id: 'user-3', name: 'Kabir Mehta', mobile: '9811045678', role: 'applicant', assets: DIGILOCKER_ASSETS.filter(a => a.owner === 'kabir') },
+  { id: 'user-4', name: 'Meera Nair', mobile: '9745012365', role: 'applicant', assets: DIGILOCKER_ASSETS.filter(a => a.owner === 'meera') },
 ];
 
 export const WIDGET_STATES = {

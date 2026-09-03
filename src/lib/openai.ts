@@ -10,7 +10,69 @@ export async function parsePortalConstraints(pageText: string): Promise<Document
 
   // Parse constraints based on page text
   const lowerText = pageText.toLowerCase();
-  
+
+  // Passport Seva GPSP photo — exact pixel box (must precede generic photo branches)
+  if (lowerText.includes('passport seva') || lowerText.includes('630')) {
+    return {
+      format: 'jpeg',
+      min_kb: 10,
+      max_kb: 250,
+      width_px: 630,
+      height_px: 810,
+      bg_color: 'white',
+    };
+  }
+
+  // Passport / SSC / NSP signature strips — wide thin box
+  if (lowerText.includes('signature') && (lowerText.includes('140') || lowerText.includes('ssc'))) {
+    return {
+      format: 'jpeg',
+      min_kb: 10,
+      max_kb: 20,
+      width_px: 140,
+      height_px: 60,
+      bg_color: 'white',
+    };
+  }
+  if (lowerText.includes('signature') && lowerText.includes('passport')) {
+    return {
+      format: 'jpeg',
+      max_kb: 100,
+      bg_color: 'white',
+    };
+  }
+  // NSP income / category certificate — small PDF (before NSP photo: both mention NSP)
+  if (lowerText.includes('income certificate') || lowerText.includes('category certificate') || (lowerText.includes('nsp') && lowerText.includes('pdf'))) {
+    return {
+      format: 'pdf',
+      max_kb: 500,
+      additional_requirements: ['Stamp and signature of issuing authority must be visible'],
+    };
+  }
+
+  // NSP OTR photo (before SSC: both use the 200x230 box)
+  if (lowerText.includes('nsp') || lowerText.includes('scholarship')) {
+    return {
+      format: 'jpeg',
+      max_kb: 50,
+      width_px: 200,
+      height_px: 230,
+      bg_color: 'white',
+    };
+  }
+
+  // SSC OTR photo — tiny exact box
+  if (lowerText.includes('ssc') || lowerText.includes('200x230') || lowerText.includes('200×230')) {
+    return {
+      format: 'jpeg',
+      min_kb: 20,
+      max_kb: 50,
+      width_px: 200,
+      height_px: 230,
+      bg_color: 'white',
+    };
+  }
+
   // EPFO constraints
   if (lowerText.includes('passbook') || lowerText.includes('epfo') || lowerText.includes('pf')) {
     return {
@@ -69,6 +131,12 @@ export async function parsePortalConstraints(pageText: string): Promise<Document
 
 function parseLocal(pageText: string): DocumentConstraint {
   const lowerText = pageText.toLowerCase();
+  if (lowerText.includes('passport seva') || lowerText.includes('630')) return { format: 'jpeg', min_kb: 10, max_kb: 250, width_px: 630, height_px: 810, bg_color: 'white' };
+  if (lowerText.includes('signature') && (lowerText.includes('140') || lowerText.includes('ssc'))) return { format: 'jpeg', min_kb: 10, max_kb: 20, width_px: 140, height_px: 60, bg_color: 'white' };
+  if (lowerText.includes('signature') && lowerText.includes('passport')) return { format: 'jpeg', max_kb: 100, bg_color: 'white' };
+  if (lowerText.includes('income certificate') || lowerText.includes('category certificate') || (lowerText.includes('nsp') && lowerText.includes('pdf'))) return { format: 'pdf', max_kb: 500, additional_requirements: ['Stamp and signature of issuing authority must be visible'] };
+  if (lowerText.includes('nsp') || lowerText.includes('scholarship')) return { format: 'jpeg', max_kb: 50, width_px: 200, height_px: 230, bg_color: 'white' };
+  if (lowerText.includes('ssc') || lowerText.includes('200x230') || lowerText.includes('200×230')) return { format: 'jpeg', min_kb: 20, max_kb: 50, width_px: 200, height_px: 230, bg_color: 'white' };
   if (lowerText.includes('passbook') || lowerText.includes('epfo') || lowerText.includes('pf')) return { format: 'pdf', max_kb: 500, additional_requirements: ['Account number must be visible'] };
   if (lowerText.includes('driving') || lowerText.includes('sarathi') || lowerText.includes('transport') || lowerText.includes('35mm')) return { format: 'jpeg', min_kb: 10, max_kb: 20, width_cm: 3.5, height_cm: 4.5, bg_color: 'white' };
   if (lowerText.includes('passport photo') || lowerText.includes('upsc') || lowerText.includes('photograph')) return { format: 'jpeg', min_kb: 20, max_kb: 200, width_cm: 3.5, height_cm: 4.5, bg_color: 'white' };

@@ -476,7 +476,11 @@ export async function processDocument(
   if (opts?.enhance) processedCanvas = await enhanceCanvas(processedCanvas);
   
   // Apply transformations based on constraint
-  if (constraint.width_cm && constraint.height_cm) {
+  if (constraint.width_px && constraint.height_px) {
+    // Exact pixel requirement (e.g. Passport Seva 630x810, SSC 200x230) —
+    // crop to the precise pixel box, no DPI conversion.
+    processedCanvas = cropToAspectRatio(processedCanvas, constraint.width_px, constraint.height_px);
+  } else if (constraint.width_cm && constraint.height_cm) {
     // Convert cm to pixels at print resolution (300 DPI) to meet portal
     // pixel-dimension requirements (e.g. UPSC requires 350-1000px).
     const dpi = 300;

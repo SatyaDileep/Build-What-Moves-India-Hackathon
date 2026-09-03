@@ -92,9 +92,15 @@ class DigiLockerClient {
     if (asset.name.includes('passbook')) {
       canvas.width = 2400;
       canvas.height = 3200;
-    } else if (asset.name.includes('selfie')) {
+    } else if (asset.name.includes('selfie') || asset.name.includes('Photo')) {
       canvas.width = 3000;
       canvas.height = 4000;
+    } else if (asset.name.includes('Signature')) {
+      canvas.width = 2400;
+      canvas.height = 800;
+    } else if (asset.name.includes('Cert')) {
+      canvas.width = 2400;
+      canvas.height = 3200;
     } else {
       canvas.width = 2000;
       canvas.height = 2500;
@@ -102,7 +108,6 @@ class DigiLockerClient {
 
     // Draw a realistic-looking document/photo
     if (asset.name.includes('passbook')) {
-      // Bank passbook
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
@@ -131,7 +136,7 @@ class DigiLockerClient {
         ctx.lineTo(2300, y + 20);
         ctx.stroke();
       }
-    } else if (asset.name.includes('selfie')) {
+    } else if (asset.name.includes('selfie') || asset.name.includes('Photo')) {
       // Photo with background
       const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
       gradient.addColorStop(0, '#87CEEB');
@@ -154,6 +159,49 @@ class DigiLockerClient {
       ctx.beginPath();
       ctx.arc(1500, 1000, 450, Math.PI, 0);
       ctx.fill();
+    } else if (asset.name.includes('Signature')) {
+      // Handwritten signature on white paper (wide strip)
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = '#1e3a8a';
+      ctx.lineWidth = 14;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(300, 550);
+      ctx.bezierCurveTo(600, 200, 800, 650, 1100, 400);
+      ctx.bezierCurveTo(1300, 220, 1450, 600, 1700, 420);
+      ctx.bezierCurveTo(1850, 320, 1950, 500, 2100, 430);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(1050, 400);
+      ctx.lineTo(1150, 650);
+      ctx.stroke();
+    } else if (asset.name.includes('Cert')) {
+      // Income certificate scan
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = '#9e9e9e';
+      ctx.lineWidth = 6;
+      ctx.strokeRect(60, 60, canvas.width - 120, canvas.height - 120);
+      ctx.fillStyle = '#0b3c92';
+      ctx.font = 'bold 72px Arial';
+      ctx.fillText('INCOME CERTIFICATE', 200, 280);
+      ctx.fillStyle = '#374151';
+      ctx.font = '48px Arial';
+      ctx.fillText('State Government — Office of the Tehsildar', 200, 420);
+      ctx.fillText('Annual Family Income: Rs. 96,000/-', 200, 560);
+      ctx.fillText('Valid for financial year 2026-27', 200, 660);
+      ctx.font = '44px Arial';
+      for (let i = 0; i < 10; i++) {
+        ctx.fillText('Certified that the above details are verified from revenue records.', 200, 860 + i * 90);
+      }
+      ctx.fillStyle = '#0d6b07';
+      ctx.font = 'bold 52px Arial';
+      ctx.fillText('Stamp & Signature of Issuing Authority', 200, canvas.height - 300);
+      ctx.strokeStyle = '#0d6b07';
+      ctx.beginPath();
+      ctx.ellipse(1900, canvas.height - 350, 220, 130, 0, 0, Math.PI * 2);
+      ctx.stroke();
     } else {
       // Generic document
       ctx.fillStyle = '#FFFFFF';

@@ -59,7 +59,7 @@ export default function Home() {
               One upload layer for India&apos;s many official portals.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600 sm:text-xl">
-              UPSC, Sarathi, and EPFO each enforce a different size, format, and dimension — so the same photo that clears one portal bounces on another. Complying often means handing that document to a third-party tool. DocBridge prepares it in the browser to match each portal&apos;s own rules — so the upload you came to do, finally goes through.
+              UPSC, Sarathi, EPFO, Passport Seva, SSC, and NSP each enforce a different size, format, and dimension — so the same photo that clears one portal bounces on another. Complying often means handing that document to a third-party tool. DocBridge prepares it in the browser to match each portal&apos;s own rules — so the upload you came to do, finally goes through.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
               <button
@@ -156,7 +156,7 @@ export default function Home() {
       <section id="portals" className="mx-auto max-w-6xl px-5 py-16 sm:px-6">
         <div className="max-w-3xl">
           <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#EA580C]">Login to see it in action</p>
-          <h2 className="mt-3 text-3xl font-bold tracking-[-0.03em] text-[#1E3A8A] sm:text-4xl">Three real portals. One calm upload layer.</h2>
+          <h2 className="mt-3 text-3xl font-bold tracking-[-0.03em] text-[#1E3A8A] sm:text-4xl">Six real portals. One calm upload layer.</h2>
           <p className="mt-4 text-lg leading-8 text-slate-600">
             Each portal tells a familiar story — a form stalls on a document, and the fix lives somewhere else. Login to land on that portal&apos;s own home, follow the nudge, and watch DocBridge streamline the upload in your browser.
           </p>
@@ -195,6 +195,39 @@ export default function Home() {
             cta="Open EPFO login →"
             busy={portalNav === '/epfo'}
             onNavigateStart={() => setPortalNav('/epfo')}
+          />
+          <PortalCard
+            step="04"
+            accent="#0b3c92"
+            eyebrow="Passport Seva · MEA"
+            title="Login to Passport Seva to see it in action"
+            description="A fresh application stalls on a pixel-exact 630×810 photo — with only 12 upload attempts on the clock."
+            href="/passport"
+            cta="Open Passport login →"
+            busy={portalNav === '/passport'}
+            onNavigateStart={() => setPortalNav('/passport')}
+          />
+          <PortalCard
+            step="05"
+            accent="#9a3412"
+            eyebrow="SSC · OTR"
+            title="Login to SSC portal to see it in action"
+            description="A CGL application needs a 200×230 photo and a 140×60 signature — the tiniest boxes of any portal."
+            href="/ssc"
+            cta="Open SSC login →"
+            busy={portalNav === '/ssc'}
+            onNavigateStart={() => setPortalNav('/ssc')}
+          />
+          <PortalCard
+            step="06"
+            accent="#0d6b07"
+            eyebrow="NSP · Scholarship"
+            title="Login to NSP to see it in action"
+            description="A student application pairs a ≤50KB photo with a stamped income-certificate PDF — mixed formats, one flow."
+            href="/nsp"
+            cta="Open NSP login →"
+            busy={portalNav === '/nsp'}
+            onNavigateStart={() => setPortalNav('/nsp')}
           />
         </div>
       </section>
@@ -300,6 +333,9 @@ export default function Home() {
               <ModalPortalCard step="01" accent="#1E3A8A" eyebrow="UPSC · CSE 2026" title="UPSC portal" description="A photograph holds up a job application — watch it become portal-ready in one flow." href="/upsc" cta="Login to UPSC →" busy={portalNav === '/upsc'} onNavigateStart={() => setPortalNav('/upsc')} onNavigate={() => {}} />
               <ModalPortalCard step="02" accent="#EA580C" eyebrow="Vahan · Sarathi" title="Vahan portal" description="A licence upload waits on one photo — see it streamline without a second tool." href="/vahan" cta="Login to Vahan →" busy={portalNav === '/vahan'} onNavigateStart={() => setPortalNav('/vahan')} onNavigate={() => {}} />
               <ModalPortalCard step="03" accent="#138808" eyebrow="EPFO · Member Portal" title="EPFO portal" description="A KYC update asks for a passbook — fetched and finished in place." href="/epfo" cta="Login to EPFO →" busy={portalNav === '/epfo'} onNavigateStart={() => setPortalNav('/epfo')} onNavigate={() => {}} />
+              <ModalPortalCard step="04" accent="#0b3c92" eyebrow="Passport Seva · MEA" title="Passport portal" description="A 630×810 photo holds up a fresh application — watch it land pixel-exact." href="/passport" cta="Login to Passport →" busy={portalNav === '/passport'} onNavigateStart={() => setPortalNav('/passport')} onNavigate={() => {}} />
+              <ModalPortalCard step="05" accent="#9a3412" eyebrow="SSC · OTR" title="SSC portal" description="A CGL form waits on two tiny boxes — photo and signature, both exact." href="/ssc" cta="Login to SSC →" busy={portalNav === '/ssc'} onNavigateStart={() => setPortalNav('/ssc')} onNavigate={() => {}} />
+              <ModalPortalCard step="06" accent="#0d6b07" eyebrow="NSP · Scholarship" title="NSP portal" description="A scholarship pairs a small photo with a stamped PDF — both in one flow." href="/nsp" cta="Login to NSP →" busy={portalNav === '/nsp'} onNavigateStart={() => setPortalNav('/nsp')} onNavigate={() => {}} />
             </div>
 
             <p className="mt-6 rounded-2xl bg-white/60 px-4 py-3 text-xs leading-5 text-slate-500 ring-1 ring-black/5">

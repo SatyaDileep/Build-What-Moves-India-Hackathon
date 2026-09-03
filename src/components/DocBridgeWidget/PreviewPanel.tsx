@@ -7,7 +7,7 @@ import PrivacyBadge from '@/components/ui/PrivacyBadge';
 
 interface PreviewPanelProps {
   result: ProcessingResult;
-  portalId: 'epfo' | 'upsc' | 'vahan';
+  portalId: 'epfo' | 'upsc' | 'vahan' | 'passport' | 'ssc' | 'nsp';
   source: 'digilocker' | 'device';
   onSubmit: (saveToDigiLocker: boolean) => void;
   onCancel: () => void;
@@ -56,7 +56,7 @@ export default function PreviewPanel({
     ? Math.round((1 - processedSizeKB / originalSizeKB) * 100)
     : 0;
 
-  const portalName = portalId === 'epfo' ? 'EPFO' : portalId === 'vahan' ? 'Sarathi' : 'UPSC';
+  const portalName = portalId === 'epfo' ? 'EPFO' : portalId === 'vahan' ? 'Sarathi' : portalId === 'passport' ? 'Passport Seva' : portalId === 'ssc' ? 'SSC' : portalId === 'nsp' ? 'NSP' : 'UPSC';
   const isOverLimit = !!result.constraint.max_kb && processedSizeKB > result.constraint.max_kb + 0.5;
   const warningText = result.processed.warning || (isOverLimit ? `This file is ${Math.round(processedSizeKB)}KB — over the ${result.constraint.max_kb}KB limit for ${portalName}.` : undefined);
 

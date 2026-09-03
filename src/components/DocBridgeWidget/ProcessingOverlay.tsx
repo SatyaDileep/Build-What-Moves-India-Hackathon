@@ -44,7 +44,7 @@ function stepIcon(state: WidgetState): React.ReactNode {
 
 export default function ProcessingOverlay({ state, source = 'digilocker', portalId }: ProcessingOverlayProps & { portalId?: string }) {
   const active = currentStep(state);
-  const portalLabel = portalId === 'epfo' ? 'EPFO' : portalId === 'vahan' ? 'Sarathi' : portalId === 'upsc' ? 'UPSC' : 'portal';
+  const portalLabel = portalId === 'epfo' ? 'EPFO' : portalId === 'vahan' ? 'Sarathi' : portalId === 'upsc' ? 'UPSC' : portalId === 'passport' ? 'Passport Seva' : portalId === 'ssc' ? 'SSC' : portalId === 'nsp' ? 'NSP' : 'portal';
   const voiceText = state === 'parsing' ? `Reading ${portalLabel} rules` : state === 'processing' ? `Optimizing for ${portalLabel}` : state === 'submitting' ? 'Submitting to portal' : '';
   const [voiceOn, setVoiceOn] = useState(() => typeof window !== 'undefined' && localStorage.getItem('docbridge-voice') === '1');
   useVoiceGuide(voiceOn && !!voiceText, voiceText, 'en-IN');
@@ -54,7 +54,7 @@ export default function ProcessingOverlay({ state, source = 'digilocker', portal
     try { localStorage.setItem('docbridge-voice', next ? '1' : '0'); } catch {}
     if (!next && typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel();
   };
-  const portalHint = portalId === 'epfo' ? 'PDF ≤500KB' : portalId === 'vahan' ? 'JPEG 10–20KB' : portalId === 'upsc' ? 'JPEG 20–200KB' : '';
+  const portalHint = portalId === 'epfo' ? 'PDF ≤500KB' : portalId === 'vahan' ? 'JPEG 10–20KB' : portalId === 'upsc' ? 'JPEG 20–200KB' : portalId === 'passport' ? 'JPEG 630×810' : portalId === 'ssc' ? 'JPEG 200×230' : portalId === 'nsp' ? 'JPEG + PDF' : '';
 
   const STEPS: { label: string; tag?: string; sub?: string }[] = state === 'submitting'
     ? [

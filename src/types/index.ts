@@ -4,6 +4,8 @@ export interface DocumentConstraint {
   max_kb?: number;
   width_cm?: number;
   height_cm?: number;
+  width_px?: number;
+  height_px?: number;
   bg_color?: string;
   additional_requirements?: string[];
 }
@@ -14,7 +16,7 @@ export interface DigiLockerAsset {
   type: string;
   size_mb: number;
   url: string;
-  owner: 'ramesh' | 'priya';
+  owner: 'ramesh' | 'priya' | 'kabir' | 'meera';
 }
 
 export interface UserProfile {
@@ -45,7 +47,7 @@ export interface ProcessingResult {
 }
 
 export interface PortalConfig {
-  id: 'epfo' | 'upsc' | 'vahan';
+  id: 'epfo' | 'upsc' | 'vahan' | 'passport' | 'ssc' | 'nsp';
   name: string;
   description: string;
   requirements: string;
