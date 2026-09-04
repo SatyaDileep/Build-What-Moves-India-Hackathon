@@ -51,6 +51,14 @@ export default function NSPPortal() {
       </div>
 
       <main className="mx-auto max-w-6xl px-4 py-8">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          {[['nsp.tabStudent', true], ['nsp.tabInstitute', false], ['nsp.tabOfficer', false]].map(([k, active]) => (
+            <span key={k as string} className={`rounded-full px-4 py-1.5 text-sm font-bold ${active ? 'bg-white text-[#1E3A8A] shadow-sm ring-1 ring-black/5' : 'text-slate-500'}`} style={active ? {} : { backgroundColor: 'transparent' }}>
+              {t(k as string)}
+            </span>
+          ))}
+          <span className="ml-auto rounded-full bg-[#0d6b07] px-3 py-1.5 text-xs font-bold text-white">{t('nsp.ayBanner')}</span>
+        </div>
         {step === 'login' && (
           <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="space-y-5">
@@ -67,6 +75,18 @@ export default function NSPPortal() {
                 <p className="mt-2 text-sm leading-6 text-slate-600">
                   {t('nsp.stallBody')}
                 </p>
+              </div>
+
+              <div className="rounded-xl border bg-white p-5" style={{ borderColor: COLORS.legacyBorder }}>
+                <p className="text-sm font-bold text-[#0b3c92]">{t('nsp.otrInfoT')}</p>
+                <ul className="mt-2 space-y-1.5 text-sm leading-6 text-slate-600">
+                  {['nsp.otrI1', 'nsp.otrI2', 'nsp.otrI3', 'nsp.otrI4'].map((k) => (
+                    <li key={k} className="flex items-start gap-2">
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#0d6b07]" />
+                      <span>{t(k)}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
 
@@ -116,6 +136,29 @@ export default function NSPPortal() {
                 </button>
               </div>
             )}
+
+            <div className="rounded-2xl border bg-white p-6 shadow-sm" style={{ borderColor: COLORS.legacyBorder }}>
+              <h2 className="text-lg font-bold text-[#0b1f4d]">{t('nsp.annT')}</h2>
+              <ul className="mt-3 space-y-2.5 text-sm leading-6 text-slate-600">
+                {['nsp.ann1', 'nsp.ann2', 'nsp.ann3'].map((k) => (
+                  <li key={k} className="flex items-start gap-2">
+                    <span className="mt-1.5 text-[#EA580C]" aria-hidden="true">▸</span>
+                    <span>{t(k)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="rounded-2xl border bg-white p-6 shadow-sm" style={{ borderColor: COLORS.legacyBorder }}>
+              <h2 className="text-lg font-bold text-[#0b1f4d]">{t('nsp.quickLinks')}</h2>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {['nsp.linkApply', 'nsp.linkTrack', 'nsp.linkSeed', 'nsp.linkSchemes', 'nsp.linkHelp', 'nsp.linkPfms'].map((k) => (
+                  <span key={k} className="rounded-lg bg-[#f8fafc] px-3 py-2.5 text-sm font-semibold text-[#0b3c92]" style={{ border: `1px solid ${COLORS.legacyBorder}` }}>
+                    {t(k)}
+                  </span>
+                ))}
+              </div>
+            </div>
 
             <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
               <div className="rounded-2xl border bg-white p-6 shadow-sm" style={{ borderColor: COLORS.legacyBorder }}>
@@ -272,6 +315,13 @@ export default function NSPPortal() {
           </section>
         )}
       </main>
+
+      <footer className="border-t bg-white/80 px-4 py-4" style={{ borderColor: COLORS.legacyBorder }}>
+        <div className="mx-auto max-w-6xl text-center text-xs leading-5 text-slate-500">
+          <p>{t('nsp.footer')}</p>
+          <p className="mt-1">{t('nsp.updated')}</p>
+        </div>
+      </footer>
     </div>
   );
 }
