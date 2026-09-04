@@ -10,7 +10,6 @@ const dict: Record<string, { en: string; hi: string }> = {
   'nav.services': { en: 'Services', hi: 'सेवाएँ' },
   'nav.help': { en: 'Help', hi: 'सहायता' },
   'nav.contact': { en: 'Contact', hi: 'संपर्क' },
-  'nav.offline': { en: 'Offline-ready · 0 calls', hi: 'ऑफ़लाइन-रेडी · 0 कॉल' },
   'nav.backHome': { en: 'Back to DocBridge Home', hi: 'DocBridge होम पर वापस' },
   'auth.login': { en: 'Login', hi: 'लॉगिन' },
   'auth.loginId': { en: 'Login ID', hi: 'लॉगिन आईडी' },

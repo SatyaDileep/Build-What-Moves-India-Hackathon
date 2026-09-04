@@ -150,7 +150,6 @@ export default function GovernmentHeader({
             </a>
             <span className="ml-auto flex items-center gap-2">
               <LanguageToggle />
-              <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-bold text-white/90" title="Processing is 100% browser-private — no network calls"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> {t('nav.offline')}</span>
               <span className="text-xs opacity-75" style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}>सत्यमेव जयते • Truth Alone Triumphs</span>
             </span>
           </div>
