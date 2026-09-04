@@ -103,8 +103,6 @@ const dict: Record<string, { en: string; hi: string }> = {
   'ov.validSubmit': { en: 'Validating & submitting', hi: 'जाँच व जमा' },
   'ov.almost': { en: 'Almost done…', hi: 'लगभग पूर्ण…' },
   'privacy.title': { en: '100% browser-private', hi: '100% ब्राउज़र-प्राइवेट' },
-  'privacy.sub': { en: 'Zero storage · No training · DigiLocker consent', hi: 'शून्य स्टोरेज · कोई प्रशिक्षण नहीं · DigiLocker सहमति' },
-  'privacy.calls': { en: '0 network calls during processing', hi: 'प्रोसेसिंग में 0 नेटवर्क कॉल' },
   'dl.title': { en: 'Connect DigiLocker', hi: 'DigiLocker जोड़ें' },
   'dl.consent': { en: 'Consent-based fetch. DocBridge never stores your files.', hi: 'सहमति-आधारित प्राप्ति। DocBridge आपकी फ़ाइलें संग्रहित नहीं करता।' },
   'dl.select': { en: 'Select a document to continue', hi: 'आगे बढ़ने हेतु दस्तावेज़ चुनें' },

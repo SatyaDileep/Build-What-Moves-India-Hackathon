@@ -67,7 +67,7 @@ One consent-based upload layer that makes any portal upload just work — DigiLo
 
 **D2 — Privacy Assurance Dashboard (Trust Badge)**
 - *Current:* Claims in README only.
-- *Required:* Micro-disclaimer + badge under Upload button: `🔒 100% browser-private · Zero storage · No training · Source: DigiLocker (consent)` + link to `/privacy` modal. Show `storage: none` + `network: 0 calls` checkmark derived from B1.
+- *Required:* Micro-disclaimer + badge under Upload button: `🔒 100% browser-private` + link to `/privacy` modal.
 - *Accept:* Badge visible on every `idle`/`previewing` state; copy vetted; no dark pattern.
 
 ## 4. Non-Functional
