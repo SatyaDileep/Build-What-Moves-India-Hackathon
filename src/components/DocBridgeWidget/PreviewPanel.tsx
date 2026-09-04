@@ -106,12 +106,12 @@ export default function PreviewPanel({
                 </button>
               )
             ) : (
-              <div className="flex h-32 items-center justify-center rounded-lg border border-dashed text-xs" style={{ borderColor: COLORS.gray[300], color: COLORS.gray[500] }}>Loading preview…</div>
+              <div className="flex h-32 items-center justify-center rounded-lg border border-dashed text-xs" style={{ borderColor: COLORS.gray[300], color: COLORS.gray[500] }}>{t('w.loadingPreview')}</div>
             )}
             <div className="mt-2 text-center">
               <span className="text-lg font-bold line-through" style={{ color: COLORS.gray[500] }}>{formatSize(originalSizeKB)}</span>
               {result.original.dimensions && <span className="ml-2 text-xs" style={{ color: COLORS.gray[500] }}>{result.original.dimensions.width}×{result.original.dimensions.height}px</span>}
-              <p className="text-xs truncate" style={{ color: COLORS.gray[400] }}>{result.original.assetName || 'From DigiLocker'}</p>
+              <p className="text-xs truncate" style={{ color: COLORS.gray[400] }}>{result.original.assetName || t('w.fromDigi')}</p>
             </div>
           </div>
         </div>
@@ -123,7 +123,7 @@ export default function PreviewPanel({
                 <div className="overflow-hidden rounded-lg border bg-white" style={{ borderColor: COLORS.success }}>
                   <iframe src={previewUrls.processed} title="Optimized PDF" className="h-48 w-full" />
                   <div className="flex justify-center gap-2 bg-white px-2 py-1.5">
-                    <a href={previewUrls.processed} target="_blank" rel="noreferrer" className="text-xs font-bold underline" style={{ color: COLORS.success }}>Open PDF</a>
+                    <a href={previewUrls.processed} target="_blank" rel="noreferrer" className="text-xs font-bold underline" style={{ color: COLORS.success }}>{t('w.openPdf')}</a>
                   </div>
                 </div>
               ) : (
@@ -133,7 +133,7 @@ export default function PreviewPanel({
                 </button>
               )
             ) : (
-              <div className="flex h-32 items-center justify-center rounded-lg border bg-white text-xs" style={{ borderColor: COLORS.success, color: COLORS.gray[700] }}>Preparing preview…</div>
+              <div className="flex h-32 items-center justify-center rounded-lg border bg-white text-xs" style={{ borderColor: COLORS.success, color: COLORS.gray[700] }}>{t('w.preparingPreview')}</div>
             )}
             <div className="mt-2 text-center">
               <span className="text-lg font-bold" style={{ color: COLORS.success }}>{formatSize(processedSizeKB)}</span>
@@ -146,7 +146,7 @@ export default function PreviewPanel({
               {canAdjust && <button type="button" onClick={() => setShowAdjust(true)} className="inline-flex items-center gap-1.5 rounded-full border bg-white px-3 py-1.5 text-xs font-bold shadow-sm hover:-translate-y-0.5" style={{ borderColor: COLORS.primary, color: COLORS.primary }}>{t('w.adjustSize')}</button>}
             </div>
             {result.original.dimensions && result.processed.dimensions && result.original.dimensions.width < result.processed.dimensions.width * 0.7 && onEnhance && (
-              <button type="button" onClick={onEnhance} className="mx-auto mt-2 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold text-white shadow-sm" style={{ backgroundColor: COLORS.warning }}>✦ Enhance clarity (up-scale)</button>
+              <button type="button" onClick={onEnhance} className="mx-auto mt-2 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold text-white shadow-sm" style={{ backgroundColor: COLORS.warning }}>{t('w.enhance')}</button>
             )}
           </div>
         </div>
@@ -192,7 +192,7 @@ export default function PreviewPanel({
               <p className="text-sm font-semibold" style={{ color: isOverLimit ? '#991B1B' : '#92400E' }}>{isOverLimit ? t('w.needsAttn') : t('w.headsUp')}</p>
               <p className="mt-1 text-sm leading-6" style={{ color: isOverLimit ? '#7F1D1D' : '#78350F' }}>{warningText}</p>
               {!isOverLimit && result.processed.wasScaled && (
-                <p className="mt-2 text-xs" style={{ color: COLORS.gray[500] }}>We scaled the image slightly to fit the limit — still portal-compliant.</p>
+                <p className="mt-2 text-xs" style={{ color: COLORS.gray[500] }}>{t('w.scaledNote')}</p>
               )}
             </div>
           </div>
@@ -210,7 +210,7 @@ export default function PreviewPanel({
             </button>
           )}
           {isOverLimit && !onRecompress && (
-            <p className="mt-3 text-xs" style={{ color: COLORS.gray[600] }}>Tip: try a smaller source photo for best clarity, or use “Upload from device” with a lighter file.</p>
+            <p className="mt-3 text-xs" style={{ color: COLORS.gray[600] }}>{t('w.tipSmall')}</p>
           )}
         </div>
       )}

@@ -10,21 +10,9 @@ import { useLang } from '@/lib/i18n';
 
 type JourneyStep = 'login' | 'dashboard' | 'upload' | 'submitted';
 
-const photoRequirements = [
-  'Exactly 630 × 810 pixels (35 × 45 mm, 7:9)',
-  'JPEG only — PNG, HEIC, WebP rejected',
-  'File size between 10 KB and 250 KB',
-  'Plain white background, no shadows',
-  'Face covers 80–85% of the frame',
-  'No glasses, neutral expression',
-];
-
-const signatureRequirements = [
-  'Handwritten in blue or black ballpoint pen',
-  'JPEG only, under 100 KB',
-  'Wide rectangular crop, centred with margin',
-  'Plain white paper — no ruled lines or shadows',
-];
+const photoKeys = ['pp.pr1', 'pp.pr2', 'pp.pr3', 'pp.pr4', 'pp.pr5', 'pp.pr6'];
+const signatureKeys = ['pp.sr1', 'pp.sr2', 'pp.sr3', 'pp.sr4'];
+const stageKeys = ['pp.sg1', 'pp.sg2', 'pp.sg3', 'pp.sg4'];
 
 export default function PassportPortal() {
   const { t } = useLang();
@@ -49,9 +37,9 @@ export default function PassportPortal() {
       <div className="mx-auto mt-6 max-w-6xl px-4">
         <div className="mb-4 flex items-center justify-between rounded-2xl border border-stone-200/60 bg-white/80 px-4 py-3 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
           <div className="text-sm text-slate-600">
-            <span className="font-semibold text-[#1E3A8A]">Passport Seva — Applicant Home</span>
+            <span className="font-semibold text-[#1E3A8A]">{t('pp.appHome')}</span>
             <span className="mx-2 text-slate-300">/</span>
-            <span>Upload Photo & Signature</span>
+            <span>{t('upload.photoSig')}</span>
           </div>
           <Link
             href="/"
@@ -67,17 +55,17 @@ export default function PassportPortal() {
           <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="space-y-5">
               <div className="rounded-2xl border bg-white p-6 shadow-sm" style={{ borderColor: COLORS.legacyBorder }}>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8a5a00]">GPSP 2.0 · Applicant login</p>
-                <h1 className="mt-2 text-3xl font-bold text-[#0b1f4d]">Existing user login</h1>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8a5a00]">{t('pp.loginEyebrow')}</p>
+                <h1 className="mt-2 text-3xl font-bold text-[#0b1f4d]">{t('pp.loginTitle')}</h1>
                 <p className="mt-3 text-sm leading-6 text-slate-600">
-                  Sign in with your Login ID to track the application, upload the ICAO photo and signature, and book the PSK appointment.
+                  {t('pp.loginSub')}
                 </p>
               </div>
 
               <div className="rounded-xl border bg-[#fff8e1] p-5" style={{ borderColor: '#FDE68A' }}>
-                <p className="text-sm font-bold text-[#8a5a00]">Uploads are mandatory before acceptance</p>
+                <p className="text-sm font-bold text-[#8a5a00]">{t('pp.mandatory')}</p>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                  Since GPSP 2.0, the digital photo and signature must be uploaded online — the application is not accepted without them. Only 12 upload attempts are allowed per application.
+                  {t('pp.mandatoryBody')}
                 </p>
               </div>
             </div>
@@ -85,13 +73,13 @@ export default function PassportPortal() {
             <div className="rounded-2xl border bg-white shadow-sm" style={{ borderColor: COLORS.legacyBorder }}>
               <div className="border-b px-5 py-4" style={{ borderColor: COLORS.legacyBorder }}>
                 <h2 className="text-lg font-bold text-[#0b1f4d]">{t('login.applicant')}</h2>
-                <p className="mt-1 text-sm text-slate-500">Login ID and password, then the application dashboard.</p>
+                <p className="mt-1 text-sm text-slate-500">{t('pp.loginBox')}</p>
               </div>
               <div className="space-y-4 p-5">
-                <Field label="Login ID" value="kabir.mehta34" />
-                <Field label="Password" value="••••••••••" />
+                <Field label={t('auth.loginId')} value="kabir.mehta34" />
+                <Field label={t('epfo.password')} value="••••••••••" />
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700">Captcha</label>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">{t('epfo.captcha')}</label>
                   <div className="flex items-center gap-3">
                     <div className="rounded-md border bg-[#f8fafc] px-4 py-3 font-mono tracking-[0.28em] text-[#0b3c92]" style={{ borderColor: COLORS.gray[300] }}>
                       7 3 9 4
@@ -103,7 +91,7 @@ export default function PassportPortal() {
                       style={{ borderColor: COLORS.gray[300], backgroundColor: COLORS.white }}
                     />
                   </div>
-                  <p className="mt-1 text-xs text-slate-400">Demo is pre-filled — just click Login.</p>
+                  <p className="mt-1 text-xs text-slate-400">{t('auth.demoPrefill')}</p>
                 </div>
                 <button
                   type="button"
@@ -114,8 +102,8 @@ export default function PassportPortal() {
                   {t('auth.login')}
                 </button>
                 <div className="flex justify-between text-xs text-[#0b3c92]">
-                  <span>New User Registration</span>
-                  <span>Forgot Login ID / Password</span>
+                  <span>{t('pp.newUser')}</span>
+                  <span>{t('auth.forgotLogin')}</span>
                 </div>
               </div>
             </div>
@@ -126,9 +114,9 @@ export default function PassportPortal() {
           <section className="space-y-6">
             {!nudgeDismissed ? (
               <PortalNudge
-                eyebrow="ARN DL107 series · 12 attempts left"
-                title="Photo & signature upload pending — application not accepted without them"
-                description="Passport Seva needs exactly 630×810px JPEG (10–250 KB) plus a signature under 100 KB. Open the upload section — DocBridge prepares both from DigiLocker before the portal burns an attempt."
+                eyebrow={t('pp.nudgeEyebrow')}
+                title={t('pp.nudgeTitle')}
+                description={t('pp.nudgeDesc')}
                 ctaLabel={t('upload.photoSig')}
                 onAction={() => setStep('upload')}
                 onDismiss={() => setNudgeDismissed(true)}
@@ -136,64 +124,64 @@ export default function PassportPortal() {
               />
             ) : (
               <div className="flex items-center justify-between rounded-lg border bg-amber-50/70 px-4 py-2.5 text-sm" style={{ borderColor: '#FDE68A' }}>
-                <span className="text-amber-800">Nudge dismissed — use the table below to continue.</span>
+                <span className="text-amber-800">{t('pp.nudgeDismissed')}</span>
                 <button type="button" onClick={() => setNudgeDismissed(false)} className="font-semibold text-amber-700 underline">
-                  Show again
+                  {t('epfo.showAgain')}
                 </button>
               </div>
             )}
 
             <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
               <div className="rounded-2xl border bg-white p-6 shadow-sm" style={{ borderColor: COLORS.legacyBorder }}>
-                <h2 className="text-xl font-bold text-[#0b1f4d]">Applicant home</h2>
+                <h2 className="text-xl font-bold text-[#0b1f4d]">{t('pp.applicantHome')}</h2>
                 <div className="mt-4 rounded-lg bg-[#f8fafc] p-4">
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">File number</p>
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">{t('pp.fileNo')}</p>
                   <p className="mt-1 text-sm font-bold text-[#0b1f4d]">BNGO40217846125</p>
-                  <p className="text-xs text-slate-500">Kabir Mehta · Fresh · Normal scheme</p>
+                  <p className="text-xs text-slate-500">{t('pp.fileSub')}</p>
                   <div className="mt-3 flex items-center gap-2">
-                    <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">Uploads pending</span>
-                    <span className="text-xs text-slate-500">12/12 attempts left</span>
+                    <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">{t('upload.pending')}</span>
+                    <span className="text-xs text-slate-500">{t('pp.attemptsLeft')}</span>
                   </div>
                 </div>
-                <h3 className="mt-5 text-sm font-bold uppercase tracking-[0.16em] text-slate-500">Application stages</h3>
+                <h3 className="mt-5 text-sm font-bold uppercase tracking-[0.16em] text-slate-500">{t('pp.stages')}</h3>
                 <ul className="mt-3 space-y-3 text-sm">
-                  {['Form submitted (ARN generated)', 'Fee paid online', 'Photo & signature upload', 'PSK appointment'].map((item, index) => (
-                    <li key={item} className="flex items-start gap-3">
+                  {stageKeys.map((k, index) => (
+                    <li key={k} className="flex items-start gap-3">
                       <span
                         className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white"
                         style={{ backgroundColor: index < 2 ? COLORS.green : COLORS.saffronDark }}
                       >
                         {index < 2 ? '✓' : '!'}
                       </span>
-                      <span className="text-slate-600">{item}</span>
+                      <span className="text-slate-600">{t(k)}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
               <div className="rounded-2xl border bg-white p-6 shadow-sm" style={{ borderColor: COLORS.legacyBorder }}>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8a5a00]">Track application status</p>
-                <h2 className="mt-2 text-3xl font-bold text-[#0b1f4d]">Two uploads stand between you and the PSK slot</h2>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8a5a00]">{t('pp.track')}</p>
+                <h2 className="mt-2 text-3xl font-bold text-[#0b1f4d]">{t('pp.trackTitle')}</h2>
                 <div className="mt-4 overflow-x-auto">
                   <table className="w-full text-left text-sm">
                     <thead className="text-xs uppercase tracking-[0.16em] text-slate-500">
                       <tr>
-                        <th className="py-2 pr-4">Application</th>
-                        <th className="py-2 pr-4">Status</th>
-                        <th className="py-2 pr-4">Action</th>
+                        <th className="py-2 pr-4">{t('pp.application')}</th>
+                        <th className="py-2 pr-4">{t('epfo.status')}</th>
+                        <th className="py-2 pr-4">{t('pp.action')}</th>
                       </tr>
                     </thead>
                     <tbody className="text-slate-600">
                       <tr className="border-t" style={{ borderColor: COLORS.legacyBorder }}>
                         <td className="py-2 pr-4">BNGO40217846125 · Fresh</td>
-                        <td className="py-2 pr-4"><span className="rounded-full bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700">Photo/Signature pending</span></td>
-                        <td className="py-2 pr-4"><button type="button" onClick={() => setStep('upload')} className="font-semibold text-[#0b3c92] underline">Upload ⋮</button></td>
+                        <td className="py-2 pr-4"><span className="rounded-full bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700">{t('pp.rowStatus')}</span></td>
+                        <td className="py-2 pr-4"><button type="button" onClick={() => setStep('upload')} className="font-semibold text-[#0b3c92] underline">{t('pp.uploadBtn')}</button></td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
                 <div className="mt-4 rounded-lg p-3 text-sm" style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}>
-                  <strong>Why attempts matter:</strong> each rejected file burns one of 12 tries. After the 12th failure the ARN is blocked and the form must be redone.
+                  <strong>{t('pp.whyAttempts')}</strong> {t('pp.whyAttemptsBody')}
                 </div>
                 <button
                   type="button"
@@ -213,31 +201,31 @@ export default function PassportPortal() {
             <div className="rounded-lg border bg-white p-5" style={{ borderColor: COLORS.legacyBorder }}>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-lg font-bold text-[#0b1f4d]">Upload photograph & signature</h2>
-                  <p className="mt-1 text-sm text-slate-500">ARN BNGO40217846125 · attempts remaining: <strong className="text-amber-700">12 / 12</strong></p>
+                  <h2 className="text-lg font-bold text-[#0b1f4d]">{t('pp.uploadTitle')}</h2>
+                  <p className="mt-1 text-sm text-slate-500">ARN BNGO40217846125 · {t('pp.attemptsRem')} <strong className="text-amber-700">12 / 12</strong></p>
                 </div>
-                <span className="rounded-full bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">Stage 3 of 4 · Uploads</span>
+                <span className="rounded-full bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">{t('pp.stage34')}</span>
               </div>
             </div>
 
             <div className="grid gap-8 lg:grid-cols-2">
               <div className="rounded-lg border bg-white" style={{ borderColor: COLORS.legacyBorder }}>
                 <div className="border-b px-6 py-4" style={{ borderColor: COLORS.legacyBorder }}>
-                  <h3 className="text-lg font-bold text-[#0b1f4d]">Photograph</h3>
-                  <p className="mt-1 text-sm text-slate-500">Exactly 630 × 810 px · JPEG · 10–250 KB</p>
+                  <h3 className="text-lg font-bold text-[#0b1f4d]">{t('pp.photo')}</h3>
+                  <p className="mt-1 text-sm text-slate-500">{t('pp.photoSub')}</p>
                 </div>
                 <div className="space-y-4 p-6">
                   <ul className="space-y-2 text-sm text-slate-600">
-                    {photoRequirements.map((item) => (
-                      <li key={item} className="flex items-start gap-2">
+                    {photoKeys.map((k) => (
+                      <li key={k} className="flex items-start gap-2">
                         <span className="mt-1 h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: COLORS.primary }} />
-                        <span>{item}</span>
+                        <span>{t(k)}</span>
                       </li>
                     ))}
                   </ul>
                   <div className="rounded-2xl border border-stone-200/60 bg-[#fffaf3] p-4">
-                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#EA580C]">DocBridge assist</p>
-                    <p className="mt-2 text-sm text-slate-600">Fetch the photo from DigiLocker and get a pixel-exact 630×810 JPEG before the portal sees it.</p>
+                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#EA580C]">{t('epfo.assist')}</p>
+                    <p className="mt-2 text-sm text-slate-600">{t('pp.photoAssist')}</p>
                     <div className="mt-4">
                       <DocBridgeWidget
                         portalId="passport"
@@ -252,21 +240,21 @@ export default function PassportPortal() {
 
               <div className="rounded-lg border bg-white" style={{ borderColor: COLORS.legacyBorder }}>
                 <div className="border-b px-6 py-4" style={{ borderColor: COLORS.legacyBorder }}>
-                  <h3 className="text-lg font-bold text-[#0b1f4d]">Signature</h3>
-                  <p className="mt-1 text-sm text-slate-500">JPEG · under 100 KB · wide rectangular crop</p>
+                  <h3 className="text-lg font-bold text-[#0b1f4d]">{t('pp.signature')}</h3>
+                  <p className="mt-1 text-sm text-slate-500">{t('pp.sigSub')}</p>
                 </div>
                 <div className="space-y-4 p-6">
                   <ul className="space-y-2 text-sm text-slate-600">
-                    {signatureRequirements.map((item) => (
-                      <li key={item} className="flex items-start gap-2">
+                    {signatureKeys.map((k) => (
+                      <li key={k} className="flex items-start gap-2">
                         <span className="mt-1 h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: COLORS.primary }} />
-                        <span>{item}</span>
+                        <span>{t(k)}</span>
                       </li>
                     ))}
                   </ul>
                   <div className="rounded-2xl border border-stone-200/60 bg-[#fffaf3] p-4">
-                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#EA580C]">DocBridge assist</p>
-                    <p className="mt-2 text-sm text-slate-600">Fetch the signature scan and compress it under 100 KB without touching legibility.</p>
+                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#EA580C]">{t('epfo.assist')}</p>
+                    <p className="mt-2 text-sm text-slate-600">{t('pp.sigAssist')}</p>
                     <div className="mt-4">
                       <DocBridgeWidget
                         portalId="passport"
@@ -281,22 +269,22 @@ export default function PassportPortal() {
             </div>
 
             <div className="rounded-lg p-4 text-sm" style={{ backgroundColor: COLORS.errorLight, color: '#991B1B' }}>
-              <strong>Portal errors you avoid:</strong> “Image size is not correct. Dimensions should be 630*810 pixels.” — one pixel off is a rejection and a burned attempt.
+              <strong>{t('pp.errAvoid')}</strong> {t('pp.errAvoidBody')}
             </div>
           </section>
         )}
 
         {step === 'submitted' && (
           <section className="rounded-2xl border bg-white p-6 shadow-sm" style={{ borderColor: COLORS.legacyBorder }}>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#0d6b07]">Uploads accepted</p>
-            <h2 className="mt-2 text-3xl font-bold text-[#0b1f4d]">Photo and signature cleared GPSP checks — book the PSK slot</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#0d6b07]">{t('upload.accepted')}</p>
+            <h2 className="mt-2 text-3xl font-bold text-[#0b1f4d]">{t('pp.doneTitle')}</h2>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-              Both files passed the pixel, format, and size validators with attempts to spare. The application can now move to appointment booking at the Passport Seva Kendra.
+              {t('pp.doneBody')}
             </p>
             <div className="mt-6 grid gap-4 md:grid-cols-3">
-              <ResultCard label="Photograph" value="630×810 JPEG, 10–250 KB ✓" tone="green" />
-              <ResultCard label="Signature" value="JPEG under 100 KB ✓" tone="blue" />
-              <ResultCard label="Next milestone" value="Pay & book PSK appointment" tone="saffron" />
+              <ResultCard label={t('pp.rc1l')} value={t('pp.rc1v')} tone="green" />
+              <ResultCard label={t('pp.rc2l')} value={t('pp.rc2v')} tone="blue" />
+              <ResultCard label={t('upsc.rc2l')} value={t('pp.rc3v')} tone="saffron" />
             </div>
           </section>
         )}

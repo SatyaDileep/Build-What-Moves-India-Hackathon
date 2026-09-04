@@ -71,7 +71,7 @@ export default function DocBridgeWidget({
       setState('previewing');
       return result;
     } catch (err: any) {
-      setError(err?.message || 'Failed to process document. Please try again.');
+      setError(err?.message || t('w.errProcess'));
       setState('idle');
       return null;
     }
@@ -181,7 +181,7 @@ export default function DocBridgeWidget({
         setState('previewing');
       }
     } catch (err) {
-      setError('Network error. Please try again.');
+      setError(t('w.errNetwork'));
       setState('previewing');
     }
   };

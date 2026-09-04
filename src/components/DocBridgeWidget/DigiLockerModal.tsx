@@ -31,7 +31,7 @@ export default function DigiLockerModal({
 
   const handleAadhaarSubmit = async () => {
     if (!aadhaarId || aadhaarId.length !== 10) {
-      setError('Please enter a valid 10-digit Aadhaar-linked number');
+      setError(t('dl.aadhaarErr'));
       return;
     }
 
@@ -44,7 +44,7 @@ export default function DigiLockerModal({
     if (aadhaarId.length === 10) {
       setStep('otp');
     } else {
-      setError('Please enter a valid 10-digit number.');
+      setError(t('dl.aadhaarErr'));
     }
     
     setLoading(false);
@@ -52,7 +52,7 @@ export default function DigiLockerModal({
 
   const handleOTPSubmit = async () => {
     if (!otp || otp.length !== 6) {
-      setError('Please enter a valid 6-digit OTP');
+      setError(t('dl.otpErr'));
       return;
     }
 
@@ -70,7 +70,7 @@ export default function DigiLockerModal({
       setAssets(userAssets);
       setStep('select');
     } else {
-      setError(result.error || 'OTP verification failed');
+      setError(result.error || t('dl.otpErr'));
     }
     
     setLoading(false);
@@ -146,17 +146,17 @@ export default function DigiLockerModal({
             <div>
               <div className="mb-2 flex items-center gap-2">
                 <h3 className="text-lg font-semibold" style={{ color: COLORS.gray[800] }}>
-                  Enter your Aadhaar-linked number
+                  {t('dl.aadhaarTitle')}
                 </h3>
                 <span className="group relative inline-flex">
                   <span className="flex h-5 w-5 items-center justify-center rounded-full border text-xs font-bold" style={{ borderColor: COLORS.gray[300], color: COLORS.gray[500] }} aria-hidden="true">i</span>
                   <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 hidden w-56 -translate-x-1/2 rounded-lg border bg-white px-3 py-2 text-xs leading-5 shadow-lg group-hover:block" style={{ borderColor: COLORS.gray[200], color: COLORS.gray[600] }}>
-                    Any 10-digit number works — already filled for you.
+                    {t('dl.aadhaarTip')}
                   </span>
                 </span>
               </div>
               <p className="text-sm mb-4" style={{ color: COLORS.gray[500] }}>
-                Enter your Aadhaar-linked number to receive an OTP
+                {t('dl.aadhaarSub')}
               </p>
               
               <div className="mb-4">
@@ -191,15 +191,15 @@ export default function DigiLockerModal({
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    Sending OTP...
+                    {t('dl.sendingOtp')}
                   </span>
                 ) : (
-                  'Send OTP'
+                  t('dl.sendOtp')
                 )}
               </button>
 
               <p className="text-xs mt-3 text-center" style={{ color: COLORS.gray[400] }}>
-                Demo — any number works for the story.
+                {t('dl.demoNum')}
               </p>
             </div>
           )}
@@ -209,17 +209,17 @@ export default function DigiLockerModal({
             <div>
               <div className="mb-2 flex items-center gap-2">
                 <h3 className="text-lg font-semibold" style={{ color: COLORS.gray[800] }}>
-                  Enter OTP
+                  {t('dl.otpTitle')}
                 </h3>
                 <span className="group relative inline-flex">
                   <span className="flex h-5 w-5 items-center justify-center rounded-full border text-xs font-bold" style={{ borderColor: COLORS.gray[300], color: COLORS.gray[500] }} aria-hidden="true">i</span>
                   <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 hidden w-56 -translate-x-1/2 rounded-lg border bg-white px-3 py-2 text-xs leading-5 shadow-lg group-hover:block" style={{ borderColor: COLORS.gray[200], color: COLORS.gray[600] }}>
-                    Any 6-digit code works — already filled for you.
+                    {t('dl.otpTip')}
                   </span>
                 </span>
               </div>
               <p className="text-sm mb-4" style={{ color: COLORS.gray[500] }}>
-                We&apos;ve sent a 6-digit code to {aadhaarId}
+                {t('dl.otpSent')} {aadhaarId}
               </p>
               
               <div className="mb-4">
@@ -254,15 +254,15 @@ export default function DigiLockerModal({
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    Verifying...
+                    {t('dl.verifying')}
                   </span>
                 ) : (
-                  'Verify OTP'
+                  t('dl.verifyOtp')
                 )}
               </button>
 
               <p className="text-xs mt-3 text-center" style={{ color: COLORS.gray[400] }}>
-                Demo — any code works for the story.
+                {t('dl.demoCode')}
               </p>
             </div>
           )}
@@ -279,7 +279,7 @@ export default function DigiLockerModal({
 
               {filteredAssets.length === 0 ? (
                 <p className="text-center py-8" style={{ color: COLORS.gray[500] }}>
-                  No matching documents found for this portal.
+                  {t('dl.noDocs')}
                 </p>
               ) : (
                 <div className="space-y-3">
