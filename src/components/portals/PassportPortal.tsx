@@ -202,7 +202,7 @@ export default function PassportPortal() {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-lg font-bold text-[#0b1f4d]">{t('pp.uploadTitle')}</h2>
-                  <p className="mt-1 text-sm text-slate-500">ARN BNGO40217846125 · {t('pp.attemptsRem')} <strong className="text-amber-700">12 / 12</strong></p>
+                  <p className="mt-1 text-sm text-slate-500">ARN BNGO40217846125 · {t('pp.attemptsRem')} <strong className="text-amber-700">photo + signature</strong></p>
                 </div>
                 <span className="rounded-full bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">{t('pp.stage34')}</span>
               </div>
