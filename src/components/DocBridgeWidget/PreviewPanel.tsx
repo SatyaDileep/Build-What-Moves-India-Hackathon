@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { ProcessingResult } from '@/types';
 import { COLORS } from '@/lib/constants';
 import PrivacyBadge from '@/components/ui/PrivacyBadge';
+import { useLang } from '@/lib/i18n';
 
 interface PreviewPanelProps {
   result: ProcessingResult;
@@ -15,7 +16,7 @@ interface PreviewPanelProps {
   isSaveAuthed?: boolean;
   onRecompress?: () => void;
   isRecompressing?: boolean;
-  onAdjust?: (rotation: number) => void;
+  onAdjust?: (choice: { targetKB: number; aggressive: boolean }) => void;
   onEnhance?: () => void;
 }
 
@@ -32,6 +33,7 @@ export default function PreviewPanel({
   onAdjust,
   onEnhance,
 }: PreviewPanelProps) {
+  const { t } = useLang();
   const [saveToDigiLocker, setSaveToDigiLocker] = useState(true);
   const [previewUrls, setPreviewUrls] = useState<{ original?: string; processed?: string }>({});
   const [zoomSrc, setZoomSrc] = useState<string | null>(null);
@@ -59,6 +61,7 @@ export default function PreviewPanel({
   const portalName = portalId === 'epfo' ? 'EPFO' : portalId === 'vahan' ? 'Sarathi' : portalId === 'passport' ? 'Passport Seva' : portalId === 'ssc' ? 'SSC' : portalId === 'nsp' ? 'NSP' : 'UPSC';
   const isOverLimit = !!result.constraint.max_kb && processedSizeKB > result.constraint.max_kb + 0.5;
   const warningText = result.processed.warning || (isOverLimit ? `This file is ${Math.round(processedSizeKB)}KB — over the ${result.constraint.max_kb}KB limit for ${portalName}.` : undefined);
+  const canAdjust = !!onAdjust && !!previewUrls.processed && result.constraint.format === 'jpeg' && !!result.constraint.max_kb && result.processed.blob.type.startsWith('image/');
 
   const handleDownload = () => {
     const ext = result.constraint.format === 'pdf' ? 'pdf' : result.constraint.format === 'png' ? 'png' : 'jpg';
@@ -79,17 +82,17 @@ export default function PreviewPanel({
       {/* Header */}
       <div className="text-center">
         <h3 className="text-xl font-bold mb-2" style={{ color: COLORS.gray[800] }}>
-          Ready to submit
+          {t('w.ready')}
         </h3>
         <p className="text-sm" style={{ color: COLORS.gray[500] }}>
-          The optimized copy is sized to meet {portalName}&apos;s upload rules
+          {t('w.readySub')} — {portalName}
         </p>
       </div>
 
       {/* Visual Before / After Preview */}
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="overflow-hidden rounded-xl border" style={{ borderColor: COLORS.gray[200] }}>
-          <div className="px-3 py-2 text-center text-xs font-bold uppercase tracking-wide" style={{ color: COLORS.gray[500], backgroundColor: COLORS.gray[50] }}>Before — Original</div>
+          <div className="px-3 py-2 text-center text-xs font-bold uppercase tracking-wide" style={{ color: COLORS.gray[500], backgroundColor: COLORS.gray[50] }}>{t('w.before')}</div>
           <div className="relative bg-white p-3">
             {previewUrls.original ? (
               result.original.blob.type === 'application/pdf' ? (
@@ -99,7 +102,7 @@ export default function PreviewPanel({
               ) : (
                 <button type="button" onClick={() => setZoomSrc(previewUrls.original!)} className="group relative block w-full overflow-hidden rounded-lg border" style={{ borderColor: COLORS.gray[200] }}>
                   <img src={previewUrls.original} alt="Original" className="max-h-48 w-full object-contain transition group-hover:scale-[1.02]" />
-                  <span className="absolute bottom-1 right-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white">Click to zoom 2×</span>
+                  <span className="absolute bottom-1 right-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white">{t('w.zoomClick')}</span>
                 </button>
               )
             ) : (
@@ -113,7 +116,7 @@ export default function PreviewPanel({
           </div>
         </div>
         <div className="overflow-hidden rounded-xl border-2" style={{ borderColor: COLORS.success }}>
-          <div className="px-3 py-2 text-center text-xs font-bold uppercase tracking-wide text-white" style={{ backgroundColor: COLORS.success }}>After — Optimized ✓</div>
+          <div className="px-3 py-2 text-center text-xs font-bold uppercase tracking-wide text-white" style={{ backgroundColor: COLORS.success }}>{t('w.after')}</div>
           <div className="relative p-3" style={{ backgroundColor: COLORS.successLight }}>
             {previewUrls.processed ? (
               result.processed.blob.type === 'application/pdf' ? (
@@ -126,7 +129,7 @@ export default function PreviewPanel({
               ) : (
                 <button type="button" onClick={() => setZoomSrc(previewUrls.processed!)} className="group relative block w-full overflow-hidden rounded-lg border bg-white" style={{ borderColor: COLORS.success }}>
                   <img src={previewUrls.processed} alt="Optimized" className="max-h-48 w-full object-contain transition group-hover:scale-[1.02]" />
-                  <span className="absolute bottom-1 right-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white">Zoom 2×</span>
+                  <span className="absolute bottom-1 right-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white">{t('w.zoom')}</span>
                 </button>
               )
             ) : (
@@ -135,12 +138,12 @@ export default function PreviewPanel({
             <div className="mt-2 text-center">
               <span className="text-lg font-bold" style={{ color: COLORS.success }}>{formatSize(processedSizeKB)}</span>
               {result.processed.dimensions && <span className="ml-2 text-xs" style={{ color: COLORS.success }}>{result.processed.dimensions.width}×{result.processed.dimensions.height}px</span>}
-              {reduction > 0 && <span className="ml-2 text-xs font-bold" style={{ color: COLORS.success }}>{reduction}% smaller</span>}
-              <p className="text-xs" style={{ color: COLORS.success }}>Meets {portalName} rules</p>
+              {reduction > 0 && <span className="ml-2 text-xs font-bold" style={{ color: COLORS.success }}>{reduction}% {t('w.smaller')}</span>}
+              <p className="text-xs" style={{ color: COLORS.success }}>{t('w.meetsRules')} — {portalName}</p>
             </div>
             <div className="mt-3 flex items-center justify-center gap-2">
-              <button type="button" onClick={handleDownload} className="inline-flex items-center gap-1.5 rounded-full border bg-white px-3 py-1.5 text-xs font-bold shadow-sm hover:-translate-y-0.5" style={{ borderColor: COLORS.success, color: COLORS.success }}><svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16" /></svg>Download</button>
-              {previewUrls.processed && <button type="button" onClick={() => setShowAdjust(true)} className="inline-flex items-center gap-1.5 rounded-full border bg-white px-3 py-1.5 text-xs font-bold shadow-sm hover:-translate-y-0.5" style={{ borderColor: COLORS.primary, color: COLORS.primary }}>Adjust ↻</button>}
+              <button type="button" onClick={handleDownload} className="inline-flex items-center gap-1.5 rounded-full border bg-white px-3 py-1.5 text-xs font-bold shadow-sm hover:-translate-y-0.5" style={{ borderColor: COLORS.success, color: COLORS.success }}><svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16" /></svg>{t('w.download')}</button>
+              {canAdjust && <button type="button" onClick={() => setShowAdjust(true)} className="inline-flex items-center gap-1.5 rounded-full border bg-white px-3 py-1.5 text-xs font-bold shadow-sm hover:-translate-y-0.5" style={{ borderColor: COLORS.primary, color: COLORS.primary }}>{t('w.adjustSize')}</button>}
             </div>
             {result.original.dimensions && result.processed.dimensions && result.original.dimensions.width < result.processed.dimensions.width * 0.7 && onEnhance && (
               <button type="button" onClick={onEnhance} className="mx-auto mt-2 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold text-white shadow-sm" style={{ backgroundColor: COLORS.warning }}>✦ Enhance clarity (up-scale)</button>
@@ -153,30 +156,30 @@ export default function PreviewPanel({
           <img src={zoomSrc} alt="Zoomed" className="max-h-[85vh] max-w-[90vw] rounded-xl border-4 border-white object-contain shadow-2xl" style={{ transform: 'scale(1.15)' }} />
         </button>
       )}
-      {showAdjust && previewUrls.processed && (
-        <CropAdjustWrap imageUrl={previewUrls.processed} onClose={() => setShowAdjust(false)} onApply={(r) => { setShowAdjust(false); onAdjust?.(r); }} />
+      {showAdjust && canAdjust && previewUrls.processed && (
+        <CropAdjustWrap imageUrl={previewUrls.processed} minKB={result.constraint.min_kb} maxKB={result.constraint.max_kb!} currentKB={processedSizeKB} onClose={() => setShowAdjust(false)} onApply={(c) => { setShowAdjust(false); onAdjust?.(c); }} />
       )}
 
       {/* Requirements Met */}
       <div className="p-4 rounded-lg" style={{ backgroundColor: isOverLimit ? '#FEF2F2' : COLORS.successLight, border: isOverLimit ? `1px solid #FECACA` : 'none' }}>
         <h4 className="font-semibold mb-2" style={{ color: isOverLimit ? '#DC2626' : COLORS.success }}>
-          {isOverLimit ? '⚠ Size still over limit' : '✓ Requirements Met'}
+          {isOverLimit ? `⚠ ${t('w.overLimit')}` : `✓ ${t('w.reqsMet')}`}
         </h4>
         <ul className="text-sm space-y-1" style={{ color: COLORS.gray[700] }}>
           {result.constraint.format && (
-            <li>• Format: {result.constraint.format.toUpperCase()}</li>
+            <li>• {t('w.format')}: {result.constraint.format.toUpperCase()}</li>
           )}
           {result.constraint.max_kb && (
-            <li>• Max size: {result.constraint.max_kb}KB (yours: {Math.round(processedSizeKB)}KB) {isOverLimit && <span className="font-bold text-red-600">— over</span>}</li>
+            <li>• {t('w.maxSize')}: {result.constraint.max_kb}KB ({t('w.yours')}: {Math.round(processedSizeKB)}KB) {isOverLimit && <span className="font-bold text-red-600">{t('w.over')}</span>}</li>
           )}
           {result.constraint.min_kb && (
-            <li>• Min size: {result.constraint.min_kb}KB (yours: {Math.round(processedSizeKB)}KB)</li>
+            <li>• {t('w.minSize')}: {result.constraint.min_kb}KB ({t('w.yours')}: {Math.round(processedSizeKB)}KB)</li>
           )}
           {result.constraint.width_cm && result.constraint.height_cm && (
-            <li>• Dimensions: {result.constraint.width_cm}cm × {result.constraint.height_cm}cm</li>
+            <li>• {t('w.dimensions')}: {result.constraint.width_cm}cm × {result.constraint.height_cm}cm</li>
           )}
           {result.constraint.bg_color && (
-            <li>• Background: {result.constraint.bg_color}</li>
+            <li>• {t('w.background')}: {result.constraint.bg_color}</li>
           )}
         </ul>
       </div>
@@ -186,7 +189,7 @@ export default function PreviewPanel({
           <div className="flex gap-3">
             <span className="mt-0.5 text-lg" aria-hidden="true">{isOverLimit ? '⚠️' : 'ℹ️'}</span>
             <div className="flex-1">
-              <p className="text-sm font-semibold" style={{ color: isOverLimit ? '#991B1B' : '#92400E' }}>{isOverLimit ? 'Needs attention before upload' : 'Heads up'}</p>
+              <p className="text-sm font-semibold" style={{ color: isOverLimit ? '#991B1B' : '#92400E' }}>{isOverLimit ? t('w.needsAttn') : t('w.headsUp')}</p>
               <p className="mt-1 text-sm leading-6" style={{ color: isOverLimit ? '#7F1D1D' : '#78350F' }}>{warningText}</p>
               {!isOverLimit && result.processed.wasScaled && (
                 <p className="mt-2 text-xs" style={{ color: COLORS.gray[500] }}>We scaled the image slightly to fit the limit — still portal-compliant.</p>
@@ -202,8 +205,8 @@ export default function PreviewPanel({
               style={{ backgroundColor: COLORS.primary }}
             >
               {isRecompressing ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : null}
-              {isRecompressing ? 'Compressing…' : 'Try stronger compression'}
-              <span className="text-xs font-normal opacity-80">(quality will drop slightly)</span>
+              {isRecompressing ? t('w.compressing') : t('w.strongCompress')}
+              <span className="text-xs font-normal opacity-80">{t('w.qualityNote')}</span>
             </button>
           )}
           {isOverLimit && !onRecompress && (
@@ -218,10 +221,10 @@ export default function PreviewPanel({
           <div className="flex items-center gap-3 rounded-lg border p-4" style={{ borderColor: COLORS.success, backgroundColor: COLORS.successLight }}>
             <span className="flex h-8 w-8 items-center justify-center rounded-full text-white" style={{ backgroundColor: COLORS.success }}>✓</span>
             <div className="flex-1">
-              <p className="text-sm font-semibold" style={{ color: COLORS.success }}>Signed in — will save to DigiLocker</p>
-              <p className="text-xs" style={{ color: COLORS.gray[600] }}>This optimized file will be linked to your DigiLocker for reuse.</p>
+              <p className="text-sm font-semibold" style={{ color: COLORS.success }}>{t('w.signedIn')}</p>
+              <p className="text-xs" style={{ color: COLORS.gray[600] }}>{t('w.signedInSub')}</p>
             </div>
-            <button type="button" onClick={() => onRequestSaveAuth?.()} className="text-xs font-semibold underline" style={{ color: COLORS.success }}>Change</button>
+            <button type="button" onClick={() => onRequestSaveAuth?.()} className="text-xs font-semibold underline" style={{ color: COLORS.success }}>{t('w.change')}</button>
           </div>
         ) : (
           <button
@@ -234,10 +237,10 @@ export default function PreviewPanel({
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
             </span>
             <div className="flex-1">
-              <p className="text-sm font-semibold" style={{ color: COLORS.primary }}>Sign in and save to DigiLocker</p>
-              <p className="text-xs leading-5" style={{ color: COLORS.gray[600] }}>Connect your DigiLocker — this optimized file will be ready for reuse on other portals.</p>
+              <p className="text-sm font-semibold" style={{ color: COLORS.primary }}>{t('w.signInSave')}</p>
+              <p className="text-xs leading-5" style={{ color: COLORS.gray[600] }}>{t('w.signInSaveSub')}</p>
             </div>
-            <span className="rounded-full bg-white px-3 py-1 text-xs font-bold" style={{ color: COLORS.primary }}>Sign in →</span>
+            <span className="rounded-full bg-white px-3 py-1 text-xs font-bold" style={{ color: COLORS.primary }}>{t('w.signInArrow')}</span>
           </button>
         )
       ) : (
@@ -253,17 +256,17 @@ export default function PreviewPanel({
           />
           <div>
             <p className="text-sm font-semibold" style={{ color: COLORS.primary }}>
-              Save the optimized copy back to DigiLocker
+              {t('w.saveBack')}
             </p>
             <p className="text-xs" style={{ color: COLORS.gray[600] }}>
-              Next time you need this document for another portal, it&apos;s already correctly sized.
+              {t('w.saveBackSub')}
             </p>
           </div>
         </label>
       )}
 
       <button type="button" onClick={onCancel} className="w-full rounded-xl border-2 border-dashed py-2.5 text-sm font-bold transition hover:-translate-y-0.5" style={{ borderColor: COLORS.gray[300], color: COLORS.gray[700], backgroundColor: '#fff' }}>
-        ↺ Choose different document — {source === 'digilocker' ? 'pick another from DigiLocker' : 'upload another file'} 
+        ↺ {t('w.chooseOther')}
       </button>
       <PrivacyBadge compact />
       {/* Action Buttons */}
@@ -278,7 +281,7 @@ export default function PreviewPanel({
           onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.gray[100]; }}
           onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
         >
-          Cancel
+          {t('w.cancel')}
         </button>
         <button
           onClick={() => onSubmit(source === 'device' ? isSaveAuthed : saveToDigiLocker)}
@@ -291,18 +294,18 @@ export default function PreviewPanel({
             e.currentTarget.style.backgroundColor = COLORS.success;
           }}
         >
-          Submit to {portalName}
+          {t('w.submitTo')} {portalName}
         </button>
       </div>
     </div>
   );
 }
 
-function CropAdjustWrap({ imageUrl, onClose, onApply }: { imageUrl: string; onClose: () => void; onApply: (r: number) => void }) {
+function CropAdjustWrap({ imageUrl, minKB, maxKB, currentKB, onClose, onApply }: { imageUrl: string; minKB?: number; maxKB: number; currentKB: number; onClose: () => void; onApply: (c: { targetKB: number; aggressive: boolean }) => void }) {
   const [Mod, setMod] = useState<any>(null);
   useEffect(() => { import('./CropAdjust').then(m => setMod(() => m.default)); }, []);
   if (!Mod) return null;
-  return <Mod imageUrl={imageUrl} onClose={onClose} onApply={onApply} />;
+  return <Mod imageUrl={imageUrl} minKB={minKB} maxKB={maxKB} currentKB={currentKB} onClose={onClose} onApply={onApply} />;
 }
 
 function formatSize(kb: number): string {

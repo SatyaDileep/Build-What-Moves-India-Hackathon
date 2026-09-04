@@ -96,6 +96,22 @@ Home “Login to see it in action” → glass modal → pick UPSC / Vahan / EPF
 
 ---
 
+## Screenshots — every site, EN + हिंदी
+
+Regenerated with `npm run screenshots` (Playwright + Chromium, `scripts/capture-screenshots.mjs`, dev server on `:3000`). Reference only — login screens.
+
+| Site | English | Hindi |
+|------|---------|-------|
+| Home | ![home EN](docs/screenshots/home-en.png) | ![home HI](docs/screenshots/home-hi.png) |
+| EPFO | ![epfo EN](docs/screenshots/epfo-en.png) | ![epfo HI](docs/screenshots/epfo-hi.png) |
+| UPSC | ![upsc EN](docs/screenshots/upsc-en.png) | ![upsc HI](docs/screenshots/upsc-hi.png) |
+| Vahan / Sarathi | ![vahan EN](docs/screenshots/vahan-en.png) | ![vahan HI](docs/screenshots/vahan-hi.png) |
+| Passport Seva | ![passport EN](docs/screenshots/passport-en.png) | ![passport HI](docs/screenshots/passport-hi.png) |
+| SSC | ![ssc EN](docs/screenshots/ssc-en.png) | ![ssc HI](docs/screenshots/ssc-hi.png) |
+| NSP | ![nsp EN](docs/screenshots/nsp-en.png) | ![nsp HI](docs/screenshots/nsp-hi.png) |
+
+---
+
 ## Built with AI (and we mean it)
 
 * **Portal understanding:** every human-written upload rule (“JPEG, 20–200 KB, 3.5×4.5 cm, white background”) is parsed by `parsePortalConstraints` (`src/lib/openai.ts:5`) into `DocumentConstraint` (`src/types/index.ts:1`) — mock today, `gpt-4o-mini` JSON mode ready at `:76` with `OPENAI_API_KEY`.

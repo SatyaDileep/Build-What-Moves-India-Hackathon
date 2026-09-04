@@ -10,6 +10,7 @@ import DigiLockerModal from './DigiLockerModal';
 import ProcessingOverlay from './ProcessingOverlay';
 import PreviewPanel from './PreviewPanel';
 import PrivacyBadge from '@/components/ui/PrivacyBadge';
+import { useLang } from '@/lib/i18n';
 
 interface DocBridgeWidgetProps {
   portalId: 'epfo' | 'upsc' | 'vahan' | 'passport' | 'ssc' | 'nsp';
@@ -24,6 +25,7 @@ export default function DocBridgeWidget({
   docType,
   onSuccess 
 }: DocBridgeWidgetProps) {
+  const { t } = useLang();
   const [state, setState] = useState<WidgetState>('idle');
   const [showModal, setShowModal] = useState(false);
   const [showSaveAuthModal, setShowSaveAuthModal] = useState(false);
@@ -49,9 +51,9 @@ export default function DocBridgeWidget({
   const [lastMeta, setLastMeta] = useState<{ name: string; type: string; size_mb: number } | null>(null);
   const [isRecompressing, setIsRecompressing] = useState(false);
 
-  const runProcessing = async (blob: Blob, meta: { name: string; type: string; size_mb: number }, opts?: { aggressive?: boolean; rotation?: number; enhance?: boolean }) => {
+  const runProcessing = async (blob: Blob, meta: { name: string; type: string; size_mb: number }, opts?: { aggressive?: boolean; rotation?: number; enhance?: boolean; targetKB?: number }) => {
     const conn = (navigator as any)?.connection?.effectiveType;
-    if ((conn === '2g' || conn === 'slow-2g') && !opts?.aggressive && !opts?.rotation && !opts?.enhance) opts = { ...opts, aggressive: true };
+    if ((conn === '2g' || conn === 'slow-2g') && !opts?.aggressive && !opts?.rotation && !opts?.enhance && !opts?.targetKB) opts = { ...opts, aggressive: true };
     try {
       setLastBlob(blob);
       setLastMeta(meta);
@@ -82,10 +84,10 @@ export default function DocBridgeWidget({
     await runProcessing(lastBlob, lastMeta, { aggressive: true });
     setIsRecompressing(false);
   };
-  const handleAdjust = async (rotation: number) => {
+  const handleAdjust = async (choice: { targetKB: number; aggressive: boolean }) => {
     if (!lastBlob || !lastMeta) return;
     setError(null);
-    await runProcessing(lastBlob, lastMeta, { rotation });
+    await runProcessing(lastBlob, lastMeta, { targetKB: choice.targetKB, aggressive: choice.aggressive });
   };
   const handleEnhance = async () => {
     if (!lastBlob || !lastMeta) return;
@@ -200,20 +202,20 @@ export default function DocBridgeWidget({
       {state === 'idle' && (
         <div className="space-y-3">
           <div className="rounded-xl border p-4" style={{ borderColor: COLORS.gray[300], backgroundColor: COLORS.primaryLight }}>
-            <p className="text-sm font-semibold mb-1" style={{ color: COLORS.primary }}>Where is your document?</p>
+            <p className="text-sm font-semibold mb-1" style={{ color: COLORS.primary }}>{t('w.where')}</p>
             <p className="text-xs mb-4" style={{ color: COLORS.gray[600] }}>
-              DocBridge works with either a trusted source or a file you already have.
+              {t('w.whereSub')}
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
               <SourceOption
-                title="From DigiLocker"
-                description="Authorised, consent-based access to your issued documents."
+                title={t('w.fromDigi')}
+                description={t('w.fromDigiSub')}
                 icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>}
                 onClick={startDigiLocker}
               />
               <SourceOption
-                title="Upload from device"
-                description="Pick a photo or PDF you already have on your phone or computer."
+                title={t('w.fromDevice')}
+                description={t('w.fromDeviceSub')}
                 icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>}
                 onClick={startManualUpload}
               />
@@ -240,7 +242,7 @@ export default function DocBridgeWidget({
             onClick={handleReset}
             className="ml-auto underline hover:no-underline"
           >
-            Try Again
+            {t('w.tryAgain')}
           </button>
         </div>
       )}
@@ -282,17 +284,17 @@ export default function DocBridgeWidget({
             </svg>
           </div>
           <h3 className="text-xl font-bold mb-2" style={{ color: COLORS.success }}>
-            Success!
+            {t('w.success')}
           </h3>
           <p className="text-gray-600 mb-4">
-            Your document has been successfully processed and submitted.
+            {t('w.successSub')}
           </p>
           <button
             onClick={handleReset}
             className="px-6 py-2 rounded-lg font-semibold text-white transition-colors"
             style={{ backgroundColor: COLORS.primary }}
           >
-            Process Another Document
+            {t('w.processAnother')}
           </button>
         </div>
       )}

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { DigiLockerAsset } from '@/types';
 import { COLORS, USER_PROFILES } from '@/lib/constants';
 import { supabase } from '@/lib/supabase';
+import { useLang } from '@/lib/i18n';
 
 interface DigiLockerModalProps {
   portalId: 'epfo' | 'upsc' | 'vahan' | 'passport' | 'ssc' | 'nsp';
@@ -20,6 +21,7 @@ export default function DigiLockerModal({
   onAssetSelected,
   onAuthenticated,
 }: DigiLockerModalProps) {
+  const { t } = useLang();
   const [step, setStep] = useState<'aadhaar' | 'otp' | 'select'>('aadhaar');
   const [aadhaarId, setAadhaarId] = useState('9876543210');
   const [otp, setOtp] = useState('582914');
@@ -122,7 +124,7 @@ export default function DigiLockerModal({
               </div>
               <div>
                 <h2 className="text-xl font-bold">DigiLocker</h2>
-                <p className="text-sm opacity-90">Consent-based document access</p>
+                <p className="text-sm opacity-90">{t('dl.consent')}</p>
               </div>
             </div>
             <button
@@ -269,10 +271,10 @@ export default function DigiLockerModal({
           {step === 'select' && (
             <div>
               <h3 className="text-lg font-semibold mb-1" style={{ color: COLORS.gray[800] }}>
-                Select Document
+                {t('dl.select')}
               </h3>
               <p className="text-sm mb-4" style={{ color: COLORS.gray[500] }}>
-                Choose the matching document from {signInName}&apos;s DigiLocker vault
+                {signInName}&apos;s DigiLocker
               </p>
 
               {filteredAssets.length === 0 ? (
@@ -347,7 +349,7 @@ export default function DigiLockerModal({
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
-            <span>Authorised DigiLocker access • Your document stays in your control</span>
+            <span>{t('dl.consent')}</span>
           </div>
         </div>
       </div>

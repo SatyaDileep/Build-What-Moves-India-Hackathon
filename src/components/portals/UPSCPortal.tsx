@@ -6,6 +6,7 @@ import DocBridgeWidget from '@/components/DocBridgeWidget';
 import GovernmentHeader from '@/components/ui/GovernmentHeader';
 import PortalNudge from '@/components/ui/PortalNudge';
 import { COLORS } from '@/lib/constants';
+import { useLang } from '@/lib/i18n';
 
 type JourneyStep = 'login' | 'dashboard' | 'upload' | 'submitted';
 
@@ -27,6 +28,7 @@ const requirements = [
 ];
 
 export default function UPSCPortal() {
+  const { t } = useLang();
   const [step, setStep] = useState<JourneyStep>('login');
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
 
@@ -36,7 +38,7 @@ export default function UPSCPortal() {
         portalName="UPSC"
         portalFullName="Union Public Service Commission"
         portalInitials="UPSC"
-        welcomeText={step === 'login' ? undefined : 'Welcome, Priya Sharma'}
+        welcomeText={step === 'login' ? undefined : `${t('auth.welcome')}, Priya Sharma`}
         userIdText={step === 'login' ? undefined : 'Registration: UPSC2024001234'}
       />
 
@@ -46,7 +48,7 @@ export default function UPSCPortal() {
             href="/"
             className="rounded-2xl border border-stone-200/60 bg-white/80 px-4 py-2 text-sm font-semibold text-[#1E3A8A] shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-blue-50"
           >
-            Back to DocBridge Home
+            {t('nav.backHome')}
           </Link>
         </div>
       </div>
@@ -68,7 +70,7 @@ export default function UPSCPortal() {
 
             <div className="rounded-2xl border bg-white shadow-sm" style={{ borderColor: COLORS.legacyBorder }}>
               <div className="border-b px-5 py-4" style={{ borderColor: COLORS.legacyBorder }}>
-                <h2 className="text-lg font-bold text-[#0b1f4d]">Candidate Login</h2>
+                  <h2 className="text-lg font-bold text-[#0b1f4d]">{t('login.candidate')}</h2>
                 <p className="mt-1 text-sm text-slate-500">Registration ID, password, and OTP checkpoint before editing the form.</p>
               </div>
               <div className="space-y-4 p-5">
@@ -96,11 +98,11 @@ export default function UPSCPortal() {
                   className="w-full rounded-md px-4 py-3 text-sm font-semibold text-white"
                   style={{ backgroundColor: COLORS.primary }}
                 >
-                  Sign In and Continue
+                  {t('auth.signInContinue')}
                 </button>
                 <div className="flex justify-between text-xs text-[#0b3c92]">
                   <span>New Registration (OTR)</span>
-                  <span>Forgot Password</span>
+                  <span>{t('auth.forgot')}</span>
                 </div>
               </div>
             </div>
@@ -114,7 +116,7 @@ export default function UPSCPortal() {
                 eyebrow="UPSC CSE 2026 · Registration UPSC2024001234"
                 title="Photograph upload pending — complete before payment & final submission"
                 description="UPSC needs a 20-200 KB JPEG (350-1000px, 75% face) plus a live-photo match. Open the upload section — DocBridge will prepare it from DigiLocker to pass both checks."
-                ctaLabel="Continue to Photograph Upload"
+                ctaLabel={t('upload.continuePhoto')}
                 onAction={() => setStep('upload')}
                 onDismiss={() => setNudgeDismissed(true)}
                 tone="amber"
@@ -206,7 +208,7 @@ export default function UPSCPortal() {
                   className="mt-6 rounded-md px-4 py-3 text-sm font-semibold text-white"
                   style={{ backgroundColor: COLORS.saffronDark }}
                 >
-                  Continue to Photograph Upload →
+                    {t('upload.continuePhoto')} →
                 </button>
                 <div className="mt-6 rounded-lg border bg-slate-50 p-4" style={{ borderColor: COLORS.legacyBorder }}>
                   <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Important instructions</p>
@@ -249,7 +251,7 @@ export default function UPSCPortal() {
               <div className="rounded-lg border bg-white" style={{ borderColor: COLORS.legacyBorder }}>
                 <div className="border-b px-6 py-4" style={{ borderColor: COLORS.legacyBorder }}>
                   <h2 className="text-lg font-bold" style={{ color: COLORS.gray[800] }}>
-                    Upload Passport Photograph
+                    {t('upload.photoSig')}
                   </h2>
                   <p className="mt-1 text-sm" style={{ color: COLORS.gray[500] }}>
                     Step 3 of 5: Document Upload

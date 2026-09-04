@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import TricolorBar from '@/components/ui/TricolorBar';
+import { LanguageToggle, useLang } from '@/lib/i18n';
 
 const steps = [
   ['01', 'Understand the portal', 'DocBridge reads upload instructions and turns them into clear, structured requirements.'],
@@ -18,6 +19,7 @@ const principles = [
 ];
 
 export default function Home() {
+  const { t } = useLang();
   const [isPortalModalOpen, setIsPortalModalOpen] = useState(false);
   const [portalNav, setPortalNav] = useState<string | null>(null);
 
@@ -45,8 +47,11 @@ export default function Home() {
               <span className="block text-xs font-medium uppercase tracking-[0.18em] text-slate-500">Document readiness for public services</span>
             </span>
           </Link>
-          <span className="rounded-full border border-stone-200/60 bg-white px-3 py-1.5 text-xs font-bold tracking-[0.14em] text-slate-500">
-            Hackathon demo · DigiLocker-ready
+          <span className="flex items-center gap-2">
+            <span className="rounded-full bg-[#1E3A8A] px-1 py-1"><LanguageToggle compact /></span>
+            <span className="rounded-full border border-stone-200/60 bg-white px-3 py-1.5 text-xs font-bold tracking-[0.14em] text-slate-500">
+              {t('home.badge')}
+            </span>
           </span>
         </div>
       </header>
@@ -56,7 +61,7 @@ export default function Home() {
         <div className="mx-auto grid max-w-6xl gap-14 px-5 py-20 sm:px-6 lg:grid-cols-[1.06fr_0.94fr] lg:items-center lg:py-28">
           <div>
             <h1 className="max-w-3xl text-4xl font-bold leading-[1.04] tracking-[-0.04em] text-[#1E3A8A] sm:text-5xl lg:text-6xl">
-              One upload layer for India&apos;s many official portals.
+              {t('home.title')}
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600 sm:text-xl">
               UPSC, Sarathi, EPFO, Passport Seva, SSC, and NSP each enforce a different size, format, and dimension — so the same photo that clears one portal bounces on another. Complying often means handing that document to a third-party tool. DocBridge prepares it in the browser to match each portal&apos;s own rules — so the upload you came to do, finally goes through.
@@ -67,10 +72,10 @@ export default function Home() {
                 onClick={() => setIsPortalModalOpen(true)}
                 className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#EA580C] px-6 py-3.5 font-semibold text-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-[#C2410C] hover:shadow-[0_16px_40px_rgba(234,88,12,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C] focus-visible:ring-offset-2"
               >
-                Login to see it in action
+                {t('home.login')}
                 <span aria-hidden="true">→</span>
               </button>
-              <span className="text-sm text-slate-500">Pick a portal — login lands you on its real home.</span>
+              <span className="text-sm text-slate-500">{t('home.pick')}</span>
             </div>
           </div>
 

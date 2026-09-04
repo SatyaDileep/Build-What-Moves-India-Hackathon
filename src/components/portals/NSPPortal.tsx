@@ -6,6 +6,7 @@ import DocBridgeWidget from '@/components/DocBridgeWidget';
 import GovernmentHeader from '@/components/ui/GovernmentHeader';
 import PortalNudge from '@/components/ui/PortalNudge';
 import { COLORS } from '@/lib/constants';
+import { useLang } from '@/lib/i18n';
 
 type JourneyStep = 'login' | 'dashboard' | 'upload' | 'submitted';
 
@@ -24,6 +25,7 @@ const incomeRequirements = [
 ];
 
 export default function NSPPortal() {
+  const { t } = useLang();
   const [step, setStep] = useState<JourneyStep>('login');
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
   const [done, setDone] = useState({ photo: false, income: false });
@@ -38,7 +40,7 @@ export default function NSPPortal() {
         portalName="NSP"
         portalFullName="National Scholarship Portal — Ministry of Electronics & IT"
         portalInitials="NSP"
-        welcomeText={step === 'login' ? undefined : 'Welcome, Meera Nair'}
+        welcomeText={step === 'login' ? undefined : `${t('auth.welcome')}, Meera Nair`}
         userIdText={step === 'login' ? undefined : 'OTR: NSPOTR2026MEERA19'}
       />
 
@@ -53,7 +55,7 @@ export default function NSPPortal() {
             href="/"
             className="rounded-2xl px-4 py-2 text-sm font-semibold text-[#1E3A8A] transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-blue-50"
           >
-            Back to DocBridge Home
+            {t('nav.backHome')}
           </Link>
         </div>
       </div>
@@ -80,7 +82,7 @@ export default function NSPPortal() {
 
             <div className="rounded-2xl border bg-white shadow-sm" style={{ borderColor: COLORS.legacyBorder }}>
               <div className="border-b px-5 py-4" style={{ borderColor: COLORS.legacyBorder }}>
-                <h2 className="text-lg font-bold text-[#0b1f4d]">Student Login</h2>
+                <h2 className="text-lg font-bold text-[#0b1f4d]">{t('login.student')}</h2>
                 <p className="mt-1 text-sm text-slate-500">OTR number, Aadhaar-linked mobile OTP.</p>
               </div>
               <div className="space-y-4 p-5">
@@ -111,7 +113,7 @@ export default function NSPPortal() {
                 eyebrow="AY 2026-27 · OTR NSPOTR2026MEERA19"
                 title="2 documents pending — photo and income certificate block submission"
                 description="NSP needs a photo under 50 KB plus a stamped income-certificate PDF under 500 KB. Open uploads — DocBridge prepares the JPEG and the PDF side by side from DigiLocker."
-                ctaLabel="Upload Documents"
+                ctaLabel={t('upload.docs')}
                 onAction={() => setStep('upload')}
                 onDismiss={() => setNudgeDismissed(true)}
                 tone="amber"
@@ -176,7 +178,7 @@ export default function NSPPortal() {
                   className="mt-6 rounded-md px-4 py-3 text-sm font-semibold text-white"
                   style={{ backgroundColor: COLORS.saffronDark }}
                 >
-                  Upload Documents →
+                  {t('upload.docs')} →
                 </button>
                 <div className="mt-6 rounded-lg border bg-slate-50 p-4" style={{ borderColor: COLORS.legacyBorder }}>
                   <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Verification chain after submit</p>

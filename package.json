@@ -8,7 +8,8 @@
     "prebuild": "node scripts/clean-next-cache.mjs",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "screenshots": "node scripts/capture-screenshots.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.3",
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "@netlify/plugin-nextjs": "^5.15.13",
+    "@playwright/test": "^1.62.1",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

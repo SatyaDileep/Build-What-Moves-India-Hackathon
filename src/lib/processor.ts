@@ -403,7 +403,7 @@ export async function processDocument(
   file: Blob,
   constraint: DocumentConstraint,
   assetMeta?: { name: string; type: string; size_mb: number },
-  opts?: { aggressive?: boolean; rotation?: number; enhance?: boolean }
+  opts?: { aggressive?: boolean; rotation?: number; enhance?: boolean; targetKB?: number }
 ): Promise<ProcessingResult> {
   const isPDFSource = file.type === 'application/pdf' || assetMeta?.type === 'application/pdf' || assetMeta?.name?.toLowerCase().endsWith('.pdf');
   const wantsPDF = constraint.format === 'pdf';
@@ -543,7 +543,9 @@ export async function processDocument(
       }
     }
   } else {
-    const targetKB = constraint.max_kb || 100;
+    const capKB = constraint.max_kb || 100;
+    const wantKB = opts?.targetKB && opts.targetKB > 0 ? Math.min(opts.targetKB, capKB) : capKB;
+    const targetKB = constraint.min_kb ? Math.max(wantKB, constraint.min_kb) : wantKB;
     const result = await compressToTargetSize(
       processedCanvas,
       constraint.format === 'jpeg' ? 'jpeg' : 'png',
@@ -562,11 +564,11 @@ export async function processDocument(
     } else if (syntheticWarning) {
       qualityWarning = syntheticWarning;
     }
-    // Final guard: if still over, keep warning (UI will offer aggressive recompress)
-    if (processedBlob.size / 1024 > targetKB && !qualityWarning) {
-      qualityWarning = `File is ${Math.round(processedBlob.size / 1024)}KB — over the ${targetKB}KB limit.`;
-    } else if (processedBlob.size / 1024 > targetKB && syntheticWarning && !result.qualityWarning) {
-      qualityWarning = `${syntheticWarning} File is still ${Math.round(processedBlob.size / 1024)}KB — over the ${targetKB}KB limit.`;
+    // Final guard: over portal cap (not preset target) blocks submit
+    if (processedBlob.size / 1024 > capKB && !qualityWarning) {
+      qualityWarning = `File is ${Math.round(processedBlob.size / 1024)}KB — over the ${capKB}KB limit.`;
+    } else if (processedBlob.size / 1024 > capKB && syntheticWarning && !result.qualityWarning) {
+      qualityWarning = `${syntheticWarning} File is still ${Math.round(processedBlob.size / 1024)}KB — over the ${capKB}KB limit.`;
     }
   }
   

@@ -2,6 +2,7 @@
 
 import { COLORS, GOV_CONFIG } from '@/lib/constants';
 import AshokaChakra from '@/components/ui/AshokaChakra';
+import { LanguageToggle, useLang } from '@/lib/i18n';
 
 interface GovernmentHeaderProps {
   portalName: string;
@@ -18,6 +19,7 @@ export default function GovernmentHeader({
   welcomeText,
   userIdText,
 }: GovernmentHeaderProps) {
+  const { t } = useLang();
   return (
     <header className="relative">
       {/* Tricolor Bar - subtle Ashoka Chakra on white band (outline, low-opacity motif — not a flag reproduction) */}
@@ -41,7 +43,7 @@ export default function GovernmentHeader({
         className="py-1 text-center text-xs"
         style={{ backgroundColor: '#1A1A1A', color: COLORS.white }}
       >
-        <span className="opacity-90">Government of India</span>
+        <span className="opacity-90">{t('gov.ofIndia')}</span>
         <span className="mx-3 opacity-50">|</span>
         <span className="opacity-90" style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}>
           {GOV_CONFIG.mottoHindi}
@@ -105,7 +107,7 @@ export default function GovernmentHeader({
                   {portalFullName}
                 </div>
                 <div className="text-xs opacity-75 mt-0.5">
-                  {GOV_CONFIG.ministry}
+                  {t('gov.ministry')}
                 </div>
               </div>
             </div>
@@ -135,19 +137,20 @@ export default function GovernmentHeader({
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center gap-6 text-sm">
             <a href="#" className="text-white opacity-90 hover:opacity-100 transition-opacity">
-              Home
+              {t('nav.home')}
             </a>
             <a href="#" className="text-white opacity-90 hover:opacity-100 transition-opacity">
-              Services
+              {t('nav.services')}
             </a>
             <a href="#" className="text-white opacity-90 hover:opacity-100 transition-opacity">
-              Help
+              {t('nav.help')}
             </a>
             <a href="#" className="text-white opacity-90 hover:opacity-100 transition-opacity">
-              Contact
+              {t('nav.contact')}
             </a>
             <span className="ml-auto flex items-center gap-2">
-              <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-bold text-white/90" title="Processing is 100% browser-private — no network calls"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Offline-ready · 0 calls</span>
+              <LanguageToggle />
+              <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-bold text-white/90" title="Processing is 100% browser-private — no network calls"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> {t('nav.offline')}</span>
               <span className="text-xs opacity-75" style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}>सत्यमेव जयते • Truth Alone Triumphs</span>
             </span>
           </div>

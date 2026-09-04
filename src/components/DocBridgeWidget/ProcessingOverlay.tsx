@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { WidgetState } from '@/types';
 import { COLORS } from '@/lib/constants';
 import { useVoiceGuide } from '@/hooks/useVoiceGuide';
+import { useLang, voiceLang } from '@/lib/i18n';
 
 interface ProcessingOverlayProps {
   state: WidgetState;
@@ -43,11 +44,12 @@ function stepIcon(state: WidgetState): React.ReactNode {
 }
 
 export default function ProcessingOverlay({ state, source = 'digilocker', portalId }: ProcessingOverlayProps & { portalId?: string }) {
+  const { t, lang } = useLang();
   const active = currentStep(state);
   const portalLabel = portalId === 'epfo' ? 'EPFO' : portalId === 'vahan' ? 'Sarathi' : portalId === 'upsc' ? 'UPSC' : portalId === 'passport' ? 'Passport Seva' : portalId === 'ssc' ? 'SSC' : portalId === 'nsp' ? 'NSP' : 'portal';
-  const voiceText = state === 'parsing' ? `Reading ${portalLabel} rules` : state === 'processing' ? `Optimizing for ${portalLabel}` : state === 'submitting' ? 'Submitting to portal' : '';
+  const voiceText = state === 'parsing' ? `${t('ov.reading')} ${portalLabel}` : state === 'processing' ? `${t('ov.optimizingFor')} ${portalLabel}` : state === 'submitting' ? t('ov.submitting') : '';
   const [voiceOn, setVoiceOn] = useState(() => typeof window !== 'undefined' && localStorage.getItem('docbridge-voice') === '1');
-  useVoiceGuide(voiceOn && !!voiceText, voiceText, 'en-IN');
+  useVoiceGuide(voiceOn && !!voiceText, voiceText, voiceLang(lang));
   const toggleVoice = () => {
     const next = !voiceOn;
     setVoiceOn(next);
@@ -58,14 +60,14 @@ export default function ProcessingOverlay({ state, source = 'digilocker', portal
 
   const STEPS: { label: string; tag?: string; sub?: string }[] = state === 'submitting'
     ? [
-        { label: source === 'device' ? 'File ready from device' : 'Fetched from DigiLocker', sub: 'Verified' },
-        { label: `Optimized for ${portalLabel}`, sub: portalHint, tag: 'AI' },
-        { label: 'Validating & submitting', sub: 'Almost done…' },
+        { label: source === 'device' ? t('ov.fileReady') : t('ov.fetched'), sub: t('ov.verified') },
+        { label: `${t('ov.optimizingFor')} ${portalLabel}`, sub: portalHint, tag: 'AI' },
+        { label: t('ov.validSubmit'), sub: t('ov.almost') },
       ]
     : [
-        { label: source === 'device' ? 'File added from your device' : 'Fetching from DigiLocker…', sub: source === 'device' ? 'Local file' : 'Consent-based' },
-        { label: `Optimizing for ${portalLabel}…`, sub: portalHint, tag: 'AI' },
-        { label: 'Validating…', sub: 'Checking format & size' },
+        { label: source === 'device' ? t('ov.fileAdded') : t('ov.fetching'), sub: source === 'device' ? t('ov.localFile') : t('ov.consent') },
+        { label: `${t('ov.optimizingFor')} ${portalLabel}…`, sub: portalHint, tag: 'AI' },
+        { label: t('ov.validating'), sub: t('ov.checkFormat') },
       ];
 
   return (
@@ -96,10 +98,10 @@ export default function ProcessingOverlay({ state, source = 'digilocker', portal
       </div>
 
       <h3 className="text-xl font-bold mb-2 text-center" style={{ color: COLORS.gray[800] }}>
-        {state === 'parsing' ? 'Reading portal rules…' : state === 'processing' ? `Optimizing for ${portalLabel}…` : state === 'submitting' ? 'Submitting…' : 'Working on your document'}
+        {state === 'parsing' ? t('ov.reading') : state === 'processing' ? `${t('ov.optimizingFor')} ${portalLabel}…` : state === 'submitting' ? t('ov.submitting') : t('ov.working')}
       </h3>
       <div className="mx-auto mb-3 flex justify-center gap-2">
-        <button type="button" onClick={toggleVoice} aria-pressed={voiceOn} className="rounded-full border px-2.5 py-1 text-[10px] font-bold" style={{ borderColor: COLORS.gray[300], color: COLORS.gray[600] }}>{voiceOn ? '🔊 Voice on' : '🔈 Voice off'}</button>
+        <button type="button" onClick={toggleVoice} aria-pressed={voiceOn} className="rounded-full border px-2.5 py-1 text-[10px] font-bold" style={{ borderColor: COLORS.gray[300], color: COLORS.gray[600] }}>{voiceOn ? t('ov.voiceOn') : t('ov.voiceOff')}</button>
       </div>
       <div className="mx-auto mb-4 h-1.5 max-w-sm overflow-hidden rounded-full" style={{ backgroundColor: COLORS.gray[200] }} aria-hidden="true">
         <div className="h-full rounded-full transition-all duration-700 ease-out" style={{ width: `${((active + 1) / 3) * 100}%`, background: `linear-gradient(90deg, ${COLORS.saffron}, ${COLORS.primary}, ${COLORS.success})` }} />

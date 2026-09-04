@@ -6,6 +6,7 @@ import DocBridgeWidget from '@/components/DocBridgeWidget';
 import GovernmentHeader from '@/components/ui/GovernmentHeader';
 import PortalNudge from '@/components/ui/PortalNudge';
 import { COLORS } from '@/lib/constants';
+import { useLang } from '@/lib/i18n';
 
 type JourneyStep = 'login' | 'dashboard' | 'upload' | 'submitted';
 
@@ -26,6 +27,7 @@ const signatureRequirements = [
 ];
 
 export default function PassportPortal() {
+  const { t } = useLang();
   const [step, setStep] = useState<JourneyStep>('login');
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
   const [done, setDone] = useState({ photo: false, signature: false });
@@ -40,7 +42,7 @@ export default function PassportPortal() {
         portalName="Passport Seva"
         portalFullName="Passport Seva — Ministry of External Affairs"
         portalInitials="PSP"
-        welcomeText={step === 'login' ? undefined : 'Welcome, Kabir Mehta'}
+        welcomeText={step === 'login' ? undefined : `${t('auth.welcome')}, Kabir Mehta`}
         userIdText={step === 'login' ? undefined : 'File No: BNGO40217846125'}
       />
 
@@ -55,7 +57,7 @@ export default function PassportPortal() {
             href="/"
             className="rounded-2xl px-4 py-2 text-sm font-semibold text-[#1E3A8A] transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-blue-50"
           >
-            Back to DocBridge Home
+            {t('nav.backHome')}
           </Link>
         </div>
       </div>
@@ -82,7 +84,7 @@ export default function PassportPortal() {
 
             <div className="rounded-2xl border bg-white shadow-sm" style={{ borderColor: COLORS.legacyBorder }}>
               <div className="border-b px-5 py-4" style={{ borderColor: COLORS.legacyBorder }}>
-                <h2 className="text-lg font-bold text-[#0b1f4d]">Applicant Login</h2>
+                <h2 className="text-lg font-bold text-[#0b1f4d]">{t('login.applicant')}</h2>
                 <p className="mt-1 text-sm text-slate-500">Login ID and password, then the application dashboard.</p>
               </div>
               <div className="space-y-4 p-5">
@@ -109,7 +111,7 @@ export default function PassportPortal() {
                   className="w-full rounded-md px-4 py-3 text-sm font-semibold text-white"
                   style={{ backgroundColor: COLORS.primary }}
                 >
-                  Login
+                  {t('auth.login')}
                 </button>
                 <div className="flex justify-between text-xs text-[#0b3c92]">
                   <span>New User Registration</span>
@@ -127,7 +129,7 @@ export default function PassportPortal() {
                 eyebrow="ARN DL107 series · 12 attempts left"
                 title="Photo & signature upload pending — application not accepted without them"
                 description="Passport Seva needs exactly 630×810px JPEG (10–250 KB) plus a signature under 100 KB. Open the upload section — DocBridge prepares both from DigiLocker before the portal burns an attempt."
-                ctaLabel="Upload Photo & Signature"
+                ctaLabel={t('upload.photoSig')}
                 onAction={() => setStep('upload')}
                 onDismiss={() => setNudgeDismissed(true)}
                 tone="amber"
@@ -199,7 +201,7 @@ export default function PassportPortal() {
                   className="mt-6 rounded-md px-4 py-3 text-sm font-semibold text-white"
                   style={{ backgroundColor: COLORS.saffronDark }}
                 >
-                  Upload Photo & Signature →
+                  {t('upload.photoSig')} →
                 </button>
               </div>
             </div>

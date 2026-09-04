@@ -6,10 +6,12 @@ import DocBridgeWidget from '@/components/DocBridgeWidget';
 import GovernmentHeader from '@/components/ui/GovernmentHeader';
 import PortalNudge from '@/components/ui/PortalNudge';
 import { COLORS } from '@/lib/constants';
+import { useLang } from '@/lib/i18n';
 
 type JourneyStep = 'login' | 'dashboard' | 'upload' | 'submitted';
 
 export default function VahanPortal() {
+  const { t } = useLang();
   const [step, setStep] = useState<JourneyStep>('login');
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
 
@@ -19,7 +21,7 @@ export default function VahanPortal() {
         portalName="Vahan"
         portalFullName="Vahan & Sarathi - Ministry of Road Transport & Highways"
         portalInitials="VAHAN"
-        welcomeText={step === 'login' ? undefined : 'Welcome, Priya Sharma'}
+        welcomeText={step === 'login' ? undefined : `${t('auth.welcome')}, Priya Sharma`}
         userIdText={step === 'login' ? undefined : 'Application: DL2026-0092451'}
       />
 
@@ -34,7 +36,7 @@ export default function VahanPortal() {
             href="/"
             className="rounded-2xl px-4 py-2 text-sm font-semibold text-[#1E3A8A] transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-blue-50"
           >
-            Back to DocBridge Home
+            {t('nav.backHome')}
           </Link>
         </div>
       </div>
@@ -60,7 +62,7 @@ export default function VahanPortal() {
 
             <div className="rounded-2xl border bg-white shadow-sm" style={{ borderColor: COLORS.legacyBorder }}>
               <div className="border-b px-5 py-4" style={{ borderColor: COLORS.legacyBorder }}>
-                <h2 className="text-lg font-bold text-[#0b1f4d]">Sarathi Login</h2>
+                <h2 className="text-lg font-bold text-[#0b1f4d]">{t('login.sarathi')}</h2>
                 <p className="mt-1 text-sm text-slate-500">Learner number, password, and OTP checkpoint.</p>
               </div>
               <div className="space-y-4 p-5">
@@ -87,11 +89,11 @@ export default function VahanPortal() {
                   className="w-full rounded-md px-4 py-3 text-sm font-semibold text-white"
                   style={{ backgroundColor: COLORS.primary }}
                 >
-                  Sign In and Continue
+                  {t('auth.signInContinue')}
                 </button>
                 <div className="flex justify-between text-xs text-[#0b3c92]">
                   <span>New Registration</span>
-                  <span>Forgot Password</span>
+                  <span>{t('auth.forgot')}</span>
                 </div>
               </div>
             </div>
@@ -105,7 +107,7 @@ export default function VahanPortal() {
                 eyebrow="Application DL2026-0092451 · Action required"
                 title="Photograph upload is pending — upload a 10-20 KB JPEG before fee payment"
                 description="Sarathi caps the photo at 20 KB (your phone photo is 2-5 MB). Click to open the upload section — DocBridge will crop to 35mm × 45mm and compress without blurring."
-                ctaLabel="Continue to Photograph Upload"
+                ctaLabel={t('upload.continuePhoto')}
                 onAction={() => setStep('upload')}
                 onDismiss={() => setNudgeDismissed(true)}
                 tone="amber"
@@ -178,7 +180,7 @@ export default function VahanPortal() {
                     className="mt-6 rounded-md px-4 py-3 text-sm font-semibold text-white"
                     style={{ backgroundColor: COLORS.saffronDark }}
                   >
-                    Continue to Photograph Upload →
+                    {t('upload.continuePhoto')} →
                   </button>
                 </div>
 

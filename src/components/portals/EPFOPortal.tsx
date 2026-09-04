@@ -6,6 +6,7 @@ import DocBridgeWidget from '@/components/DocBridgeWidget';
 import GovernmentHeader from '@/components/ui/GovernmentHeader';
 import PortalNudge from '@/components/ui/PortalNudge';
 import { COLORS } from '@/lib/constants';
+import { useLang } from '@/lib/i18n';
 
 type JourneyStep = 'login' | 'home' | 'kyc' | 'submitted';
 
@@ -29,6 +30,7 @@ const kycItems = [
 ] as const;
 
 export default function EPFOPortal() {
+  const { t } = useLang();
   const [step, setStep] = useState<JourneyStep>('login');
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
 
@@ -38,7 +40,7 @@ export default function EPFOPortal() {
         portalName="EPFO"
         portalFullName="Employees' Provident Fund Organisation"
         portalInitials="EPFO"
-        welcomeText={step === 'login' ? undefined : 'Welcome, Ramesh Kumar'}
+        welcomeText={step === 'login' ? undefined : `${t('auth.welcome')}, Ramesh Kumar`}
         userIdText={step === 'login' ? undefined : 'UAN: 10098765432'}
       />
 
@@ -53,7 +55,7 @@ export default function EPFOPortal() {
             href="/"
             className="rounded-2xl px-4 py-2 text-sm font-semibold text-[#1E3A8A] transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-blue-50"
           >
-            Back to DocBridge Home
+            {t('nav.backHome')}
           </Link>
         </div>
 
@@ -93,7 +95,7 @@ export default function EPFOPortal() {
 
               <div className="rounded-xl border bg-white shadow-sm" style={{ borderColor: '#cfd6e4' }}>
                 <div className="border-b px-5 py-4" style={{ borderColor: COLORS.legacyBorder }}>
-                  <h2 className="text-lg font-bold text-[#0b1f4d]">Member Login</h2>
+                  <h2 className="text-lg font-bold text-[#0b1f4d]">{t('login.member')}</h2>
                   <p className="mt-1 text-sm text-slate-500">UAN, password, and captcha are required on the live portal.</p>
                 </div>
                 <div className="space-y-4 p-5">
@@ -125,7 +127,7 @@ export default function EPFOPortal() {
 
                   <div className="flex justify-between text-xs text-[#0b3c92]">
                     <span>Activate UAN</span>
-                    <span>Forgot Password</span>
+                    <span>{t('auth.forgot')}</span>
                     <span>Know Your UAN</span>
                   </div>
                 </div>

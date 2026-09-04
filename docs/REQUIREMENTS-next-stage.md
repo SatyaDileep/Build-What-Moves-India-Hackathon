@@ -12,7 +12,7 @@
 | A1 | Before vs After preview (visual) | Text sizes only (`PreviewPanel`) | Side-by-side thumbnails + zoom 2× + metrics + Download | S | H | **Must** | — |
 | A2 | Progress micro-animation | Static overlay | Step labels per `source`+`portal` + bar + shimmer | S | H | **Must** | — |
 | D2 | Privacy badge/mic-copy | README claim | Badge under CTA `🔒 browser-private · Zero storage` | S | H | **Must** | B1 |
-| A3 | Manual Adjust (crop/rotate) | Center-crop only | Aspect-locked cropper + 90° rotate + re-compress | M | H | **Must** | A1 |
+| A3 | Manual Adjust (size presets) | 90° rotate (removed) | Smallest/Balanced/Sharpest within min–max KB, JPEG-only (UPSC/Vahan/Passport/SSC/NSP), re-compress via targetKB | M | H | **Must** | A1 |
 | B1 | Offline local processing | Already 100% client (Canvas/pdf-lib) | Harden: offline badge, no-net assert, doc | S | H | **Must** | — |
 | B2 | Smart up-scaling fallback | Downscale only | Enhance if <70% target px; sharpen/Canvas, lazy WASM | M | M | **Should** | A3 |
 | D1 | Watermark/metadata proof | None | EXIF/PDF metadata + sha256 + optional footer | S-M | M | **Should** | B1 |

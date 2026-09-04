@@ -26,10 +26,11 @@ One consent-based upload layer that makes any portal upload just work — DigiLo
 - *Required:* Step micro-animation: `Fetching from DigiLocker… → AI parsing portal rules… → Optimizing for EPFO/Vahan/UPSC… → Validating…` with progress bar + shimmer. Source-aware (DigiLocker vs device). Add `WIDGET_STATES` mapping + elapsed timing.
 - *Accept:* Each `parsing/processing` state shows portal-specific label + animated check; no spinner-only dead time.
 
-**A3 — Manual Override / Fine-Tuning (Adjust)**
-- *Current:* None — center-crop only.
-- *Required:* "Adjust" button on preview opens lightweight crop/rotate (drag bounds, 90° rotate, aspect lock per portal). Re-runs `cropToAspectRatio` with user rect + `compressToTargetSize` in-place. Falls back to auto if dismissed.
-- *Accept:* User can tweak crop/rotation and re-preview without re-upload; output still validates against `legacy-*`.
+**A3 — Manual Override / Fine-Tuning (Adjust size)**
+- *Current:* Was 90° rotate — wrong fallback (failures are size/quality, not orientation).
+- *Required:* "Adjust size" button on preview (JPEG image outputs only: UPSC/Vahan/Passport/SSC/NSP; hidden for EPFO PDF + PDF blobs) opens size-preset picker: Smallest / Balanced / Sharpest derived from `constraint.min_kb/max_kb`. Re-runs `processDocument(blob, constraint, meta, { targetKB, aggressive })` → `compressToTargetSize` in-place. Dimensions stay locked to portal rules. Falls back to auto if dismissed.
+- *Filetypes:* Input `image/*` (jpeg/png/webp) → JPEG output supported. PDF input→JPEG synthetic + PDF→PDF (EPFO) excluded in v1 — Adjust hidden, user sees re-upload tip instead.
+- *Accept:* User picks preset and re-previews without re-upload; output ≤ `max_kb` and ≥ `min_kb`; still validates against `legacy-*`.
 
 ### B. Strengthen Technical Architecture
 **B1 — Offline Local Processing (Edge AI) — ALREADY DONE, harden it**
@@ -73,7 +74,7 @@ One consent-based upload layer that makes any portal upload just work — DigiLo
 - Privacy: No upload leaves browser except final `legacy-*` submit (user-initiated). D1 hash stays local.
 - Performance: Preview render <200ms; PDF recompress <4s for 1.6MB on mid-phone.
 - A11y: WCAG 2.1 AA, voice toggle keyboard-accessible, `aria-live` for progress.
-- i18n: en + hi first, structure for bn/ta/te later.
+- i18n (SHIPPED v1): `src/lib/i18n.tsx` — `LanguageProvider` + EN/HI dictionary (~90 keys), `EN|हिं` toggle in `GovernmentHeader` (all 6 portals) + home header, `document.lang` flips en/hi, `Noto Sans Devanagari` font, voice follows UI lang (`hi-IN`/`en-IN` via `voiceLang()`), `localStorage:docbridge-lang` persists. Chrome translated: nav, login, upload CTAs, widget chooser/preview/adjust/overlay/DigiLocker, privacy badge, home hero. Portal rule quotations + long body copy stay EN verbatim (official text). Structure ready for bn/ta/te (add dict column).
 
 ## 5. Dependencies & Risks
 - B2 super-resolution: WASM model size vs low-bandwidth (C2) — lazy-load, offer toggle, not default.

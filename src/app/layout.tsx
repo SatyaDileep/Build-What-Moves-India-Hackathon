@@ -1,10 +1,17 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Noto_Sans_Devanagari } from "next/font/google";
 import "./globals.css";
+import { LanguageProvider } from "@/lib/i18n";
 
-const inter = Inter({ 
+const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
+  display: 'swap',
+});
+
+const devanagari = Noto_Sans_Devanagari({
+  subsets: ['devanagari', 'latin'],
+  variable: '--font-devanagari',
   display: 'swap',
 });
 
@@ -26,9 +33,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body className={`${inter.className} antialiased`}>
-        {children}
+    <html lang="en" className={`${inter.variable} ${devanagari.variable}`}>
+      <body className={`${inter.className} antialiased`} style={{ fontFamily: "var(--font-inter), var(--font-devanagari), 'Noto Sans Devanagari', system-ui, sans-serif" }}>
+        <LanguageProvider>{children}</LanguageProvider>
       </body>
     </html>
   );

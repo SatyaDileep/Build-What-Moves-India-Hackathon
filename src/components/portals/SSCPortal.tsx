@@ -6,6 +6,7 @@ import DocBridgeWidget from '@/components/DocBridgeWidget';
 import GovernmentHeader from '@/components/ui/GovernmentHeader';
 import PortalNudge from '@/components/ui/PortalNudge';
 import { COLORS } from '@/lib/constants';
+import { useLang } from '@/lib/i18n';
 
 type JourneyStep = 'login' | 'dashboard' | 'upload' | 'submitted';
 
@@ -25,6 +26,7 @@ const signatureRequirements = [
 ];
 
 export default function SSCPortal() {
+  const { t } = useLang();
   const [step, setStep] = useState<JourneyStep>('login');
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
   const [done, setDone] = useState({ photo: false, signature: false });
@@ -39,7 +41,7 @@ export default function SSCPortal() {
         portalName="SSC"
         portalFullName="Staff Selection Commission — One Time Registration"
         portalInitials="SSC"
-        welcomeText={step === 'login' ? undefined : 'Welcome, Priya Sharma'}
+        welcomeText={step === 'login' ? undefined : `${t('auth.welcome')}, Priya Sharma`}
         userIdText={step === 'login' ? undefined : 'OTR: SSCOTR20240055231'}
       />
 
@@ -54,7 +56,7 @@ export default function SSCPortal() {
             href="/"
             className="rounded-2xl px-4 py-2 text-sm font-semibold text-[#1E3A8A] transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-blue-50"
           >
-            Back to DocBridge Home
+            {t('nav.backHome')}
           </Link>
         </div>
       </div>
@@ -81,7 +83,7 @@ export default function SSCPortal() {
 
             <div className="rounded-2xl border bg-white shadow-sm" style={{ borderColor: COLORS.legacyBorder }}>
               <div className="border-b px-5 py-4" style={{ borderColor: COLORS.legacyBorder }}>
-                <h2 className="text-lg font-bold text-[#0b1f4d]">Candidate Login</h2>
+                <h2 className="text-lg font-bold text-[#0b1f4d]">{t('login.candidate')}</h2>
                 <p className="mt-1 text-sm text-slate-500">Registration number, date of birth, and captcha.</p>
               </div>
               <div className="space-y-4 p-5">
@@ -108,7 +110,7 @@ export default function SSCPortal() {
                   className="w-full rounded-md px-4 py-3 text-sm font-semibold text-white"
                   style={{ backgroundColor: COLORS.primary }}
                 >
-                  Login
+                  {t('auth.login')}
                 </button>
                 <div className="flex justify-between text-xs text-[#0b3c92]">
                   <span>New OTR Registration</span>
@@ -126,7 +128,7 @@ export default function SSCPortal() {
                 eyebrow="CGL 2026 · OTR SSCOTR20240055231"
                 title="Photo & signature pending — the tightest boxes of any portal"
                 description="SSC needs a 200×230px photo (20–50 KB) and a 140×60px signature (10–20 KB) in running hand. Open uploads — DocBridge hits both boxes from DigiLocker in one pass."
-                ctaLabel="Upload Photo & Signature"
+                ctaLabel={t('upload.photoSig')}
                 onAction={() => setStep('upload')}
                 onDismiss={() => setNudgeDismissed(true)}
                 tone="amber"
@@ -188,7 +190,7 @@ export default function SSCPortal() {
                   className="mt-6 rounded-md px-4 py-3 text-sm font-semibold text-white"
                   style={{ backgroundColor: COLORS.saffronDark }}
                 >
-                  Upload Photo & Signature →
+                  {t('upload.photoSig')} →
                 </button>
               </div>
             </div>
