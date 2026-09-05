@@ -1,14 +1,15 @@
 'use client';
 
-import { useState } from 'react';
 import { WidgetState } from '@/types';
 import { COLORS } from '@/lib/constants';
 import { useVoiceGuide } from '@/hooks/useVoiceGuide';
 import { useLang, voiceLang } from '@/lib/i18n';
+import { isVoiceOn } from '@/lib/voice';
 
 interface ProcessingOverlayProps {
   state: WidgetState;
   source?: 'digilocker' | 'device';
+  batchProgress?: { done: number; total: number };
 }
 
 // The three moments we narrate while a document is worked on.
@@ -43,19 +44,14 @@ function stepIcon(state: WidgetState): React.ReactNode {
   );
 }
 
-export default function ProcessingOverlay({ state, source = 'digilocker', portalId }: ProcessingOverlayProps & { portalId?: string }) {
+export default function ProcessingOverlay({ state, source = 'digilocker', portalId, batchProgress }: ProcessingOverlayProps & { portalId?: string }) {
   const { t, lang } = useLang();
   const active = currentStep(state);
   const portalLabel = portalId === 'epfo' ? 'EPFO' : portalId === 'vahan' ? 'Sarathi' : portalId === 'upsc' ? 'UPSC' : portalId === 'passport' ? 'Passport Seva' : portalId === 'ssc' ? 'SSC' : portalId === 'nsp' ? 'NSP' : 'portal';
   const voiceText = state === 'parsing' ? `${t('ov.reading')} ${portalLabel}` : state === 'processing' ? `${t('ov.optimizingFor')} ${portalLabel}` : state === 'submitting' ? t('ov.submitting') : '';
-  const [voiceOn, setVoiceOn] = useState(() => typeof window !== 'undefined' && localStorage.getItem('docbridge-voice') === '1');
+  // Voice is opted into from a portal nudge (VoiceToggle) — never from here.
+  const voiceOn = isVoiceOn();
   useVoiceGuide(voiceOn && !!voiceText, voiceText, voiceLang(lang));
-  const toggleVoice = () => {
-    const next = !voiceOn;
-    setVoiceOn(next);
-    try { localStorage.setItem('docbridge-voice', next ? '1' : '0'); } catch {}
-    if (!next && typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel();
-  };
   const portalHint = portalId === 'epfo' ? 'PDF ≤500KB' : portalId === 'vahan' ? 'JPEG 10–20KB' : portalId === 'upsc' ? 'JPEG 20–200KB' : portalId === 'passport' ? 'JPEG 630×810' : portalId === 'ssc' ? 'JPEG 200×230' : portalId === 'nsp' ? 'JPEG + PDF' : '';
 
   const STEPS: { label: string; tag?: string; sub?: string }[] = state === 'submitting'
@@ -100,8 +96,13 @@ export default function ProcessingOverlay({ state, source = 'digilocker', portal
       <h3 className="text-xl font-bold mb-2 text-center" style={{ color: COLORS.gray[800] }}>
         {state === 'parsing' ? t('ov.reading') : state === 'processing' ? `${t('ov.optimizingFor')} ${portalLabel}…` : state === 'submitting' ? t('ov.submitting') : t('ov.working')}
       </h3>
+      {batchProgress && batchProgress.total > 1 && (
+        <p className="mb-2 text-center text-sm font-semibold" style={{ color: COLORS.primary }}>
+          {t('ov.batchProgress').replace('I', String(Math.min(batchProgress.done + 1, batchProgress.total))).replace('N', String(batchProgress.total))}
+        </p>
+      )}
       <div className="mx-auto mb-3 flex justify-center gap-2">
-        <button type="button" onClick={toggleVoice} aria-pressed={voiceOn} className="rounded-full border px-2.5 py-1 text-[10px] font-bold" style={{ borderColor: COLORS.gray[300], color: COLORS.gray[600] }}>{voiceOn ? t('ov.voiceOn') : t('ov.voiceOff')}</button>
+        {voiceOn && <span className="flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700">🔊 {t('ov.voiceOn')}</span>}
       </div>
       <div className="mx-auto mb-4 h-1.5 max-w-sm overflow-hidden rounded-full" style={{ backgroundColor: COLORS.gray[200] }} aria-hidden="true">
         <div className="h-full rounded-full transition-all duration-700 ease-out" style={{ width: `${((active + 1) / 3) * 100}%`, background: `linear-gradient(90deg, ${COLORS.saffron}, ${COLORS.primary}, ${COLORS.success})` }} />

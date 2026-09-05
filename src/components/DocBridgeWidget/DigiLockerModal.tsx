@@ -11,6 +11,7 @@ interface DigiLockerModalProps {
   signInName: string;
   onClose: () => void;
   onAssetSelected: (asset: DigiLockerAsset) => void;
+  onAssetsSelected?: (assets: DigiLockerAsset[]) => void;
   onAuthenticated?: () => void;
 }
 
@@ -19,6 +20,7 @@ export default function DigiLockerModal({
   signInName,
   onClose, 
   onAssetSelected,
+  onAssetsSelected,
   onAuthenticated,
 }: DigiLockerModalProps) {
   const { t } = useLang();
@@ -28,6 +30,10 @@ export default function DigiLockerModal({
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [assets, setAssets] = useState<DigiLockerAsset[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const isMulti = !!onAssetsSelected;
+
+  const maxBatch = 3;
 
   const handleAadhaarSubmit = async () => {
     if (!aadhaarId || aadhaarId.length !== 10) {
@@ -66,7 +72,7 @@ export default function DigiLockerModal({
         onAuthenticated();
         return;
       }
-      const userAssets = supabase.getAssets();
+      const userAssets = supabase.getVaultWithSaved();
       setAssets(userAssets);
       setStep('select');
     } else {
@@ -77,6 +83,12 @@ export default function DigiLockerModal({
   };
 
   const handleAssetSelect = (asset: DigiLockerAsset) => {
+    if (isMulti) {
+      setSelectedIds((prev) =>
+        prev.includes(asset.id) ? prev.filter((id) => id !== asset.id) : [...prev, asset.id].slice(0, maxBatch)
+      );
+      return;
+    }
     onAssetSelected(asset);
   };
 
@@ -93,6 +105,85 @@ export default function DigiLockerModal({
           : portalId === 'nsp'
             ? assets.filter(a => lower(a.name).includes('photo') || lower(a.name).includes('cert') || lower(a.name).includes('scan'))
             : assets.filter(a => lower(a.name).includes('photo') || lower(a.name).includes('selfie') || lower(a.name).includes('signature'));
+
+  // Reuse-first vault: DocBridge-optimized copies grouped above the
+  // citizen's original issued documents.
+  const optimizedAssets = filteredAssets.filter(a => a.source === 'optimized');
+  const issuedAssets = filteredAssets.filter(a => a.source !== 'optimized');
+
+  const renderAssetRow = (asset: DigiLockerAsset) => {
+    const checked = selectedIds.includes(asset.id);
+    const isOptimized = asset.source === 'optimized';
+    const sizeLabel = asset.size_mb < 0.1 ? `${Math.round(asset.size_mb * 1024)} KB` : `${asset.size_mb.toFixed(1)} MB`;
+    return (
+      <button
+        key={asset.id}
+        onClick={() => handleAssetSelect(asset)}
+        className="w-full p-4 border rounded-lg text-left transition-transform hover:-translate-y-0.5"
+        style={{
+          borderColor: checked ? COLORS.primary : isOptimized ? '#BBF7D0' : COLORS.gray[200],
+          backgroundColor: checked ? COLORS.primaryLight : isOptimized ? '#F0FDF4' : undefined,
+          borderWidth: checked ? 2 : 1,
+        }}
+      >
+        {isOptimized && (
+          <span
+            className="mb-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
+            style={{ backgroundColor: '#DCFCE7', color: '#166534' }}
+          >
+            ✦ {t('dl.reusable').replace('{portals}', asset.optimizedFor || 'this portal')}
+          </span>
+        )}
+        <span className="flex items-center gap-4">
+          {isMulti && (
+            <span
+              className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border text-xs font-bold"
+              style={{
+                borderColor: checked ? COLORS.primary : COLORS.gray[300],
+                backgroundColor: checked ? COLORS.primary : 'transparent',
+                color: checked ? '#fff' : 'transparent',
+              }}
+            >
+              ✓
+            </span>
+          )}
+          <span
+            className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg"
+            style={{ backgroundColor: isOptimized ? '#DCFCE7' : COLORS.primaryLight, color: isOptimized ? '#166534' : COLORS.primary }}
+          >
+            {isOptimized ? (
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+            ) : (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            )}
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate font-semibold" style={{ color: COLORS.gray[800] }}>
+              {asset.name}
+            </span>
+            <span className="block text-sm" style={{ color: isOptimized ? '#166534' : COLORS.gray[500] }}>
+              {sizeLabel} • {asset.type.split('/')[1].toUpperCase()}
+              {isOptimized && asset.tags && asset.tags.length > 0 && (
+                <span className="ml-1.5 inline-flex flex-wrap gap-1 align-middle">
+                  {asset.tags.slice(0, 2).map((tag) => (
+                    <span key={tag} className="rounded bg-white px-1.5 py-0.5 text-[10px] font-bold" style={{ border: '1px solid #BBF7D0', color: '#166534' }}>#{tag}</span>
+                  ))}
+                </span>
+              )}
+            </span>
+            {isOptimized && !isMulti && (
+              <span className="mt-0.5 block text-xs" style={{ color: '#047857' }}>↻ {t('dl.reuseSub')}</span>
+            )}
+          </span>
+          {!isMulti && (
+            <svg className="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: COLORS.gray[400] }}>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          )}
+        </span>
+      </button>
+    );
+  };
 
   return (
     <div 
@@ -270,72 +361,71 @@ export default function DigiLockerModal({
           {/* Asset Selection Step */}
           {step === 'select' && (
             <div>
-              <h3 className="text-lg font-semibold mb-1" style={{ color: COLORS.gray[800] }}>
-                {t('dl.select')}
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold mb-1" style={{ color: COLORS.gray[800] }}>
+                  {isMulti ? t('dl.selectMany') : t('dl.select')}
+                </h3>
+                {isMulti && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedIds([])}
+                    className="text-xs font-semibold underline"
+                    style={{ color: COLORS.gray[500] }}
+                  >
+                    {t('w.removeDoc')}
+                  </button>
+                )}
+              </div>
               <p className="text-sm mb-4" style={{ color: COLORS.gray[500] }}>
                 {signInName}&apos;s DigiLocker
               </p>
 
-              {filteredAssets.length === 0 ? (
+              {optimizedAssets.length + issuedAssets.length === 0 ? (
                 <p className="text-center py-8" style={{ color: COLORS.gray[500] }}>
                   {t('dl.noDocs')}
                 </p>
               ) : (
-                <div className="space-y-3">
-                  {filteredAssets.map((asset) => (
-                    <button
-                      key={asset.id}
-                      onClick={() => handleAssetSelect(asset)}
-                      className="w-full p-4 border rounded-lg text-left hover:border-opacity-50 transition-colors flex items-center gap-4"
-                      style={{ 
-                        borderColor: COLORS.gray[200],
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = COLORS.primary;
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = COLORS.gray[200];
-                      }}
-                    >
-                      <div 
-                        className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
-                        style={{ backgroundColor: COLORS.primaryLight }}
-                      >
-                        <svg 
-                          className="w-6 h-6" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          viewBox="0 0 24 24"
-                          style={{ color: COLORS.primary }}
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold truncate" style={{ color: COLORS.gray[800] }}>
-                          {asset.name}
-                        </p>
-                        <p className="text-sm" style={{ color: COLORS.gray[500] }}>
-                          {asset.size_mb.toFixed(1)} MB • {asset.type.split('/')[1].toUpperCase()}
-                        </p>
-                      </div>
-                      <svg 
-                        className="w-5 h-5 flex-shrink-0" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                        style={{ color: COLORS.gray[400] }}
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </button>
-                  ))}
+                <div className="space-y-4">
+                  {/* Batch selection is capped at 3 docs */}
+                  {isMulti && selectedIds.length >= maxBatch && (
+                    <p className="text-xs" style={{ color: COLORS.warning }}>Max {maxBatch} documents per batch</p>
+                  )}
+                  {optimizedAssets.length > 0 && (
+                    <div>
+                      <p className="mb-2 text-[11px] font-bold uppercase tracking-wide" style={{ color: '#047857' }}>✦ {t('dl.savedDocs')}</p>
+                      <div className="space-y-2.5">{optimizedAssets.map(renderAssetRow)}</div>
+                    </div>
+                  )}
+                  {issuedAssets.length > 0 && (
+                    <div>
+                      <p className="mb-2 text-[11px] font-bold uppercase tracking-wide" style={{ color: COLORS.gray[500] }}>{t('dl.issuedDocs')}</p>
+                      <div className="space-y-2.5">{issuedAssets.map(renderAssetRow)}</div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           )}
         </div>
+
+        {isMulti && step === 'select' && (
+          <div className="border-t px-6 py-3.5" style={{ borderColor: COLORS.gray[200] }}>
+            <button
+              type="button"
+              disabled={selectedIds.length === 0}
+              onClick={() => {
+                const chosen = selectedIds
+                  .map((id) => assets.find((a) => a.id === id))
+                  .filter((a): a is DigiLockerAsset => !!a);
+                onAssetsSelected?.(chosen);
+              }}
+              className="w-full py-3 px-4 rounded-lg font-semibold text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{ backgroundColor: COLORS.primary }}
+            >
+              {t('dl.useSelected').replace('N', String(selectedIds.length))}
+            </button>
+          </div>
+        )}
 
         {/* Footer */}
         <div 

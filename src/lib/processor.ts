@@ -403,7 +403,7 @@ export async function processDocument(
   file: Blob,
   constraint: DocumentConstraint,
   assetMeta?: { name: string; type: string; size_mb: number },
-  opts?: { aggressive?: boolean; rotation?: number; enhance?: boolean; targetKB?: number }
+  opts?: { aggressive?: boolean; rotation?: number; enhance?: boolean; targetKB?: number; targetWidth?: number; targetHeight?: number }
 ): Promise<ProcessingResult> {
   const isPDFSource = file.type === 'application/pdf' || assetMeta?.type === 'application/pdf' || assetMeta?.name?.toLowerCase().endsWith('.pdf');
   const wantsPDF = constraint.format === 'pdf';
@@ -475,8 +475,11 @@ export async function processDocument(
   if (opts?.rotation) processedCanvas = rotateCanvas(processedCanvas, opts.rotation);
   if (opts?.enhance) processedCanvas = await enhanceCanvas(processedCanvas);
   
-  // Apply transformations based on constraint
-  if (constraint.width_px && constraint.height_px) {
+  // Apply transformations based on constraint — a manual W×H crop choice from
+  // the adjust panel wins over the portal default.
+  if (opts?.targetWidth && opts?.targetHeight) {
+    processedCanvas = cropToAspectRatio(processedCanvas, opts.targetWidth, opts.targetHeight);
+  } else if (constraint.width_px && constraint.height_px) {
     // Exact pixel requirement (e.g. Passport Seva 630x810, SSC 200x230) —
     // crop to the precise pixel box, no DPI conversion.
     processedCanvas = cropToAspectRatio(processedCanvas, constraint.width_px, constraint.height_px);

@@ -17,6 +17,13 @@ export interface DigiLockerAsset {
   size_mb: number;
   url: string;
   owner: 'ramesh' | 'priya' | 'kabir' | 'meera';
+  // DocBridge optimization metadata for copies saved back into the vault —
+  // lets the same citizen reuse an already-optimized document on other portals.
+  source?: 'issued' | 'optimized';
+  optimizedFor?: string;
+  tags?: string[];
+  dataUrl?: string;
+  processedAt?: string;
 }
 
 export interface UserProfile {
@@ -66,6 +73,31 @@ export type WidgetState =
   | 'parsing'
   | 'processing'
   | 'previewing'
+  | 'previewing_batch'
   | 'submitting'
   | 'success'
   | 'error';
+
+// A single document queued inside a batch. `docType` maps to the portal slot
+// (photo / signature / income / passbook) and is routed to the matching
+// legacy-* endpoint on submit.
+export interface BatchItem {
+  id: string;
+  name: string;
+  type: string;
+  blob: Blob;
+  size_mb: number;
+  docType: 'photo' | 'signature' | 'income' | 'passbook' | 'other';
+  result?: ProcessingResult;
+  status: 'queued' | 'processing' | 'done' | 'error';
+  error?: string;
+  submitted?: boolean;
+  submitError?: string;
+}
+
+export interface BatchSubmitResult {
+  id: string;
+  name: string;
+  success: boolean;
+  error?: string;
+}

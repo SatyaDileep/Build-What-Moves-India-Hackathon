@@ -1,21 +1,41 @@
 import { PortalConfig, UserProfile, DigiLockerAsset } from '@/types';
 
-// Indian Government Portal Design Tokens
+// Indian Government Portal Design Tokens — matched to live Passport Seva (passportindia.gov.in)
 export const COLORS = {
-  primary: '#000080',
-  primaryHover: '#000066',
-  primaryLight: '#E8E8FF',
+  primary: '#000C80',
+  primaryHover: '#071064',
+  primaryLight: '#E3EBFC',
+  navyDeep: '#0C1364',
+  linkBlue: '#007DC5',
+  linkHover: '#125699',
   saffron: '#FF9933',
-  saffronLight: '#FFF3E0',
+  saffronLight: '#FFF3CD',
   saffronDark: '#E67E22',
+  saffronAccent: '#FFB04F',
   green: '#138808',
   greenLight: '#E8F5E9',
   greenDark: '#0D6B07',
-  success: '#138808',
+  success: '#198754',
   successHover: '#0D6B07',
   successLight: '#E8F5E9',
-  legacyBg: '#F5F5F5',
-  legacyBorder: '#D0D0D0',
+  legacyBg: '#F8F9FA',
+  legacyBorder: '#DEE2E6',
+  nspTopBar: '#EDEDED',
+  nspStudent: '#F7768D',
+  nspInstitute: '#D870C7',
+  nspOfficer: '#7E75D0',
+  nspPublic: '#36AAC9',
+  nspCTA: '#575757',
+  nspCTAHover: '#1C5C89',
+  nspDeepBlue: '#3F51B5',
+  nspDeepBlueDark: '#3949AB',
+  nspDeepBlueLight: '#7986CB',
+  nspGreen: '#198754',
+  nspPinkAccent: '#FF4081',
+  nspInputBg: 'rgba(216,216,216,0.31)',
+  nspLink: '#106BD8',
+  nspFooter: '#D9D9D9',
+  nspGradient: 'linear-gradient(90deg, #F7768D 0%, #D870C7 34%, #7E75D0 57.5%, #36AAC9 100%)',
   error: '#D32F2F',
   errorLight: '#FFEBEE',
   warning: '#FF6F00',
@@ -38,8 +58,10 @@ export const COLORS = {
 } as const;
 
 export const TYPOGRAPHY = {
-  fontFamily: "'Rajdhani', 'Noto Sans', system-ui, sans-serif",
-  baseFontSize: '16px',
+  fontFamily: "'Open Sans', Arial, 'Source Sans Pro', sans-serif",
+  baseFontSize: '14px',
+  headingFamily: "Arial, 'Open Sans', sans-serif",
+  nspFont: "'Roboto', Arial, sans-serif",
 } as const;
 
 export const PORTALS: PortalConfig[] = [

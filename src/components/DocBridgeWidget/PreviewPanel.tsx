@@ -1,30 +1,63 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ProcessingResult } from '@/types';
+import { ProcessingResult, BatchItem } from '@/types';
 import { COLORS } from '@/lib/constants';
 import PrivacyBadge from '@/components/ui/PrivacyBadge';
 import { useLang } from '@/lib/i18n';
 
-interface PreviewPanelProps {
-  result: ProcessingResult;
-  portalId: 'epfo' | 'upsc' | 'vahan' | 'passport' | 'ssc' | 'nsp';
+type PortalId = 'epfo' | 'upsc' | 'vahan' | 'passport' | 'ssc' | 'nsp';
+
+export interface BatchPreviewItem {
+  id: string;
+  name: string;
+  docType: BatchItem['docType'];
+  result?: ProcessingResult;
+  status: BatchItem['status'];
+  submitted?: boolean;
+  submitError?: string;
+  error?: string;
+}
+
+interface SinglePreviewProps {
+  portalId: PortalId;
   source: 'digilocker' | 'device';
+  result: ProcessingResult;
   onSubmit: (saveToDigiLocker: boolean) => void;
   onCancel: () => void;
   onRequestSaveAuth?: () => void;
   isSaveAuthed?: boolean;
   onRecompress?: () => void;
   isRecompressing?: boolean;
-  onAdjust?: (choice: { targetKB: number; aggressive: boolean }) => void;
+  onAdjust?: (choice: { targetKB: number; aggressive: boolean; targetWidth?: number; targetHeight?: number }) => void;
   onEnhance?: () => void;
 }
 
-export default function PreviewPanel({ 
-  result, 
-  portalId, 
+interface BatchPreviewProps {
+  portalId: PortalId;
+  source?: 'digilocker' | 'device';
+  items: BatchPreviewItem[];
+  onSubmitBatch: () => void;
+  onRetryFailed: () => void;
+  onItemAdjust: (id: string, choice: { targetKB: number; aggressive: boolean; targetWidth?: number; targetHeight?: number }) => void;
+  onItemRecompress: (id: string) => void;
+  onItemEnhance: (id: string) => void;
+  onRemoveItem: (id: string) => void;
+  onCancel: () => void;
+}
+
+type PreviewPanelProps = (SinglePreviewProps & { items?: never }) | (BatchPreviewProps & { result?: never });
+
+export default function PreviewPanel(props: PreviewPanelProps) {
+  if (props.items && props.items.length > 0) return <BatchPreview {...(props as BatchPreviewProps)} />;
+  return <SinglePreview {...(props as SinglePreviewProps)} />;
+}
+
+function SinglePreview({
+  result,
+  portalId,
   source,
-  onSubmit, 
+  onSubmit,
   onCancel,
   onRequestSaveAuth,
   isSaveAuthed = false,
@@ -32,24 +65,28 @@ export default function PreviewPanel({
   isRecompressing = false,
   onAdjust,
   onEnhance,
-}: PreviewPanelProps) {
+}: SinglePreviewProps) {
   const { t } = useLang();
   const [saveToDigiLocker, setSaveToDigiLocker] = useState(true);
   const [previewUrls, setPreviewUrls] = useState<{ original?: string; processed?: string }>({});
   const [zoomSrc, setZoomSrc] = useState<string | null>(null);
   const [showAdjust, setShowAdjust] = useState(false);
+  // ESC closes the innermost layer first: crop-adjust → zoom → whole preview.
   useEffect(() => {
-    const oType = result.original.blob.type;
-    const pType = result.processed.blob.type;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      if (showAdjust) { setShowAdjust(false); return; }
+      if (zoomSrc) { setZoomSrc(null); return; }
+      onCancel();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [zoomSrc, showAdjust, onCancel]);
+  useEffect(() => {
     const o = URL.createObjectURL(result.original.blob);
     const p = URL.createObjectURL(result.processed.blob);
     setPreviewUrls({ original: o, processed: p });
-    const isPdf = pType === 'application/pdf';
-    let thumb: string | undefined;
-    if (isPdf && result.processed.dimensions) {
-      // For PDF we keep object URL — iframe will render it
-    }
-    return () => { URL.revokeObjectURL(o); URL.revokeObjectURL(p); if (thumb) URL.revokeObjectURL(thumb); };
+    return () => { URL.revokeObjectURL(o); URL.revokeObjectURL(p); };
   }, [result]);
 
   const originalSizeKB = result.original.size_mb * 1024;
@@ -58,7 +95,7 @@ export default function PreviewPanel({
     ? Math.round((1 - processedSizeKB / originalSizeKB) * 100)
     : 0;
 
-  const portalName = portalId === 'epfo' ? 'EPFO' : portalId === 'vahan' ? 'Sarathi' : portalId === 'passport' ? 'Passport Seva' : portalId === 'ssc' ? 'SSC' : portalId === 'nsp' ? 'NSP' : 'UPSC';
+  const portalName = portalLabel(portalId);
   const isOverLimit = !!result.constraint.max_kb && processedSizeKB > result.constraint.max_kb + 0.5;
   const warningText = result.processed.warning || (isOverLimit ? `This file is ${Math.round(processedSizeKB)}KB — over the ${result.constraint.max_kb}KB limit for ${portalName}.` : undefined);
   const canAdjust = !!onAdjust && !!previewUrls.processed && result.constraint.format === 'jpeg' && !!result.constraint.max_kb && result.processed.blob.type.startsWith('image/');
@@ -80,13 +117,16 @@ export default function PreviewPanel({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="text-center">
-        <h3 className="text-xl font-bold mb-2" style={{ color: COLORS.gray[800] }}>
-          {t('w.ready')}
-        </h3>
-        <p className="text-sm" style={{ color: COLORS.gray[500] }}>
-          {t('w.readySub')} — {portalName}
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 text-center">
+          <h3 className="text-xl font-bold mb-2" style={{ color: COLORS.gray[800] }}>
+            {t('w.ready')}
+          </h3>
+          <p className="text-sm" style={{ color: COLORS.gray[500] }}>
+            {t('w.readySub')} — {portalName}
+          </p>
+        </div>
+        <CloseButton onClick={onCancel} />
       </div>
 
       {/* Visual Before / After Preview */}
@@ -109,8 +149,8 @@ export default function PreviewPanel({
               <div className="flex h-32 items-center justify-center rounded-lg border border-dashed text-xs" style={{ borderColor: COLORS.gray[300], color: COLORS.gray[500] }}>{t('w.loadingPreview')}</div>
             )}
             <div className="mt-2 text-center">
-              <span className="text-lg font-bold line-through" style={{ color: COLORS.gray[500] }}>{formatSize(originalSizeKB)}</span>
-              {result.original.dimensions && <span className="ml-2 text-xs" style={{ color: COLORS.gray[500] }}>{result.original.dimensions.width}×{result.original.dimensions.height}px</span>}
+              <span className="text-sm font-bold" style={{ color: COLORS.gray[500] }}>{formatSize(originalSizeKB)}</span>
+              {result.original.dimensions && <span className="ml-2 text-sm" style={{ color: COLORS.gray[500] }}>{result.original.dimensions.width}×{result.original.dimensions.height}px</span>}
               <p className="text-xs truncate" style={{ color: COLORS.gray[400] }}>{result.original.assetName || t('w.fromDigi')}</p>
             </div>
           </div>
@@ -129,21 +169,20 @@ export default function PreviewPanel({
               ) : (
                 <button type="button" onClick={() => setZoomSrc(previewUrls.processed!)} className="group relative block w-full overflow-hidden rounded-lg border bg-white" style={{ borderColor: COLORS.success }}>
                   <img src={previewUrls.processed} alt="Optimized" className="max-h-48 w-full object-contain transition group-hover:scale-[1.02]" />
-                  <span className="absolute bottom-1 right-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white">{t('w.zoom')}</span>
+                  <span className="absolute bottom-1 right-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white">{t('w.zoomClick')}</span>
                 </button>
               )
             ) : (
               <div className="flex h-32 items-center justify-center rounded-lg border bg-white text-xs" style={{ borderColor: COLORS.success, color: COLORS.gray[700] }}>{t('w.preparingPreview')}</div>
             )}
             <div className="mt-2 text-center">
-              <span className="text-lg font-bold" style={{ color: COLORS.success }}>{formatSize(processedSizeKB)}</span>
-              {result.processed.dimensions && <span className="ml-2 text-xs" style={{ color: COLORS.success }}>{result.processed.dimensions.width}×{result.processed.dimensions.height}px</span>}
-              {reduction > 0 && <span className="ml-2 text-xs font-bold" style={{ color: COLORS.success }}>{reduction}% {t('w.smaller')}</span>}
-              <p className="text-xs" style={{ color: COLORS.success }}>{t('w.meetsRules')} — {portalName}</p>
+              <span className="text-sm font-bold" style={{ color: COLORS.success }}>{formatSize(processedSizeKB)}</span>
+              {result.processed.dimensions && <span className="ml-2 text-sm" style={{ color: COLORS.success }}>{result.processed.dimensions.width}×{result.processed.dimensions.height}px</span>}
+              {reduction > 0 && <span className="ml-2 text-sm font-bold" style={{ color: COLORS.success }}>{reduction}% {t('w.smaller')}</span>}
             </div>
             <div className="mt-3 flex items-center justify-center gap-2">
-              <button type="button" onClick={handleDownload} className="inline-flex items-center gap-1.5 rounded-full border bg-white px-3 py-1.5 text-xs font-bold shadow-sm hover:-translate-y-0.5" style={{ borderColor: COLORS.success, color: COLORS.success }}><svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16" /></svg>{t('w.download')}</button>
-              {canAdjust && <button type="button" onClick={() => setShowAdjust(true)} className="inline-flex items-center gap-1.5 rounded-full border bg-white px-3 py-1.5 text-xs font-bold shadow-sm hover:-translate-y-0.5" style={{ borderColor: COLORS.primary, color: COLORS.primary }}>{t('w.adjustSize')}</button>}
+              <button type="button" onClick={handleDownload} className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border bg-white px-3 py-1.5 text-xs font-bold shadow-sm hover:-translate-y-0.5" style={{ borderColor: COLORS.success, color: COLORS.success }}><svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16" /></svg>{t('w.download')}</button>
+              {canAdjust && <button type="button" onClick={() => setShowAdjust(true)} className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border bg-white px-3 py-1.5 text-xs font-bold shadow-sm hover:-translate-y-0.5" style={{ borderColor: COLORS.success, color: COLORS.success }}>{t('w.adjustSize')}</button>}
             </div>
             {result.original.dimensions && result.processed.dimensions && result.original.dimensions.width < result.processed.dimensions.width * 0.7 && onEnhance && (
               <button type="button" onClick={onEnhance} className="mx-auto mt-2 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold text-white shadow-sm" style={{ backgroundColor: COLORS.warning }}>{t('w.enhance')}</button>
@@ -151,10 +190,22 @@ export default function PreviewPanel({
           </div>
         </div>
       </div>
-      {zoomSrc && (
-        <button type="button" onClick={() => setZoomSrc(null)} className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" aria-label="Close zoom">
-          <img src={zoomSrc} alt="Zoomed" className="max-h-[85vh] max-w-[90vw] rounded-xl border-4 border-white object-contain shadow-2xl" style={{ transform: 'scale(1.15)' }} />
-        </button>
+{zoomSrc && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Zoomed preview"
+          onClick={() => setZoomSrc(null)}
+          className="fixed inset-0 z-50 flex cursor-zoom-out items-center justify-center bg-black/70 p-4"
+        >
+          <img
+            src={zoomSrc}
+            alt="Zoomed"
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[85vh] max-w-[90vw] cursor-default rounded-xl border-4 border-white object-contain shadow-2xl"
+          />
+          <CloseButton onClick={() => setZoomSrc(null)} className="absolute right-4 top-4 bg-white/90 text-black hover:bg-white hover:text-black" />
+        </div>
       )}
       {showAdjust && canAdjust && previewUrls.processed && (
         <CropAdjustWrap imageUrl={previewUrls.processed} minKB={result.constraint.min_kb} maxKB={result.constraint.max_kb!} currentKB={processedSizeKB} onClose={() => setShowAdjust(false)} onApply={(c) => { setShowAdjust(false); onAdjust?.(c); }} />
@@ -301,14 +352,252 @@ export default function PreviewPanel({
   );
 }
 
-function CropAdjustWrap({ imageUrl, minKB, maxKB, currentKB, onClose, onApply }: { imageUrl: string; minKB?: number; maxKB: number; currentKB: number; onClose: () => void; onApply: (c: { targetKB: number; aggressive: boolean }) => void }) {
+function BatchPreview({
+  portalId,
+  items,
+  onSubmitBatch,
+  onRetryFailed,
+  onItemAdjust,
+  onItemRecompress,
+  onItemEnhance,
+  onRemoveItem,
+  onCancel,
+}: BatchPreviewProps) {
+  const { t } = useLang();
+  const ready = items.filter((it) => it.result).length;
+  const doneCount = items.filter((it) => it.submitted === true).length;
+  const failCount = items.filter((it) => it.submitted === false).length;
+  const hasSubmitResults = items.some((it) => it.submitted !== undefined);
+  const portalName = portalLabel(portalId);
+
+  // ESC dismisses the batch preview.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onCancel();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onCancel]);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 text-center">
+          <h3 className="text-xl font-bold mb-2" style={{ color: COLORS.gray[800] }}>
+            {t('w.batchReady').replace('N', String(items.length))}
+          </h3>
+          <p className="text-sm" style={{ color: COLORS.gray[500] }}>
+            {t('w.batchReadySub')} — {portalName}
+          </p>
+        </div>
+        <CloseButton onClick={onCancel} />
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        {items.map((it) => (
+          <BatchCard
+            key={it.id}
+            item={it}
+            onAdjust={(choice) => onItemAdjust(it.id, choice)}
+            onRecompress={() => onItemRecompress(it.id)}
+            onEnhance={() => onItemEnhance(it.id)}
+            onRemove={() => onRemoveItem(it.id)}
+          />
+        ))}
+      </div>
+
+      {hasSubmitResults && (
+        <div className="p-4 rounded-lg" style={{ backgroundColor: failCount > 0 ? '#FEF2F2' : COLORS.successLight, border: failCount > 0 ? `1px solid #FECACA` : 'none' }}>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-semibold" style={{ color: failCount > 0 ? '#991B1B' : COLORS.success }}>
+              {t('w.batchResults')}: {doneCount} {t('w.submittedOk').toLowerCase()} · {failCount} {t('w.submittedFail').toLowerCase()}
+            </p>
+            {failCount > 0 && (
+              <button
+                type="button"
+                onClick={onRetryFailed}
+                className="rounded-full px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:-translate-y-0.5"
+                style={{ backgroundColor: COLORS.primary }}
+              >
+                {t('w.retryFailed')} ({failCount})
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      <PrivacyBadge compact />
+      <button type="button" onClick={onCancel} className="w-full rounded-xl border-2 border-dashed py-2.5 text-sm font-bold transition hover:-translate-y-0.5" style={{ borderColor: COLORS.gray[300], color: COLORS.gray[700], backgroundColor: '#fff' }}>
+        ↺ {t('w.chooseOther')}
+      </button>
+      <button
+        type="button"
+        onClick={onSubmitBatch}
+        disabled={ready === 0 || (hasSubmitResults && failCount === 0)}
+        className="w-full py-3 px-4 rounded-lg font-semibold text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        style={{ backgroundColor: COLORS.success }}
+        onMouseEnter={(e) => {
+          if (!(e.currentTarget as HTMLButtonElement).disabled) e.currentTarget.style.backgroundColor = COLORS.successHover;
+        }}
+        onMouseLeave={(e) => {
+          (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.success;
+        }}
+      >
+        {t('w.submitAll').replace('N', String(ready))}
+      </button>
+    </div>
+  );
+}
+
+function BatchCard({ item, onAdjust, onRecompress, onEnhance, onRemove }: {
+  item: BatchPreviewItem;
+  onAdjust: (choice: { targetKB: number; aggressive: boolean; targetWidth?: number; targetHeight?: number }) => void;
+  onRecompress: () => void;
+  onEnhance: () => void;
+  onRemove: () => void;
+}) {
+  const { t } = useLang();
+  const result = item.result;
+  const [urls, setUrls] = useState<{ original?: string; processed?: string }>({});
+  const [showAdjust, setShowAdjust] = useState(false);
+  useEffect(() => {
+    if (!result) return;
+    const o = URL.createObjectURL(result.original.blob);
+    const p = URL.createObjectURL(result.processed.blob);
+    setUrls({ original: o, processed: p });
+    return () => { URL.revokeObjectURL(o); URL.revokeObjectURL(p); };
+  }, [result]);
+
+  if (!result || !urls.processed) {
+    return (
+      <div className="rounded-xl border p-4" style={{ borderColor: COLORS.error }}>
+        <p className="truncate text-sm font-bold" style={{ color: COLORS.gray[800] }}>{item.name}</p>
+        <p className="text-xs mt-1" style={{ color: COLORS.error }}>{t('w.docFailed')}{item.error ? ` — ${item.error}` : ''}</p>
+        <button type="button" onClick={onRemove} className="mt-3 rounded-full border px-3 py-1.5 text-xs font-bold" style={{ borderColor: COLORS.error, color: COLORS.error }}>
+          {t('w.removeDoc')}
+        </button>
+      </div>
+    );
+  }
+
+  const processedKB = result.processed.size_kb;
+  const originalKB = result.original.size_mb * 1024;
+  const reduction = originalKB > 0 ? Math.round((1 - processedKB / originalKB) * 100) : 0;
+  const isOverLimit = !!result.constraint.max_kb && processedKB > result.constraint.max_kb + 0.5;
+  const isPdf = result.processed.blob.type === 'application/pdf';
+  const canAdjust = !!result.constraint.max_kb && result.constraint.format === 'jpeg' && (result.processed.blob.type.startsWith('image/'));
+  const lowResSource = !!result.original.dimensions && !!result.processed.dimensions && result.original.dimensions.width < result.processed.dimensions.width * 0.7;
+
+  type Status = 'submitted' | 'fail' | 'warn' | 'ok';
+  const status: Status = item.submitted === true ? 'submitted'
+    : item.submitted === false ? 'fail'
+    : isOverLimit ? 'warn'
+    : 'ok';
+
+  const statusStyle: Record<Status, { bg: string; fg: string; label: string; border: string }> = {
+    submitted: { bg: COLORS.successLight, fg: COLORS.success, label: t('w.submittedOk'), border: COLORS.success },
+    fail: { bg: '#FEF2F2', fg: '#DC2626', label: t('w.submittedFail'), border: '#FECACA' },
+    warn: { bg: '#FFFBEB', fg: '#92400E', label: t('w.docAttention'), border: '#FDE68A' },
+    ok: { bg: COLORS.successLight, fg: COLORS.success, label: t('w.docValid'), border: COLORS.success },
+  };
+  const s = statusStyle[status];
+
+  const handleDownload = () => {
+    const ext = result.constraint.format === 'pdf' ? 'pdf' : result.constraint.format === 'png' ? 'png' : 'jpg';
+    const mime = ext === 'pdf' ? 'application/pdf' : ext === 'png' ? 'image/png' : 'image/jpeg';
+    const blob = result.processed.blob.slice(0, result.processed.blob.size, mime);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `docbridge-${item.docType}-optimized.${ext}`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  return (
+    <div className="overflow-hidden rounded-xl border-2" style={{ borderColor: s.border }}>
+      <div className="flex items-start justify-between gap-2 px-3 py-2" style={{ backgroundColor: s.bg }}>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-bold" style={{ color: COLORS.gray[800] }}>{item.name}</p>
+          <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: COLORS.gray[400] }}>{item.docType}</p>
+        </div>
+        <span className="inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ backgroundColor: '#fff', color: s.fg }}>
+          {s.label}
+        </span>
+      </div>
+      <div className="grid grid-cols-2 gap-2 p-3" style={{ backgroundColor: COLORS.successLight }}>
+        <div>
+          <p className="mb-1 text-center text-[10px] font-bold uppercase tracking-wide" style={{ color: COLORS.gray[500] }}>{t('w.before')}</p>
+          {urls.original && result.original.blob.type.startsWith('image/') ? (
+            <img src={urls.original} alt={item.name} className="max-h-28 w-full rounded-lg border bg-white object-contain" style={{ borderColor: COLORS.gray[300] }} />
+          ) : (
+            <div className="flex h-28 items-center justify-center rounded-lg border bg-white text-[10px] font-bold" style={{ borderColor: COLORS.gray[300], color: COLORS.gray[500] }}>PDF · {formatSize(originalKB)}</div>
+          )}
+          <p className="mt-1 text-center text-[11px] font-bold" style={{ color: COLORS.gray[500] }}>{formatSize(originalKB)}</p>
+        </div>
+        <div>
+          <p className="mb-1 rounded text-center text-[10px] font-bold uppercase tracking-wide text-white" style={{ backgroundColor: COLORS.success }}>{t('w.after')}</p>
+          {isPdf ? (
+            <iframe src={urls.processed} title={item.name} className="h-28 w-full rounded-lg border bg-white" style={{ borderColor: COLORS.success }} />
+          ) : (
+            <img src={urls.processed} alt={item.name} className="max-h-28 w-full rounded-lg border bg-white object-contain" style={{ borderColor: COLORS.success }} />
+          )}
+          <p className="mt-1 text-center text-[11px] font-bold" style={{ color: COLORS.success }}>{formatSize(processedKB)}</p>
+        </div>
+      </div>
+      <div className="px-3 pt-2 text-center">
+        {result.processed.dimensions && <span className="text-sm" style={{ color: COLORS.success }}>{result.processed.dimensions.width}×{result.processed.dimensions.height}px</span>}
+        {reduction > 0 && <span className="ml-2 text-sm font-bold" style={{ color: COLORS.success }}>{reduction}% {t('w.smaller')}</span>}
+      </div>
+      <div className="flex flex-wrap items-center gap-2 px-3 py-3">
+        <button type="button" onClick={handleDownload} className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border bg-white px-3 py-1.5 text-xs font-bold shadow-sm hover:-translate-y-0.5" style={{ borderColor: COLORS.success, color: COLORS.success }}>
+          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16" /></svg>
+          {t('w.download')}
+        </button>
+        {canAdjust && <button type="button" onClick={() => setShowAdjust(true)} className="inline-flex items-center whitespace-nowrap rounded-full border bg-white px-3 py-1.5 text-xs font-bold shadow-sm hover:-translate-y-0.5" style={{ borderColor: COLORS.success, color: COLORS.success }}>{t('w.adjustSize')}</button>}
+        {status === 'warn' && (
+          <button type="button" onClick={onRecompress} className="inline-flex items-center whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-bold text-white shadow-sm" style={{ backgroundColor: COLORS.primary }}>{t('w.reprocess')}</button>
+        )}
+        {lowResSource && (
+          <button type="button" onClick={onEnhance} className="inline-flex items-center whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-bold text-white shadow-sm" style={{ backgroundColor: COLORS.warning }}>{t('w.enhance')}</button>
+        )}
+        <button type="button" onClick={onRemove} className="ml-auto whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-bold" style={{ borderColor: COLORS.gray[300], color: COLORS.gray[600] }}>{t('w.removeDoc')}</button>
+      </div>
+      {showAdjust && canAdjust && urls.processed && (
+        <CropAdjustWrap imageUrl={urls.processed} minKB={result.constraint.min_kb} maxKB={result.constraint.max_kb!} currentKB={processedKB} onClose={() => setShowAdjust(false)} onApply={(c) => { setShowAdjust(false); onAdjust(c); }} />
+      )}
+    </div>
+  );
+}
+
+function CropAdjustWrap({ imageUrl, minKB, maxKB, currentKB, onClose, onApply }: { imageUrl: string; minKB?: number; maxKB: number; currentKB: number; onClose: () => void; onApply: (c: { targetKB: number; aggressive: boolean; targetWidth?: number; targetHeight?: number }) => void }) {
   const [Mod, setMod] = useState<any>(null);
   useEffect(() => { import('./CropAdjust').then(m => setMod(() => m.default)); }, []);
   if (!Mod) return null;
   return <Mod imageUrl={imageUrl} minKB={minKB} maxKB={maxKB} currentKB={currentKB} onClose={onClose} onApply={onApply} />;
 }
 
+function portalLabel(portalId: PortalId): string {
+  return portalId === 'epfo' ? 'EPFO' : portalId === 'vahan' ? 'Sarathi' : portalId === 'passport' ? 'Passport Seva' : portalId === 'ssc' ? 'SSC' : portalId === 'nsp' ? 'NSP' : 'UPSC';
+}
+
 function formatSize(kb: number): string {
   if (kb >= 1024) return `${(kb / 1024).toFixed(1)} MB`;
   return `${Math.round(kb)} KB`;
+}
+
+function CloseButton({ onClick, className = '' }: { onClick: () => void; className?: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label="Close preview"
+      title="Close (Esc)"
+      className={`flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-lg font-bold leading-none text-slate-500 transition-colors hover:bg-black/5 hover:text-slate-800 ${className}`}
+    >
+      ✕
+    </button>
+  );
 }

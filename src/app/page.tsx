@@ -20,6 +20,14 @@ const principles = [
 export default function Home() {
   const [isPortalModalOpen, setIsPortalModalOpen] = useState(false);
   const [portalNav, setPortalNav] = useState<string | null>(null);
+  const [imgStrategy, setImgStrategy] = useState<{ loading: 'eager' | 'lazy'; fetchPriority: 'low' | 'auto' }>({ loading: 'lazy', fetchPriority: 'auto' });
+  useEffect(() => {
+    try {
+      const conn = (navigator as any)?.connection?.effectiveType as string | undefined;
+      if (conn === 'slow-2g') setImgStrategy({ loading: 'eager', fetchPriority: 'auto' });
+      else if (conn?.includes('2g')) setImgStrategy({ loading: 'lazy', fetchPriority: 'low' });
+    } catch { /* keep SSR defaults */ }
+  }, []);
 
   useEffect(() => {
     if (!isPortalModalOpen) return;
@@ -61,10 +69,10 @@ export default function Home() {
             <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600 sm:text-xl">
               UPSC, Sarathi, EPFO, Passport Seva, SSC, and NSP each enforce a different size, format, and dimension — so the same photo that clears one portal bounces on another. Complying often means handing that document to a third-party tool. DocBridge prepares it in the browser to match each portal&apos;s own rules — so the upload you came to do, finally goes through.
             </p>
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative z-10 mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
               <button
                 type="button"
-                onClick={() => setIsPortalModalOpen(true)}
+                onClick={() => { setPortalNav(null); setIsPortalModalOpen(true); }}
                 className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#EA580C] px-6 py-3.5 font-semibold text-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-[#C2410C] hover:shadow-[0_16px_40px_rgba(234,88,12,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C] focus-visible:ring-offset-2"
               >
                 Login to see it in action
@@ -84,9 +92,9 @@ export default function Home() {
                 style={{ aspectRatio: '16 / 10' }}
                 width={1376}
                 height={768}
-                loading={typeof navigator !== 'undefined' && (navigator as any)?.connection?.effectiveType === 'slow-2g' ? 'eager' : 'lazy'}
+                loading={imgStrategy.loading}
                 decoding="async"
-                fetchPriority={typeof navigator !== 'undefined' && (navigator as any)?.connection?.effectiveType?.includes('2g') ? 'low' as any : 'auto' as any}
+                fetchPriority={imgStrategy.fetchPriority as any}
               />
             </picture>
             <figcaption className="flex items-center justify-between gap-4 px-5 py-4 sm:px-6">
@@ -241,8 +249,8 @@ export default function Home() {
           </div>
           <button
             type="button"
-            onClick={() => setIsPortalModalOpen(true)}
-            className="shrink-0 rounded-2xl bg-[#EA580C] px-6 py-3.5 text-center font-semibold text-white transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-[#C2410C] hover:shadow-[0_16px_40px_rgba(234,88,12,0.22)]"
+            onClick={() => { setPortalNav(null); setIsPortalModalOpen(true); }}
+            className="relative z-10 shrink-0 cursor-pointer rounded-2xl bg-[#EA580C] px-6 py-3.5 text-center font-semibold text-white transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-[#C2410C] hover:shadow-[0_16px_40px_rgba(234,88,12,0.22)]"
           >
             Login to see it in action
           </button>

@@ -44,6 +44,8 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
+    const doc = formData.get('doc') as string | null;
+    const isSignature = doc === 'signature';
 
     // Validate file exists
     if (!file) {
@@ -61,7 +63,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate file size (10KB - 20KB)
+    // Validate file size (10KB - 20KB for both photo and signature slots)
     const fileSizeKB = file.size / 1024;
     if (fileSizeKB < 10) {
       return NextResponse.json(
@@ -93,29 +95,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate 35mm x 45mm at 300 DPI (~413 x 531 px) — allow tolerance for
-    // the Sarathi portal's strict automated check.
-    const expectedWidth = Math.round((35 / 25.4) * 300);
-    const expectedHeight = Math.round((45 / 25.4) * 300);
-    const tolerance = 0.1;
+    // Photo slot: 35mm x 45mm at 300 DPI (~413 x 531 px) with tolerance for
+    // the Sarathi portal's strict automated check. The signature strip
+    // (30x10mm) skips the dimension lock — size band only.
+    if (!isSignature) {
+      const expectedWidth = Math.round((35 / 25.4) * 300);
+      const expectedHeight = Math.round((45 / 25.4) * 300);
+      const tolerance = 0.1;
 
-    if (Math.abs(dimensions.width - expectedWidth) / expectedWidth > tolerance) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: `Invalid width. Sarathi requires 35mm. Your image is ${dimensions.width}px wide.`,
-        },
-        { status: 400 }
-      );
-    }
-    if (Math.abs(dimensions.height - expectedHeight) / expectedHeight > tolerance) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: `Invalid height. Sarathi requires 45mm. Your image is ${dimensions.height}px tall.`,
-        },
-        { status: 400 }
-      );
+      if (Math.abs(dimensions.width - expectedWidth) / expectedWidth > tolerance) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Invalid width. Sarathi requires 35mm. Your image is ${dimensions.width}px wide.`,
+          },
+          { status: 400 }
+        );
+      }
+      if (Math.abs(dimensions.height - expectedHeight) / expectedHeight > tolerance) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Invalid height. Sarathi requires 45mm. Your image is ${dimensions.height}px tall.`,
+          },
+          { status: 400 }
+        );
+      }
     }
 
     // Simulate processing delay
@@ -124,7 +129,7 @@ export async function POST(request: NextRequest) {
     // Success response
     return NextResponse.json({
       success: true,
-      message: '200 OK - Photograph Upload Successful',
+      message: isSignature ? '200 OK - Signature Upload Successful' : '200 OK - Photograph Upload Successful',
       data: {
         reference_id: `VAHAN-${Date.now()}`,
         timestamp: new Date().toISOString(),

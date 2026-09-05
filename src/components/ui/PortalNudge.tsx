@@ -1,6 +1,7 @@
 'use client';
 
 import { COLORS } from '@/lib/constants';
+import VoiceToggle from '@/components/ui/VoiceToggle';
 
 interface PortalNudgeProps {
   eyebrow?: string;
@@ -11,6 +12,7 @@ interface PortalNudgeProps {
   onDismiss?: () => void;
   dismissible?: boolean;
   tone?: 'amber' | 'blue' | 'green';
+  showVoice?: boolean;
 }
 
 export default function PortalNudge({
@@ -22,6 +24,7 @@ export default function PortalNudge({
   onDismiss,
   dismissible = true,
   tone = 'amber',
+  showVoice = true,
 }: PortalNudgeProps) {
   const palette =
     tone === 'blue'
@@ -58,6 +61,7 @@ export default function PortalNudge({
             {ctaLabel}
             <span aria-hidden="true">→</span>
           </button>
+          {showVoice && <VoiceToggle className="mt-2" />}
         </div>
         {dismissible && onDismiss && (
           <button

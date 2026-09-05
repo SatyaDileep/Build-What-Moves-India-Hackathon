@@ -10,8 +10,8 @@ import { useLang } from '@/lib/i18n';
 
 type JourneyStep = 'login' | 'dashboard' | 'upload' | 'submitted';
 
-const photoKeys = ['ssc.pr1', 'ssc.pr2', 'ssc.pr3', 'ssc.pr4', 'ssc.pr5'];
-const signatureKeys = ['ssc.sr1', 'ssc.sr2', 'ssc.sr3', 'ssc.sr4'];
+const photoKeys = ['ssc.pr4', 'ssc.pr5'];
+const signatureKeys = ['ssc.sr3', 'ssc.sr4'];
 
 export default function SSCPortal() {
   const { t } = useLang();
@@ -213,16 +213,12 @@ export default function SSCPortal() {
                     ))}
                   </ul>
                   <div className="rounded-2xl border border-stone-200/60 bg-[#fffaf3] p-4">
-                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#EA580C]">{t('epfo.assist')}</p>
-                    <p className="mt-2 text-sm text-slate-600">{t('ssc.photoAssist')}</p>
-                    <div className="mt-4">
                       <DocBridgeWidget
                         portalId="ssc"
                         docType="photo"
                         requirements="SSC OTR photo upload. JPEG only, 20KB - 50KB, exactly 200x230 pixels, white background, no cap."
                         onSuccess={() => setDone((d) => ({ ...d, photo: true }))}
                       />
-                    </div>
                   </div>
                 </div>
               </div>
@@ -242,24 +238,18 @@ export default function SSCPortal() {
                     ))}
                   </ul>
                   <div className="rounded-2xl border border-stone-200/60 bg-[#fffaf3] p-4">
-                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#EA580C]">{t('epfo.assist')}</p>
-                    <p className="mt-2 text-sm text-slate-600">{t('ssc.sigAssist')}</p>
-                    <div className="mt-4">
                       <DocBridgeWidget
                         portalId="ssc"
                         docType="signature"
                         requirements="SSC signature upload. Signature scan, JPEG only, 10KB - 20KB, 140x60 pixels, running handwriting."
                         onSuccess={() => setDone((d) => ({ ...d, signature: true }))}
                       />
-                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-lg p-4 text-sm" style={{ backgroundColor: COLORS.errorLight, color: '#991B1B' }}>
-              <strong>{t('ssc.errAvoid')}</strong> {t('ssc.errAvoidBody')}
-            </div>
+
           </section>
         )}
 

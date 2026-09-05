@@ -368,15 +368,11 @@ export default function EPFOPortal() {
                   </div>
 
                   <div className="rounded-2xl border border-stone-200/60 bg-[#fffaf3] p-4">
-                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#EA580C]">{t('epfo.assist')}</p>
-                    <p className="mt-2 text-sm text-slate-600">{t('epfo.assistSub')}</p>
-                    <div className="mt-4">
                       <DocBridgeWidget
                         portalId="epfo"
                         requirements="Upload Passbook copy. Must be PDF format. Maximum size 500 KB. Account number must be visible."
                         onSuccess={() => setStep('submitted')}
                       />
-                    </div>
                   </div>
                 </div>
               </div>

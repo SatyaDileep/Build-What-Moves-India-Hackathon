@@ -41,6 +41,16 @@ export async function parsePortalConstraints(pageText: string): Promise<Document
       bg_color: 'white',
     };
   }
+  // UPSC OTR signature — same 20-200KB / 350-1000px band as the photo but no
+  // 3.5x4.5cm aspect lock, so the wide signature strip is never photo-cropped.
+  if (lowerText.includes('signature') && (lowerText.includes('upsc') || lowerText.includes('350 and 1000') || lowerText.includes('350-1000'))) {
+    return {
+      format: 'jpeg',
+      min_kb: 20,
+      max_kb: 200,
+      bg_color: 'white',
+    };
+  }
   // NSP income / category certificate — small PDF (before NSP photo: both mention NSP)
   if (lowerText.includes('income certificate') || lowerText.includes('category certificate') || (lowerText.includes('nsp') && lowerText.includes('pdf'))) {
     return {
@@ -82,6 +92,16 @@ export async function parsePortalConstraints(pageText: string): Promise<Document
     };
   }
   
+  // Sarathi signature strip — same 10-20KB band but no 35x45mm aspect lock
+  if (lowerText.includes('signature') && (lowerText.includes('sarathi') || lowerText.includes('vahan') || lowerText.includes('licence') || lowerText.includes('license') || lowerText.includes('30'))) {
+    return {
+      format: 'jpeg',
+      min_kb: 10,
+      max_kb: 20,
+      bg_color: 'white',
+    };
+  }
+
   // Vahan / Sarathi constraints
   if (lowerText.includes('driving') || lowerText.includes('sarathi') || lowerText.includes('transport') || lowerText.includes('35mm')) {
     return {
@@ -134,10 +154,12 @@ function parseLocal(pageText: string): DocumentConstraint {
   if (lowerText.includes('passport seva') || lowerText.includes('630')) return { format: 'jpeg', min_kb: 10, max_kb: 250, width_px: 630, height_px: 810, bg_color: 'white' };
   if (lowerText.includes('signature') && (lowerText.includes('140') || lowerText.includes('ssc'))) return { format: 'jpeg', min_kb: 10, max_kb: 20, width_px: 140, height_px: 60, bg_color: 'white' };
   if (lowerText.includes('signature') && lowerText.includes('passport')) return { format: 'jpeg', max_kb: 100, bg_color: 'white' };
+  if (lowerText.includes('signature') && (lowerText.includes('upsc') || lowerText.includes('350 and 1000') || lowerText.includes('350-1000'))) return { format: 'jpeg', min_kb: 20, max_kb: 200, bg_color: 'white' };
   if (lowerText.includes('income certificate') || lowerText.includes('category certificate') || (lowerText.includes('nsp') && lowerText.includes('pdf'))) return { format: 'pdf', max_kb: 500, additional_requirements: ['Stamp and signature of issuing authority must be visible'] };
   if (lowerText.includes('nsp') || lowerText.includes('scholarship')) return { format: 'jpeg', max_kb: 50, width_px: 200, height_px: 230, bg_color: 'white' };
   if (lowerText.includes('ssc') || lowerText.includes('200x230') || lowerText.includes('200×230')) return { format: 'jpeg', min_kb: 20, max_kb: 50, width_px: 200, height_px: 230, bg_color: 'white' };
   if (lowerText.includes('passbook') || lowerText.includes('epfo') || lowerText.includes('pf')) return { format: 'pdf', max_kb: 500, additional_requirements: ['Account number must be visible'] };
+  if (lowerText.includes('signature') && (lowerText.includes('sarathi') || lowerText.includes('vahan') || lowerText.includes('licence') || lowerText.includes('license') || lowerText.includes('30'))) return { format: 'jpeg', min_kb: 10, max_kb: 20, bg_color: 'white' };
   if (lowerText.includes('driving') || lowerText.includes('sarathi') || lowerText.includes('transport') || lowerText.includes('35mm')) return { format: 'jpeg', min_kb: 10, max_kb: 20, width_cm: 3.5, height_cm: 4.5, bg_color: 'white' };
   if (lowerText.includes('passport photo') || lowerText.includes('upsc') || lowerText.includes('photograph')) return { format: 'jpeg', min_kb: 20, max_kb: 200, width_cm: 3.5, height_cm: 4.5, bg_color: 'white' };
   if (lowerText.includes('pdf')) return { format: 'pdf', max_kb: 1000 };

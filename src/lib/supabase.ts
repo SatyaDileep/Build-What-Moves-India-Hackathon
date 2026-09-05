@@ -3,6 +3,39 @@ import { USER_PROFILES, DIGILOCKER_ASSETS } from './constants';
 
 // DigiLocker client — handles consent-based document access
 
+const SAVED_KEY = 'docbridge-saved-vault';
+
+function loadSavedAssets(): DigiLockerAsset[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(SAVED_KEY);
+    return raw ? (JSON.parse(raw) as DigiLockerAsset[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function persistSavedAssets(list: DigiLockerAsset[]) {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(SAVED_KEY, JSON.stringify(list));
+  } catch {
+    // Quota exceeded (large PDFs) — keep only in-memory for this session.
+  }
+}
+
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
+// Optimized copies saved back to the vault, kept across page navigations.
+const savedVault: DigiLockerAsset[] = loadSavedAssets();
+
 class DigiLockerClient {
   private users: UserProfile[] = USER_PROFILES;
   private assets: DigiLockerAsset[] = DIGILOCKER_ASSETS;
@@ -41,10 +74,27 @@ class DigiLockerClient {
     return { success: false, error: 'Invalid OTP. Please enter a 6-digit code.' };
   }
 
-  // Get current user's DigiLocker assets
+  // Get current user's DigiLocker assets — only this citizen's issued documents.
   getAssets(): DigiLockerAsset[] {
     if (!this.currentUser) return [];
-    return this.assets;
+    const owner = this.ownerKey();
+    return this.assets.filter(a => a.owner === owner && a.source !== 'optimized');
+  }
+
+  // Full vault for the picker: DocBridge-optimized copies first (reusable on
+  // other portals), then this citizen's original issued documents.
+  getVaultWithSaved(): DigiLockerAsset[] {
+    if (!this.currentUser) return [];
+    const owner = this.ownerKey();
+    const issued = this.assets.filter(a => a.owner === owner && a.source !== 'optimized');
+    const saved = savedVault.filter(a => a.owner === owner);
+    return [...saved, ...issued];
+  }
+
+  // First name of the signed-in citizen = the vault owner key.
+  private ownerKey(): 'ramesh' | 'priya' | 'kabir' | 'meera' {
+    const first = this.currentUser?.name.toLowerCase().split(' ')[0] as 'ramesh' | 'priya' | 'kabir' | 'meera';
+    return first || 'priya';
   }
 
   // Get current user
@@ -57,30 +107,54 @@ class DigiLockerClient {
     this.currentUser = null;
   }
 
-  // Fetch asset from DigiLocker
+  // Fetch asset from DigiLocker — returns the real persisted bytes for saved
+  // optimized copies, or a synthesized document/photo for issued ones.
   async fetchAsset(assetId: string): Promise<Blob> {
-    const asset = this.assets.find(a => a.id === assetId);
+    const saved = savedVault.find(a => a.id === assetId && !!a.dataUrl);
+    if (saved?.dataUrl) {
+      try {
+        return await (await fetch(saved.dataUrl)).blob();
+      } catch {
+        // fall through to issuer synthesis
+      }
+    }
+    const asset = this.assets.find(a => a.id === assetId) || savedVault.find(a => a.id === assetId);
     if (!asset) throw new Error('Asset not found');
 
     // Generate document image from asset
     return this.generateDocumentImage(asset);
   }
 
+  // Fetch several assets in parallel, resolving in the requested order.
+  async fetchAssets(assetIds: string[]): Promise<Blob[]> {
+    return Promise.all(assetIds.map((id) => this.fetchAsset(id)));
+  }
+
   // Store an optimized copy back into the citizen's DigiLocker vault so it
-  // is ready for reuse on other portals. Returns the stored asset record.
-  async storeAsset(name: string, type: string, size_mb: number): Promise<DigiLockerAsset | null> {
+  // is ready for reuse on other portals. The real bytes are persisted as a
+  // data-url (mock), and the record is auto-tagged with the portal it was
+  // optimized for. Returns the stored asset record.
+  async storeAsset(args: { name: string; type: string; blob: Blob; portalId: string; portalName: string; tags?: string[] }): Promise<DigiLockerAsset | null> {
     await new Promise(resolve => setTimeout(resolve, 700));
 
+    const blob = args.blob;
+    const sizeKb = Math.round(blob.size / 1024);
     const asset: DigiLockerAsset = {
       id: `dl-optimized-${Date.now()}`,
-      name,
-      type,
-      size_mb,
-      url: '', // optimized copy is held locally/in-browser
-      owner: 'priya',
+      name: args.name,
+      type: args.type,
+      size_mb: blob.size / (1024 * 1024),
+      url: '',
+      owner: this.ownerKey(),
+      source: 'optimized',
+      optimizedFor: args.portalName,
+      tags: ['optimized', ...(args.tags ?? [])],
+      dataUrl: await blobToDataUrl(blob),
+      processedAt: new Date().toISOString(),
     };
 
-    this.assets.unshift(asset);
+    savedVault.unshift(asset);
+    persistSavedAssets(savedVault);
     return asset;
   }
 
@@ -137,12 +211,8 @@ class DigiLockerClient {
         ctx.stroke();
       }
     } else if (asset.name.includes('selfie') || asset.name.includes('Photo')) {
-      // Photo with background
-      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-      gradient.addColorStop(0, '#87CEEB');
-      gradient.addColorStop(0.5, '#90EE90');
-      gradient.addColorStop(1, '#228B22');
-      ctx.fillStyle = gradient;
+      // Studio portrait on plain white — must match the validated "Background: white" rule
+      ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
       // Person silhouette
