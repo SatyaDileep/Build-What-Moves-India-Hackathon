@@ -174,7 +174,7 @@ export default function Home() {
           <PortalCard
             step="01"
             accent="#138808"
-            eyebrow="EPFO · Member Portal"
+eyebrow="EPFO"
             title="Login to EPFO portal to see it in action"
             description="Employees&apos; Provident Fund Organisation — member KYC, passbook, claims, transfer and e-nomination."
             href="/epfo"
@@ -185,7 +185,7 @@ export default function Home() {
           <PortalCard
             step="02"
             accent="#0b3c92"
-            eyebrow="Passport Seva · MEA"
+eyebrow="Passport"
             title="Login to Passport Seva to see it in action"
             description="Ministry of External Affairs — passport applications, document uploads and PSK appointment booking."
             href="/passport"
@@ -196,7 +196,7 @@ export default function Home() {
           <PortalCard
             step="03"
             accent="#1E3A8A"
-            eyebrow="UPSC · CSE 2026"
+eyebrow="UPSC"
             title="Login to UPSC portal to see it in action"
             description="Union Public Service Commission — Civil Services Examination applications and OTR-based candidate services."
             href="/upsc"
@@ -207,7 +207,7 @@ export default function Home() {
           <PortalCard
             step="04"
             accent="#0d6b07"
-            eyebrow="NSP · Scholarship"
+eyebrow="NSP"
             title="Login to NSP to see it in action"
             description="National Scholarship Portal — merit and welfare scholarships with one OTR across schemes."
             href="/nsp"
@@ -218,7 +218,7 @@ export default function Home() {
           <PortalCard
             step="05"
             accent="#EA580C"
-            eyebrow="Vahan · Sarathi"
+eyebrow="Vahan"
             title="Login to Vahan portal to see it in action"
             description="Ministry of Road Transport & Highways — driving licence, learner permits and vehicle services via Sarathi."
             href="/vahan"
@@ -229,7 +229,7 @@ export default function Home() {
           <PortalCard
             step="06"
             accent="#9a3412"
-            eyebrow="SSC · OTR"
+eyebrow="SSC"
             title="Login to SSC portal to see it in action"
             description="Staff Selection Commission — One Time Registration for CGL, CHSL and MTS examinations."
             href="/ssc"
