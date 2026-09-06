@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { ProcessingResult, BatchItem } from '@/types';
 import { COLORS } from '@/lib/constants';
 import PrivacyBadge from '@/components/ui/PrivacyBadge';
+import TricolorBar from '@/components/ui/TricolorBar';
 import { useLang } from '@/lib/i18n';
 
 type PortalId = 'epfo' | 'upsc' | 'vahan' | 'passport' | 'ssc' | 'nsp';
@@ -116,6 +117,7 @@ function SinglePreview({
 
   return (
     <div className="space-y-6">
+      <TricolorBar className="h-2" />
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 text-center">
@@ -381,6 +383,7 @@ function BatchPreview({
 
   return (
     <div className="space-y-6">
+      <TricolorBar className="h-2" />
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 text-center">
           <h3 className="text-xl font-bold mb-2" style={{ color: COLORS.gray[800] }}>

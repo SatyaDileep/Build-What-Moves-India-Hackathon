@@ -74,11 +74,44 @@ npm run dev
 
 Every login is pre-filled — one click to sign in, all the way to Submit.
 
+## User journeys — every step, as a real user sees it
+
+Regenerate: `npm run journeys` (requires `npm run dev` on :3000).
+
+### Passport Seva (English) — photo 6.1 MB → 25 KB, 630×810px
+
+| Step | Screenshot |
+|------|------------|
+| 1 Login | ![01 login](docs/journeys/passport-en/01-login.png) |
+| 2 Dashboard nudge | ![02 nudge](docs/journeys/passport-en/02-dashboard-nudge.png) |
+| 3 Upload rules | ![03 rules](docs/journeys/passport-en/03-upload-requirements.png) |
+| 4 DigiLocker auth | ![04 auth](docs/journeys/passport-en/04-digilocker-aadhaar.png) |
+| 5 OTP | ![05 otp](docs/journeys/passport-en/05-digilocker-otp.png) |
+| 6 Vault select | ![06 vault](docs/journeys/passport-en/06-digilocker-select.png) |
+| 7 Processing | ![07 processing](docs/journeys/passport-en/07-processing.png) |
+| 8 Before/after preview | ![08 preview](docs/journeys/passport-en/08-preview-compare.png) |
+| 9 Widget success | ![09 success](docs/journeys/passport-en/09-widget-success.png) |
+| 10 Portal done (photo done, signature still pending — needs both) | ![10 done](docs/journeys/passport-en/10-portal-done.png) |
+
+### EPFO (हिंदी) — passbook 4.2 MB → 55 KB PDF, 99% smaller
+
+| Step | Screenshot |
+|------|------------|
+| 1 साइन इन | ![01 login](docs/journeys/epfo-hi/01-login.png) |
+| 2 Dashboard nudge | ![02 nudge](docs/journeys/epfo-hi/02-dashboard-nudge.png) |
+| 3 KYC upload | ![03 kyc](docs/journeys/epfo-hi/03-upload-requirements.png) |
+| 4 DigiLocker auth | ![04 auth](docs/journeys/epfo-hi/04-digilocker-aadhaar.png) |
+| 5 OTP | ![05 otp](docs/journeys/epfo-hi/05-digilocker-otp.png) |
+| 6 Vault select | ![06 vault](docs/journeys/epfo-hi/06-digilocker-select.png) |
+| 7 Processing | ![07 processing](docs/journeys/epfo-hi/07-processing.png) |
+| 8 Before/after preview | ![08 preview](docs/journeys/epfo-hi/08-preview-compare.png) |
+| 9 Widget success | ![09 success](docs/journeys/epfo-hi/09-widget-success.png) |
+| 10 Portal success | ![10 done](docs/journeys/epfo-hi/10-portal-done.png) |
+
 ## Screenshots — every site, English and हिंदी
 
 | Site | English | Hindi |
 |------|---------|-------|
-| Home | ![home EN](docs/screenshots/home-en.png) | ![home HI](docs/screenshots/home-hi.png) |
 | EPFO | ![epfo EN](docs/screenshots/epfo-en.png) | ![epfo HI](docs/screenshots/epfo-hi.png) |
 | UPSC | ![upsc EN](docs/screenshots/upsc-en.png) | ![upsc HI](docs/screenshots/upsc-hi.png) |
 | Vahan / Sarathi | ![vahan EN](docs/screenshots/vahan-en.png) | ![vahan HI](docs/screenshots/vahan-hi.png) |

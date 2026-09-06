@@ -2,6 +2,7 @@
 
 import { COLORS, GOV_CONFIG } from '@/lib/constants';
 import { LanguageToggle, useLang } from '@/lib/i18n';
+import TricolorBar from '@/components/ui/TricolorBar';
 
 interface GovernmentHeaderProps {
   portalName: string;
@@ -115,14 +116,10 @@ export default function GovernmentHeader({
   }
   return (
     <header className="relative" style={{ fontFamily: "Arial, 'Open Sans', sans-serif" }}>
-      <div className="fixed inset-x-0 top-0 z-50 h-1.5 overflow-hidden">
-        <div className="flex h-full">
-          <div className="flex-1" style={{ backgroundColor: COLORS.saffron }} />
-          <div className="flex-1" style={{ backgroundColor: COLORS.white }} />
-          <div className="flex-1" style={{ backgroundColor: COLORS.green }} />
-        </div>
+      <div className="fixed inset-x-0 top-0 z-50">
+        <TricolorBar />
       </div>
-      <div className="h-1.5" />
+      <div className="h-3.5" />
 
       <div style={{ backgroundColor: '#F2F2F2', borderBottom: '1px solid #DEE2E6' }}>
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-1.5 text-[12px] leading-[19px]" style={{ color: '#212529' }}>

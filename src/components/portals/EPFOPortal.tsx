@@ -3,40 +3,93 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import DocBridgeWidget from '@/components/DocBridgeWidget';
-import GovernmentHeader from '@/components/ui/GovernmentHeader';
 import PortalNudge from '@/components/ui/PortalNudge';
+import TricolorBar from '@/components/ui/TricolorBar';
 import { COLORS } from '@/lib/constants';
-import { useLang } from '@/lib/i18n';
+import { useLang, voiceLang } from '@/lib/i18n';
+import { useVoiceGuide } from '@/hooks/useVoiceGuide';
+import { isVoiceOn } from '@/lib/voice';
 
 type JourneyStep = 'login' | 'home' | 'kyc' | 'submitted';
 
-const noticeKeys = ['epfo.notice1', 'epfo.notice2', 'epfo.notice3'];
-const shortcutKeys = ['epfo.sc1', 'epfo.sc2', 'epfo.sc3', 'epfo.sc4'];
-const kycKeys = [
-  ['epfo.kycAadhaar', 'epfo.verified', COLORS.greenLight, COLORS.greenDark],
-  ['epfo.kycPan', 'epfo.panPending', '#FFF7E6', '#B45309'],
-  ['epfo.kycBank', 'epfo.docRequired', '#FFF1F2', '#BE123C'],
-] as const;
-const menuKeys = ['epfo.menuProfile', 'epfo.menuHistory', 'epfo.menuKyc', 'epfo.menuExit', 'epfo.menuContact'];
-const quickKeys: [string, string][] = [['epfo.qs1', 'epfo.qs1s'], ['epfo.qs2', 'epfo.qs2s'], ['epfo.qs3', 'epfo.qs3s'], ['epfo.qs4', 'epfo.qs4s']];
 const stepKeys = ['epfo.st1', 'epfo.st2', 'epfo.st3', 'epfo.st4'];
 
 export default function EPFOPortal() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [step, setStep] = useState<JourneyStep>('login');
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
+  const [alerts, setAlerts] = useState({ rbi: true, mobile: true });
+  useVoiceGuide(isVoiceOn() && step === 'submitted', t('w.congrats'), voiceLang(lang));
+
+  const masthead = (signedIn: boolean) => (
+    <header style={{ backgroundColor: '#fff' }}>
+      <div className="sticky top-0 z-50">
+        <TricolorBar />
+      </div>
+      {step === 'login' && (
+        <div className="flex items-center justify-end gap-3 px-4 py-1.5 text-[13px]" style={{ backgroundColor: '#f5f5f5', color: '#e4791a' }}>
+          <span>👉 <span className="hover:underline" style={{ color: '#2a7de1' }}>Screen Reader Access</span></span>
+          <span className="rounded border bg-white px-1.5 py-0.5 font-bold text-[#333]">A-</span>
+          <span className="rounded border bg-white px-1.5 py-0.5 font-bold text-[#333]">A</span>
+          <span className="rounded border bg-white px-1.5 py-0.5 font-bold text-[#333]">A+</span>
+        </div>
+      )}
+      <div className="flex flex-wrap items-center gap-3 px-4 py-3" style={{ borderBottom: '1px solid #e5e5e5' }}>
+        <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white" style={{ background: 'radial-gradient(circle at 35% 35%, #2a7de1, #0b3c92)', border: '3px solid #c0392b' }}>EPFO</span>
+        <span>
+          <span className="block text-[14px] font-bold tracking-wide" style={{ color: '#1a8a8a' }}>{t('epfo.orgName')}</span>
+          <span className="block text-[13px]" style={{ color: '#b5651d' }}>{t('epfo.ministry')}</span>
+        </span>
+        {signedIn ? (
+          <span className="ml-auto flex flex-wrap items-center gap-2">
+            <span className="flex items-center gap-2 rounded-full border px-3 py-1.5 text-[12px] font-bold" style={{ borderColor: '#bcd6d6', backgroundColor: '#eef6f6', color: '#0b5e5e' }}>
+              <span className="flex h-6 w-6 items-center justify-center rounded-full text-white" style={{ backgroundColor: '#1a7a7a' }}>👤</span>
+              <span>UAN: 100765432109<br />{t('epfo.fullName')}</span>
+            </span>
+            <span className="hidden items-center gap-1 sm:flex">
+              <span className="rounded border bg-white px-1.5 py-0.5 text-[11px] font-bold text-[#333]">A-</span>
+              <span className="rounded border bg-white px-1.5 py-0.5 text-[11px] font-bold text-[#333]">A</span>
+              <span className="rounded border bg-white px-1.5 py-0.5 text-[11px] font-bold text-[#333]">A+</span>
+            </span>
+            <button type="button" onClick={() => setStep('login')} className="rounded-md px-4 py-2 text-[13px] font-bold text-white" style={{ backgroundColor: '#c0392b' }}>⎋ {t('epfo.logout')}</button>
+          </span>
+        ) : (
+          <Link href="/" className="ml-auto text-[13px] hover:underline" style={{ color: '#2a7de1' }}>{t('nav.backHome')}</Link>
+        )}
+      </div>
+      {signedIn && (
+        <nav style={{ backgroundColor: '#1a7a7a' }}>
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-1 px-4 text-[13px] font-semibold text-white">
+            {[
+              { label: `🏠 ${t('epfo.navHome')}`, action: () => setStep('home'), active: step === 'home' },
+              { label: `👁 ${t('epfo.navView')}`, action: () => setStep('home'), active: false },
+              { label: `⚙ ${t('epfo.navManage')}`, action: () => setStep('kyc'), active: step === 'kyc' },
+              { label: `👤 ${t('epfo.navAccount')}`, action: () => setStep('home'), active: false },
+              { label: `🌐 ${t('epfo.navOnline')}`, action: () => setStep('home'), active: false },
+              { label: `📈 ${t('epfo.navPmvbry')}`, action: () => setStep('home'), active: false },
+            ].map((item) => (
+              <button
+                key={item.label}
+                type="button"
+                onClick={item.action}
+                className="rounded px-3 py-2.5"
+                style={{ backgroundColor: item.active ? 'rgba(255,255,255,0.22)' : 'transparent' }}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </nav>
+      )}
+    </header>
+  );
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#eef1f4' }}>
-      <GovernmentHeader
-        portalName="EPFO"
-        portalFullName="Employees' Provident Fund Organisation"
-        portalInitials="EPFO"
-        welcomeText={step === 'login' ? undefined : `${t('auth.welcome')}, Ramesh Kumar`}
-        userIdText={step === 'login' ? undefined : 'UAN: 10098765432'}
-      />
+    <div className="min-h-screen" style={{ backgroundColor: step === 'login' ? '#f1f1f1' : '#f7f9fb' }}>
+      {masthead(step !== 'login')}
 
       <main className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
+        {step !== 'login' && step !== 'home' && (
         <div className="mb-4 flex items-center justify-between rounded-2xl border border-stone-200/60 bg-white/80 px-4 py-3 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
           <div className="text-sm text-slate-600">
             <span className="font-semibold text-[#1E3A8A]">{t('epfo.unifiedPortal')}</span>
@@ -50,78 +103,49 @@ export default function EPFOPortal() {
             {t('nav.backHome')}
           </Link>
         </div>
+        )}
 
         <div className="mb-6 rounded-lg border bg-white" style={{ borderColor: COLORS.legacyBorder }}>
           {step === 'login' && (
-            <section className="grid gap-6 p-4 lg:grid-cols-[1.2fr_0.8fr] lg:p-6">
-              <div className="space-y-5">
-                <div className="rounded-lg border p-5" style={{ borderColor: COLORS.legacyBorder, backgroundColor: '#f8fafc' }}>
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9a3412]">{t('epfo.unifiedPortal')}</p>
-                  <h1 className="mt-2 text-3xl font-bold text-[#0b1f4d]">{t('epfo.signinTitle')}</h1>
-                  <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
-                    {t('epfo.signinSub')}
-                  </p>
+            <section className="grid gap-5 bg-[#f1f1f1] p-4 lg:grid-cols-[1fr_300px] lg:p-5" style={{ borderRadius: '6px' }}>
+              <div className="rounded-xl border bg-white" style={{ borderColor: '#e0e0e0' }}>
+                <div className="flex items-center gap-2 rounded-t-xl px-4 py-2.5 text-[14px] font-bold text-white" style={{ backgroundColor: '#1a7a7a' }}>
+                  <span>🧑‍🤝‍🧑</span> {t('epfo.dearMembers')}
                 </div>
-
-                <div className="rounded-lg border bg-[#fffdf6] p-5" style={{ borderColor: '#f5d28b' }}>
-                  <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-[#8a5a00]">{t('epfo.noticeTitle')}</h2>
-                  <ul className="mt-3 space-y-2 text-sm text-[#6b4b00]">
-                    {noticeKeys.map((k) => (
-                      <li key={k} className="flex items-start gap-2">
-                        <span className="mt-1 h-2 w-2 rounded-full bg-[#ff9933]" />
-                        <span>{t(k)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  {shortcutKeys.map((k) => (
-                    <div key={k} className="rounded-lg border bg-white p-4" style={{ borderColor: COLORS.legacyBorder }}>
-                      <p className="text-sm font-semibold text-[#0b3c92]">{t(k)}</p>
-                      <p className="mt-1 text-xs leading-5 text-slate-500">{t('epfo.quickAccess')}</p>
-                    </div>
-                  ))}
-                </div>
+                <ul className="space-y-3 p-4 text-[14px] leading-6 text-[#222]">
+                  <li className="flex items-start gap-2">
+                    <span className="rounded px-1.5 py-0.5 text-[11px] font-bold text-white" style={{ backgroundColor: '#d32f2f' }}>NEW</span>
+                    <span>{t('epfo.uanActivation')}</span>
+                  </li>
+                  <li className="flex items-start gap-2"><span style={{ color: '#e4791a' }}>👉</span><span>{t('epfo.eshram')} 📄</span></li>
+                  <li className="flex items-start gap-2"><span style={{ color: '#e4791a' }}>👉</span><span>{t('epfo.edli')} 📄</span></li>
+                  <li className="flex items-start gap-2"><span style={{ color: '#e4791a' }}>🔔</span><span>{t('epfo.nomination')}</span></li>
+                </ul>
               </div>
 
-              <div className="rounded-xl border bg-white shadow-sm" style={{ borderColor: '#cfd6e4' }}>
-                <div className="border-b px-5 py-4" style={{ borderColor: COLORS.legacyBorder }}>
-                  <h2 className="text-lg font-bold text-[#0b1f4d]">{t('login.member')}</h2>
-                  <p className="mt-1 text-sm text-slate-500">{t('epfo.loginSub')}</p>
+              <div className="relative rounded-xl border bg-white px-4 pb-4 pt-8" style={{ borderColor: '#e0e0e0' }}>
+                <span className="absolute -top-1 left-1/2 flex h-16 w-16 -translate-x-1/2 items-center justify-center rounded-full border bg-white text-2xl" style={{ borderColor: '#1a7a7a' }}>👥</span>
+                <div className="mt-8 rounded-md px-3 py-3 text-center text-[13px] leading-5" style={{ backgroundColor: '#fef3cd', color: '#664d03', border: '1px solid #ffe69c' }}>
+                  {t('epfo.invalidCreds')}
                 </div>
-                <div className="space-y-4 p-5">
-                  <Field label={t('epfo.uan')} value="10098765432" />
-                  <Field label={t('epfo.password')} value="••••••••••" />
+                <div className="mt-4 space-y-3">
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-slate-700">{t('epfo.captcha')}</label>
-                    <div className="flex items-center gap-3">
-                      <div className="rounded-md border bg-[#f8fafc] px-4 py-3 font-mono tracking-[0.28em] text-[#0b3c92]" style={{ borderColor: COLORS.gray[300] }}>
-                        4 8 2 1
-                      </div>
-                      <input
-                        readOnly
-                        value="4821"
-                        className="w-full rounded-md border px-4 py-3 text-sm text-slate-700"
-                        style={{ borderColor: COLORS.gray[300], backgroundColor: COLORS.white }}
-                      />
+                    <label className="mb-1 block text-[13px] font-bold text-[#222]">{t('epfo.uan')} <span style={{ color: '#d32f2f' }}>*</span></label>
+                    <input readOnly value="100765432109" className="w-full rounded-md border px-3 py-2 text-[14px]" style={{ borderColor: '#bfc6d4', backgroundColor: '#e8eefc' }} />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-[13px] font-bold text-[#222]">{t('epfo.password')} <span style={{ color: '#d32f2f' }}>*</span></label>
+                    <div className="relative">
+                      <input readOnly value="••••••••••" type="password" className="w-full rounded-md border px-3 py-2 text-[14px]" style={{ borderColor: '#bfc6d4', backgroundColor: '#e8eefc' }} />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[#666]">👁</span>
                     </div>
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setStep('home')}
-                    className="w-full rounded-md px-4 py-3 text-sm font-semibold text-white transition-colors"
-                    style={{ backgroundColor: COLORS.primary }}
-                  >
-                    {t('epfo.signin')}
-                  </button>
-
-                  <div className="flex justify-between text-xs text-[#0b3c92]">
-                    <span>{t('epfo.sc1')}</span>
-                    <span>{t('auth.forgot')}</span>
-                    <span>{t('epfo.sc2')}</span>
+                  <p className="text-[11px]" style={{ color: '#6C757D' }}>{t('auth.demoPrefill')}</p>
+                  <div className="flex justify-center gap-3">
+                    <button type="button" onClick={() => setStep('home')} className="rounded-md px-6 py-2 text-[14px] font-semibold text-white" style={{ backgroundColor: '#1a7a7a' }}>{t('epfo.signin')}</button>
+                    <button type="button" className="rounded-md px-6 py-2 text-[14px] font-semibold text-white" style={{ backgroundColor: '#6c757d' }}>{t('epfo.reset')}</button>
                   </div>
+                  <p className="text-[13px]" style={{ color: '#2a7de1' }}><span className="cursor-pointer hover:underline">{t('epfo.forgotPwd')}</span></p>
                 </div>
               </div>
             </section>
@@ -149,158 +173,78 @@ export default function EPFOPortal() {
                 </div>
               )}
 
-              <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
-                <aside className="space-y-4">
-                  <div className="rounded-lg border bg-white p-4" style={{ borderColor: COLORS.legacyBorder }}>
-                    <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-slate-500">{t('epfo.manage')}</h2>
-                    <nav className="mt-3 space-y-2 text-sm">
-                      {menuKeys.map((k) => (
-                        <button
-                          key={k}
-                          type="button"
-                          onClick={() => k === 'epfo.menuKyc' && setStep('kyc')}
-                          className="block w-full rounded-md px-3 py-2 text-left transition-colors"
-                          style={{
-                            color: k === 'epfo.menuKyc' ? COLORS.primary : COLORS.gray[700],
-                            backgroundColor: k === 'epfo.menuKyc' ? COLORS.primaryLight : 'transparent',
-                          }}
-                        >
-                          {t(k)}
-                          {k === 'epfo.menuKyc' && <span className="ml-2 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-700">{t('epfo.pending1')}</span>}
-                        </button>
-                      ))}
-                    </nav>
-                  </div>
-
-                  <div className="rounded-lg border bg-[#f8fafc] p-4" style={{ borderColor: COLORS.legacyBorder }}>
-                    <p className="text-sm font-semibold text-[#0b1f4d]">{t('epfo.snapshot')}</p>
-                    <dl className="mt-3 space-y-2 text-sm text-slate-600">
-                      <div className="flex justify-between gap-3">
-                        <dt>UAN</dt>
-                        <dd className="font-medium text-slate-800">10098765432</dd>
-                      </div>
-                      <div className="flex justify-between gap-3">
-                        <dt>{t('epfo.status')}</dt>
-                        <dd className="font-medium text-slate-800">{t('epfo.active')}</dd>
-                      </div>
-                      <div className="flex justify-between gap-3">
-                        <dt>{t('epfo.mobile')}</dt>
-                        <dd className="font-medium text-slate-800">98765 43210</dd>
-                      </div>
-                      <div className="flex justify-between gap-3">
-                        <dt>{t('epfo.lastLogin')}</dt>
-                        <dd className="font-medium text-slate-800">{t('epfo.todayTime')}</dd>
-                      </div>
-                    </dl>
-                  </div>
-
-                  <div className="rounded-lg border bg-white p-4" style={{ borderColor: COLORS.legacyBorder }}>
-                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">{t('epfo.establishment')}</p>
-                    <p className="mt-2 text-sm font-semibold text-[#0b3c92]">M/S Example Pvt Ltd</p>
-                    <p className="text-xs text-slate-500">{t('epfo.estSub')}</p>
-                    <div className="mt-3 flex items-center gap-2 text-xs">
-                      <span className="rounded-full bg-emerald-50 px-2 py-1 font-semibold text-emerald-700">{t('epfo.active')}</span>
-                      <span className="text-slate-500">{t('epfo.memberSince')}</span>
+              <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
+                <div className="space-y-4">
+                  {alerts.rbi && (
+                    <div className="flex items-start gap-3 rounded-lg border-l-4 p-4 text-[13px] leading-6 shadow-sm" style={{ borderColor: '#f0c6c6', borderLeftColor: '#d32f2f', backgroundColor: '#fdecea', color: '#5f2120' }}>
+                      <span className="mt-0.5">ⓘ</span>
+                      <p className="flex-1"><span className="mr-2 rounded px-1.5 py-0.5 text-[11px] font-bold text-white" style={{ backgroundColor: '#d32f2f' }}>New!</span>{t('epfo.rbiNotice')}</p>
+                      <button type="button" aria-label="Dismiss" onClick={() => setAlerts((a) => ({ ...a, rbi: false }))} className="shrink-0 text-[#999] hover:text-[#333]">✕</button>
                     </div>
-                  </div>
-                </aside>
-
-                <div className="space-y-6">
-                  {/* Welcome + quick stats — mimic real Member Home */}
-                  <div className="rounded-lg border bg-white p-5" style={{ borderColor: COLORS.legacyBorder }}>
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <h2 className="text-xl font-bold text-[#0b1f4d]">{t('epfo.welcome')}</h2>
-                      <span className="rounded-full bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">{t('epfo.memberHome')}</span>
+                  )}
+                  {alerts.mobile && (
+                    <div className="flex items-start gap-3 rounded-lg border-l-4 p-4 text-[13px] leading-6 shadow-sm" style={{ borderColor: '#b3e5fc', borderLeftColor: '#29b6f6', backgroundColor: '#e1f5fe', color: '#01579b' }}>
+                      <span className="mt-0.5">🔔</span>
+                      <p className="flex-1 font-semibold">{t('epfo.mobileNotice')} 📄</p>
+                      <button type="button" aria-label="Dismiss" onClick={() => setAlerts((a) => ({ ...a, mobile: false }))} className="shrink-0 text-[#999] hover:text-[#333]">✕</button>
                     </div>
-                    <p className="mt-2 text-sm leading-6 text-slate-600">
-                      {t('epfo.welcomeSub')}
-                    </p>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                      <div className="rounded-lg bg-slate-50 p-3">
-                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{t('epfo.pfBalance')}</p>
-                        <p className="mt-1 text-lg font-bold text-[#0b1f4d]">₹ 2,84,350</p>
-                        <p className="text-xs text-slate-500">{t('epfo.asOn')}</p>
-                      </div>
-                      <div className="rounded-lg bg-slate-50 p-3">
-                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{t('epfo.lastContrib')}</p>
-                        <p className="mt-1 text-sm font-bold text-[#0b1f4d]">{t('epfo.lastContribVal')}</p>
-                        <p className="text-xs text-slate-500">{t('epfo.employer')}</p>
-                      </div>
-                      <div className="rounded-lg bg-slate-50 p-3">
-                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{t('epfo.serviceLen')}</p>
-                        <p className="mt-1 text-sm font-bold text-[#0b1f4d]">{t('epfo.serviceLenVal')}</p>
-                        <p className="text-xs text-slate-500">{t('epfo.est3')}</p>
-                      </div>
-                    </div>
-                  </div>
+                  )}
+                </div>
 
-                  <div className="grid gap-4 md:grid-cols-3">
-                    {kycKeys.map(([lk, sk, bg, color]) => (
-                      <div key={lk} className="rounded-lg border bg-white p-4" style={{ borderColor: COLORS.legacyBorder }}>
-                        <p className="text-sm font-semibold text-slate-800">{t(lk)}</p>
-                        <span className="mt-3 inline-flex rounded-full px-3 py-1 text-xs font-semibold" style={{ backgroundColor: bg, color }}>
-                          {t(sk)}
-                        </span>
-                        {lk === 'epfo.kycBank' && <p className="mt-2 text-xs text-slate-500">{t('epfo.tapBanner')}</p>}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Quick links — mimics real portal service tiles */}
-                  <div className="rounded-lg border bg-white p-5" style={{ borderColor: COLORS.legacyBorder }}>
-                    <h3 className="text-sm font-bold uppercase tracking-[0.18em] text-slate-500">{t('epfo.quickServices')}</h3>
-                    <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                      {quickKeys.map(([tk, sk]) => (
-                        <div key={tk} className="rounded-lg border bg-[#f8fafc] p-3" style={{ borderColor: COLORS.legacyBorder }}>
-                          <p className="text-sm font-semibold text-[#0b3c92]">{t(tk)}</p>
-                          <p className="text-xs text-slate-500">{t(sk)}</p>
+                <div>
+                  <div className="rounded-xl border bg-white shadow-sm" style={{ borderColor: '#e5e5e5' }}>
+                    <p className="flex items-center gap-2 border-b px-4 py-3 text-[14px] font-bold" style={{ borderColor: '#eee', color: '#1a7a7a' }}>👤 {t('epfo.memberProfile')}</p>
+                    <dl className="text-[13px]">
+                      {(
+                        [
+                          ['UAN', '100765432109', false],
+                          [t('epfo.nameLabel'), t('epfo.fullName'), false],
+                          [t('epfo.dobLabel'), '18/02/1991', true],
+                          [t('epfo.genderLabel'), t('epfo.male'), false],
+                        ] as [string, string, boolean][]
+                      ).map(([dt, dd, editable]) => (
+                        <div key={dt} className="flex items-center justify-between gap-3 border-b px-4 py-2.5" style={{ borderColor: '#f0f0f0' }}>
+                          <dt className="text-[#555]">{dt}</dt>
+                          <dd className="font-semibold text-[#222]">{dd}{editable && <span className="ml-2 text-[#1a7a7a]">✎</span>}</dd>
                         </div>
                       ))}
-                    </div>
-                  </div>
-
-                  <div className="rounded-lg border bg-white p-5" style={{ borderColor: COLORS.legacyBorder }}>
-                    <h3 className="text-lg font-bold text-[#0b1f4d]">{t('epfo.whyTitle')}</h3>
-                    <p className="mt-2 text-sm leading-6 text-slate-600">
-                      {t('epfo.whyBody')}
-                    </p>
-                    <div className="mt-3 rounded-lg p-3 text-sm" style={{ backgroundColor: '#FFF1F2', color: '#BE123C' }}>
-                      <strong>{t('epfo.friction')}</strong> {t('epfo.frictionBody')}
-                    </div>
+                    </dl>
+                    <details className="border-b px-4 py-2.5 text-[13px] font-bold" style={{ borderColor: '#f0f0f0', color: '#1a7a7a' }}>
+                      <summary className="cursor-pointer">✚ {t('epfo.profileInfo')}</summary>
+                    </details>
+                    <details className="px-4 py-2.5 text-[13px] font-bold" style={{ color: '#1a7a7a' }}>
+                      <summary className="cursor-pointer">✚ {t('epfo.moreInfo')}</summary>
+                    </details>
                   </div>
                 </div>
+
               </div>
 
-              {/* Recent activity — adds realism below fold */}
-              <div className="rounded-lg border bg-white p-5" style={{ borderColor: COLORS.legacyBorder }}>
-                <h3 className="text-sm font-bold uppercase tracking-[0.18em] text-slate-500">{t('epfo.recent')}</h3>
-                <div className="mt-3 overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead className="text-xs uppercase tracking-[0.16em] text-slate-500">
-                      <tr>
-                        <th className="py-2 pr-4">{t('epfo.date')}</th>
-                        <th className="py-2 pr-4">{t('epfo.service')}</th>
-                        <th className="py-2 pr-4">{t('epfo.status')}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="text-slate-600">
-                      <tr className="border-t" style={{ borderColor: COLORS.legacyBorder }}>
-                        <td className="py-2 pr-4">27 Aug 2026</td>
-                        <td className="py-2 pr-4">{t('epfo.kycUpdate')}</td>
-                        <td className="py-2 pr-4"><span className="rounded-full bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700">{t('epfo.docRequired')}</span></td>
-                      </tr>
-                      <tr className="border-t" style={{ borderColor: COLORS.legacyBorder }}>
-                        <td className="py-2 pr-4">19 Aug 2026</td>
-                        <td className="py-2 pr-4">{t('epfo.ekyc')}</td>
-                        <td className="py-2 pr-4"><span className="rounded-full bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700">{t('epfo.completed')}</span></td>
-                      </tr>
-                      <tr className="border-t" style={{ borderColor: COLORS.legacyBorder }}>
-                        <td className="py-2 pr-4">04 Jul 2026</td>
-                        <td className="py-2 pr-4">{t('epfo.passbookViewed')}</td>
-                        <td className="py-2 pr-4"><span className="rounded-full bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-600">{t('epfo.viewed')}</span></td>
-                      </tr>
-                    </tbody>
-                  </table>
+              <div className="mt-6">
+                <h3 className="text-[13px] font-bold tracking-wide text-[#777]">▦ {t('epfo.quickLinks')}</h3>
+                <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+                  {(
+                    [
+                      ['🚩', '#fef6e8', t('epfo.navPmvbry'), false],
+                      ['📖', '#e8f4f4', t('epfo.qlPassbook'), true],
+                      ['📄', '#fdeee9', t('epfo.qlFileClaim'), false],
+                      ['🔍', '#e3f5f5', t('epfo.qlTrackClaim'), false],
+                      ['👥', '#e9f6ec', t('epfo.qlNomination'), false],
+                      ['🕘', '#f1f1f1', t('epfo.qlHistory'), false],
+                    ] as [string, string, string, boolean][]
+                  ).map(([icon, bg, label, clickable]) =>
+                    clickable ? (
+                      <button key={label} type="button" onClick={() => setStep('kyc')} className="rounded-xl border bg-white p-4 text-center shadow-sm transition-all hover:-translate-y-0.5" style={{ borderColor: '#e5e5e5' }}>
+                        <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl text-xl" style={{ backgroundColor: bg }}>{icon}</span>
+                        <span className="mt-2 block text-[12px] font-bold text-[#222]">{label}</span>
+                      </button>
+                    ) : (
+                      <div key={label} className="rounded-xl border bg-white p-4 text-center shadow-sm" style={{ borderColor: '#e5e5e5' }}>
+                        <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl text-xl" style={{ backgroundColor: bg }}>{icon}</span>
+                        <span className="mt-2 block text-[12px] font-bold text-[#222]">{label}</span>
+                      </div>
+                    ),
+                  )}
                 </div>
               </div>
             </section>
@@ -372,6 +316,8 @@ export default function EPFOPortal() {
                         portalId="epfo"
                         requirements="Upload Passbook copy. Must be PDF format. Maximum size 500 KB. Account number must be visible."
                         onSuccess={() => setStep('submitted')}
+                        sourceHeading={t('epfo.skipHassle')}
+                        sourceSub={t('epfo.skipHassleSub')}
                       />
                   </div>
                 </div>
@@ -410,20 +356,6 @@ export default function EPFOPortal() {
           )}
         </div>
       </main>
-    </div>
-  );
-}
-
-function Field({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <label className="mb-2 block text-sm font-medium text-slate-700">{label}</label>
-      <input
-        readOnly
-        value={value}
-        className="w-full rounded-md border px-4 py-3 text-sm text-slate-700"
-        style={{ borderColor: COLORS.gray[300], backgroundColor: COLORS.white }}
-      />
     </div>
   );
 }

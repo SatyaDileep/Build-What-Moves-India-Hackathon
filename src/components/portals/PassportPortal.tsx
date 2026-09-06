@@ -3,10 +3,9 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import DocBridgeWidget from '@/components/DocBridgeWidget';
-import GovernmentHeader from '@/components/ui/GovernmentHeader';
-import PortalNudge from '@/components/ui/PortalNudge';
-import { COLORS } from '@/lib/constants';
-import { useLang } from '@/lib/i18n';
+import TricolorBar from '@/components/ui/TricolorBar';
+import VoiceToggle from '@/components/ui/VoiceToggle';
+import { LanguageToggle, useLang } from '@/lib/i18n';
 
 type JourneyStep = 'login' | 'dashboard' | 'upload' | 'submitted';
 
@@ -14,20 +13,29 @@ const photoKeys = ['pp.pr4', 'pp.pr5', 'pp.pr6'];
 const signatureKeys = ['pp.sr1', 'pp.sr3', 'pp.sr4'];
 const stageKeys = ['pp.sg1', 'pp.sg2', 'pp.sg3', 'pp.sg4'];
 
+const NAVY = '#003366';
+const NAVY_DARK = '#00264d';
+const LINK_BLUE = '#0a4a90';
+const PAGE_BG = '#f8f9fa';
+const BORDER = '#ccc';
+
+function randomCaptcha(): string {
+  return Array.from({ length: 4 }, () => Math.floor(Math.random() * 10)).join(' ');
+}
+
 export default function PassportPortal() {
   const { t } = useLang();
   const [step, setStep] = useState<JourneyStep>('login');
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
   const [done, setDone] = useState({ photo: false, signature: false });
-  // Files chosen through the card's hidden native inputs (carve-out mode).
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [signatureFile, setSignatureFile] = useState<File | null>(null);
+  const [captcha, setCaptcha] = useState('7 3 9 4');
 
   const handleNativeInput = (slot: 'photo' | 'signature') => (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
     if (slot === 'photo') setPhotoFile(file);
     else setSignatureFile(file);
-    // Reset so choosing the same file again still fires onChange.
     e.target.value = '';
   };
 
@@ -36,298 +44,326 @@ export default function PassportPortal() {
   }, [done]);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: COLORS.legacyBg, fontFamily: "Arial, 'Open Sans', sans-serif", fontSize: '14px', color: '#212529' }}>
-      <GovernmentHeader
-        portalName="Passport Seva"
-        portalFullName="PSP Division — Ministry of External Affairs, Government of India"
-        portalInitials="PSP"
-        welcomeText={step === 'login' ? undefined : `${t('auth.welcome')}, Kabir Mehta`}
-        userIdText={step === 'login' ? undefined : 'File No: BNGO40217846125'}
-      />
+    <div className="min-h-screen" style={{ backgroundColor: PAGE_BG, fontFamily: 'Arial, Tahoma, Verdana, sans-serif', fontSize: '13px', color: '#222' }}>
+      <TricolorBar className="h-2.5" />
 
-      <div className="mx-auto mt-0 max-w-6xl px-4">
-        <div id="main-content" className="mb-4 mt-4 flex items-center justify-between rounded-[3px] border px-4 py-2" style={{ backgroundColor: '#F2F2F2', borderColor: COLORS.legacyBorder }}>
-          <div className="text-[13px]" style={{ color: '#495057' }}>
-            <span className="font-bold" style={{ color: '#000C80' }}>{t('pp.appHome')}</span>
-            <span className="mx-2 text-[#ADB5BD]">/</span>
-            <span>{t('upload.photoSig')}</span>
-          </div>
-          <Link
-            href="/"
-            className="px-3 py-1.5 text-[13px] hover:underline"
-            style={{ color: '#125699' }}
-          >
-            {t('nav.backHome')}
-          </Link>
+      <div style={{ backgroundColor: '#e9ecef', borderBottom: '1px solid #d4d4d4' }}>
+        <div className="mx-auto flex max-w-[980px] flex-wrap items-center gap-x-2 px-3 py-1" style={{ fontSize: '11px' }}>
+          <a href="#main-content" style={{ color: LINK_BLUE }}>Skip to main content</a>
+          <span style={{ color: '#999' }}>|</span>
+          <a href="#" style={{ color: LINK_BLUE }}>Screen Reader Access</a>
+          <span style={{ color: '#999' }}>|</span>
+          <a href="#" style={{ color: LINK_BLUE }}>Sitemap</a>
+          <span className="ml-auto flex items-center gap-2">
+            <span className="font-bold">A-</span>
+            <span className="font-bold">A</span>
+            <span className="font-bold">A+</span>
+            <span style={{ color: '#999' }}>|</span>
+            <LanguageToggle />
+          </span>
         </div>
       </div>
 
-      <main className="mx-auto max-w-6xl px-4 py-6">
-        {step === 'login' && (
-          <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="space-y-5">
-              <div className="rounded-[3px] border bg-white p-6" style={{ borderColor: COLORS.legacyBorder }}>
-                <p className="text-[12px] font-bold uppercase tracking-wide" style={{ color: '#495057' }}>{t('pp.loginEyebrow')}</p>
-                <h1 className="mt-2 font-bold leading-[1.2em]" style={{ color: '#000C80', fontSize: '26px', fontFamily: 'Arial, sans-serif' }}>{t('pp.loginTitle')}</h1>
-                <p className="mt-3 leading-[1.5em]" style={{ fontSize: '14px', color: '#212529' }}>
-                  {t('pp.loginSub')}
-                </p>
-              </div>
-
-              <div className="rounded-[3px] border p-5" style={{ borderColor: '#FFC107', backgroundColor: '#FFF3CD' }}>
-                <p className="font-bold" style={{ fontSize: '14px', color: '#212529' }}>{t('pp.mandatory')}</p>
-                <p className="mt-2 leading-[1.5em]" style={{ fontSize: '14px', color: '#212529' }}>
-                  {t('pp.mandatoryBody')}
-                </p>
-              </div>
-            </div>
-
-            <div className="rounded-[3px] border bg-white" style={{ borderColor: COLORS.legacyBorder }}>
-              <div className="border-b px-5 py-4" style={{ borderColor: COLORS.legacyBorder, backgroundColor: '#F8F9FA' }}>
-                <h2 className="font-bold" style={{ fontSize: '18px', color: '#000C80', fontFamily: 'Arial, sans-serif' }}>{t('login.applicant')}</h2>
-                <p className="mt-1" style={{ fontSize: '13px', color: '#6C757D' }}>{t('pp.loginBox')}</p>
-              </div>
-              <div className="space-y-4 p-5">
-                <Field label={t('auth.loginId')} value="kabir.mehta34" />
-                <Field label={t('epfo.password')} value="••••••••••" />
-                <div>
-                  <label className="mb-2 block font-bold" style={{ fontSize: '13px', color: '#212529' }}>{t('epfo.captcha')}</label>
-                  <div className="flex items-center gap-3">
-                    <div className="rounded-[3px] border px-4 py-2.5 font-mono tracking-[0.28em]" style={{ borderColor: '#CCC', backgroundColor: '#F8F9FA', color: '#000C80', fontSize: '18px' }}>
-                      7 3 9 4
-                    </div>
-                    <input
-                      readOnly
-                      value="7394"
-                      className="w-full rounded-[3px] border px-4 py-2.5"
-                      style={{ borderColor: '#CCC', backgroundColor: COLORS.white, fontSize: '14px', color: '#212529' }}
-                    />
-                  </div>
-                  <p className="mt-1" style={{ fontSize: '12px', color: '#6C757D' }}>{t('auth.demoPrefill')}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setStep('dashboard')}
-                  className="w-full rounded-[3px] px-4 py-2.5 font-bold text-white transition-colors"
-                  style={{ backgroundColor: '#000C80', fontSize: '14px' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#071064'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#000C80'; }}
-                >
-                  {t('auth.login')}
-                </button>
-                <div className="flex justify-between" style={{ fontSize: '13px', color: '#125699' }}>
-                  <span className="cursor-pointer hover:underline">{t('pp.newUser')}</span>
-                  <span className="cursor-pointer hover:underline">{t('auth.forgotLogin')}</span>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {step === 'dashboard' && (
-          <section className="space-y-6">
-            {!nudgeDismissed ? (
-              <PortalNudge
-                eyebrow={t('pp.nudgeEyebrow')}
-                title={t('pp.nudgeTitle')}
-                description={t('pp.nudgeDesc')}
-                ctaLabel={t('upload.photoSig')}
-                onAction={() => setStep('upload')}
-                onDismiss={() => setNudgeDismissed(true)}
-                tone="amber"
-              />
+      <div style={{ backgroundColor: '#fff', borderBottom: '1px solid #d4d4d4' }}>
+        <div className="mx-auto flex max-w-[980px] items-center gap-3 px-3 py-2">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white" style={{ background: 'radial-gradient(circle at 35% 35%, #0a4a90, #003366)', border: '2px solid #b5651d' }}>PSP</span>
+          <span>
+            <span className="block font-bold leading-tight" style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontSize: '28px', color: NAVY }}>Passport Seva</span>
+            <span className="block" style={{ fontSize: '11px', color: '#555' }}>PSP Division — Ministry of External Affairs, Government of India</span>
+          </span>
+          <span className="ml-auto hidden text-right sm:block" style={{ fontSize: '11px', color: '#555' }}>
+            {step === 'login' ? (
+              <>Toll Free: 1800-258-1800</>
             ) : (
-              <div className="flex items-center justify-between rounded-lg border bg-amber-50/70 px-4 py-2.5 text-sm" style={{ borderColor: '#FDE68A' }}>
-                <span className="text-amber-800">{t('pp.nudgeDismissed')}</span>
-                <button type="button" onClick={() => setNudgeDismissed(false)} className="font-semibold text-amber-700 underline">
-                  {t('epfo.showAgain')}
-                </button>
-              </div>
+              <><strong>Welcome, Kabir Mehta</strong><br />File No: BNGO40217846125</>
             )}
+          </span>
+        </div>
+      </div>
 
-            <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-              <div className="rounded-[3px] border bg-white p-6" style={{ borderColor: COLORS.legacyBorder }}>
-                <h2 className="font-bold" style={{ fontSize: '18px', color: '#000C80', fontFamily: 'Arial, sans-serif' }}>{t('pp.applicantHome')}</h2>
-                <div className="mt-4 rounded-[3px] border p-4" style={{ backgroundColor: '#F8F9FA', borderColor: COLORS.legacyBorder }}>
-                  <p className="font-bold uppercase" style={{ fontSize: '12px', color: '#495057' }}>{t('pp.fileNo')}</p>
-                  <p className="mt-1 font-bold" style={{ fontSize: '14px', color: '#000C80' }}>BNGO40217846125</p>
-                  <p style={{ fontSize: '12px', color: '#6C757D' }}>{t('pp.fileSub')}</p>
-                  <div className="mt-3 flex items-center gap-2">
-                    <span className="rounded-[3px] px-2 py-1 font-bold" style={{ backgroundColor: '#FFF3CD', color: '#664D03', fontSize: '12px' }}>{t('upload.pending')}</span>
-                    <span style={{ fontSize: '12px', color: '#6C757D' }}>{t('pp.attemptsLeft')}</span>
+      <nav style={{ backgroundColor: NAVY }}>
+        <div className="mx-auto flex max-w-[980px] items-center px-3" style={{ fontSize: '12px' }}>
+          {['Home', 'Services', 'Help', 'Contact'].map((label, i) => (
+            <a key={label} href="#" className="px-2.5 py-1.5 font-bold text-white hover:underline" style={{ backgroundColor: i === 0 ? NAVY_DARK : 'transparent' }}>
+              {label}
+            </a>
+          ))}
+          <span className="ml-auto hidden py-1.5 text-white/80 md:block" style={{ fontSize: '11px' }}>सत्यमेव जयते • Truth Alone Triumphs</span>
+        </div>
+      </nav>
+
+      <div className="mx-auto max-w-[980px] px-3" style={{ backgroundColor: '#fff', borderLeft: `1px solid ${BORDER}`, borderRight: `1px solid ${BORDER}`, boxShadow: '0 0 4px rgba(0,0,0,0.08)' }}>
+        <div id="main-content" className="flex items-center justify-between border-b px-1 py-1.5" style={{ borderColor: '#ddd', fontSize: '12px' }}>
+          <span>
+            <strong style={{ color: NAVY }}>{t('pp.appHome')}</strong>
+            <span className="mx-1" style={{ color: '#999' }}>/</span>
+            <span style={{ color: '#555' }}>{t('upload.photoSig')}</span>
+          </span>
+          <Link href="/" style={{ fontSize: '12px', color: LINK_BLUE }}>{t('nav.backHome')}</Link>
+        </div>
+
+        <main className="py-3">
+          {step === 'login' && (
+            <section className="grid gap-3 md:grid-cols-[1.15fr_0.85fr]">
+              <div className="space-y-3">
+                <div className="border bg-white p-3" style={{ borderColor: BORDER }}>
+                  <p className="font-bold uppercase" style={{ fontSize: '11px', color: '#666' }}>{t('pp.loginEyebrow')}</p>
+                  <h1 className="mt-1 font-bold" style={{ fontSize: '20px', color: NAVY }}>{t('pp.loginTitle')}</h1>
+                  <p className="mt-2" style={{ fontSize: '12px', color: '#333' }}>{t('pp.loginSub')}</p>
+                </div>
+
+                <div className="border p-3" style={{ borderColor: '#d4a017', backgroundColor: '#ffffe0' }}>
+                  <p className="font-bold" style={{ fontSize: '12px', color: '#222' }}>{t('pp.mandatory')}</p>
+                  <p className="mt-1" style={{ fontSize: '12px', color: '#333' }}>{t('pp.mandatoryBody')}</p>
+                </div>
+              </div>
+
+              <div className="border bg-white" style={{ borderColor: BORDER }}>
+                <div className="border-b px-3 py-2" style={{ borderColor: BORDER, backgroundColor: '#f0f0f0' }}>
+                  <h2 className="font-bold" style={{ fontSize: '14px', color: NAVY }}>{t('login.applicant')}</h2>
+                  <p style={{ fontSize: '11px', color: '#666' }}>{t('pp.loginBox')}</p>
+                </div>
+                <div className="space-y-2 p-3">
+                  <Field label={t('auth.loginId')} value="kabir.mehta34" />
+                  <Field label={t('epfo.password')} value="••••••••••" />
+                  <div>
+                    <label className="mb-1 block font-bold" style={{ fontSize: '12px', color: '#222' }}>{t('epfo.captcha')}</label>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="inline-block select-none px-3 py-1 font-mono font-bold italic"
+                        style={{
+                          fontSize: '16px',
+                          letterSpacing: '0.3em',
+                          color: '#1a1a7a',
+                          background: 'repeating-linear-gradient(0deg, #e8e8f5 0 2px, #f7f7fb 2px 4px)',
+                          border: '1px solid #999',
+                          transform: 'skewX(-8deg)',
+                        }}
+                      >
+                        {captcha}
+                      </span>
+                      <button
+                        type="button"
+                        title="Refresh captcha"
+                        aria-label="Refresh captcha"
+                        onClick={() => setCaptcha(randomCaptcha())}
+                        className="border px-1.5 py-1 leading-none"
+                        style={{ borderColor: '#999', backgroundColor: '#f0f0f0', fontSize: '14px', color: '#333' }}
+                      >
+                        ⟳
+                      </button>
+                      <input
+                        readOnly
+                        value={captcha.replace(/ /g, '')}
+                        className="w-20 border px-2 py-1"
+                        style={{ borderColor: '#999', fontSize: '12px' }}
+                      />
+                    </div>
+                    <p className="mt-1" style={{ fontSize: '11px', color: '#666' }}>{t('auth.demoPrefill')}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setStep('dashboard')}
+                    className="border px-6 py-1 font-bold text-white"
+                    style={{ backgroundColor: NAVY, borderColor: NAVY_DARK, fontSize: '13px' }}
+                  >
+                    {t('auth.login')}
+                  </button>
+                  <div className="flex justify-between pt-1" style={{ fontSize: '11px' }}>
+                    <a href="#" style={{ color: LINK_BLUE }}>{t('pp.newUser')}</a>
+                    <a href="#" style={{ color: LINK_BLUE }}>{t('auth.forgotLogin')}</a>
                   </div>
                 </div>
-                <h3 className="mt-5 font-bold uppercase" style={{ fontSize: '12px', color: '#495057' }}>{t('pp.stages')}</h3>
-                <ul className="mt-3 space-y-3" style={{ fontSize: '14px' }}>
-                  {stageKeys.map((k, index) => (
-                    <li key={k} className="flex items-start gap-3">
-                      <span
-                        className="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold text-white"
-                        style={{ backgroundColor: index < 2 ? '#198754' : '#FFB04F', color: index < 2 ? '#fff' : '#212529' }}
-                      >
-                        {index < 2 ? '✓' : '!'}
-                      </span>
-                      <span style={{ color: '#212529' }}>{t(k)}</span>
-                    </li>
-                  ))}
-                </ul>
               </div>
+            </section>
+          )}
 
-              <div className="rounded-[3px] border bg-white p-6" style={{ borderColor: COLORS.legacyBorder }}>
-                <p className="font-bold uppercase" style={{ fontSize: '12px', color: '#495057' }}>{t('pp.track')}</p>
-                <h2 className="mt-2 font-bold leading-[1.2em]" style={{ fontSize: '26px', color: '#000C80', fontFamily: 'Arial, sans-serif' }}>{t('pp.trackTitle')}</h2>
-                <div className="mt-4 overflow-x-auto">
-                  <table className="w-full text-left" style={{ fontSize: '14px' }}>
-                    <thead className="uppercase" style={{ fontSize: '12px', color: '#495057' }}>
-                      <tr style={{ backgroundColor: '#F8F9FA' }}>
-                        <th className="px-5 py-3 pr-4 font-bold">{t('pp.application')}</th>
-                        <th className="px-5 py-3 pr-4 font-bold">{t('epfo.status')}</th>
-                        <th className="px-5 py-3 pr-4 font-bold">{t('pp.action')}</th>
+          {step === 'dashboard' && (
+            <section className="space-y-3">
+              {!nudgeDismissed ? (
+                <div className="border p-2.5" role="status" aria-live="polite" style={{ borderColor: '#d4a017', backgroundColor: '#ffffe0' }}>
+                  <p className="font-bold uppercase" style={{ fontSize: '11px', color: '#7a5c00' }}>{t('pp.nudgeEyebrow')}</p>
+                  <p className="mt-0.5 font-bold" style={{ fontSize: '13px', color: '#222' }}>{t('pp.nudgeTitle')}</p>
+                  <p className="mt-0.5" style={{ fontSize: '12px', color: '#333' }}>{t('pp.nudgeDesc')}</p>
+                  <button
+                    type="button"
+                    onClick={() => setStep('upload')}
+                    className="mt-2 border px-4 py-1 font-bold text-white"
+                    style={{ backgroundColor: NAVY, borderColor: NAVY_DARK, fontSize: '12px' }}
+                  >
+                    {t('upload.photoSig')} →
+                  </button>
+                  <div className="mt-1 flex items-center gap-2">
+                    <VoiceToggle />
+                    <button type="button" onClick={() => setNudgeDismissed(true)} className="underline" style={{ fontSize: '11px', color: LINK_BLUE }}>Dismiss</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between border px-2 py-1.5" style={{ borderColor: '#d4a017', backgroundColor: '#ffffe0', fontSize: '12px' }}>
+                  <span>{t('pp.nudgeDismissed')}</span>
+                  <button type="button" onClick={() => setNudgeDismissed(false)} className="font-bold underline" style={{ color: LINK_BLUE }}>{t('epfo.showAgain')}</button>
+                </div>
+              )}
+
+              <div className="grid gap-3 md:grid-cols-[250px_1fr]">
+                <div className="border bg-white" style={{ borderColor: BORDER }}>
+                  <h2 className="border-b px-2 py-1.5 font-bold" style={{ fontSize: '13px', color: NAVY, borderColor: BORDER, backgroundColor: '#f0f0f0' }}>{t('pp.applicantHome')}</h2>
+                  <div className="p-2">
+                    <p className="font-bold uppercase" style={{ fontSize: '11px', color: '#666' }}>{t('pp.fileNo')}</p>
+                    <p className="font-bold" style={{ fontSize: '13px', color: NAVY }}>BNGO40217846125</p>
+                    <p style={{ fontSize: '11px', color: '#666' }}>{t('pp.fileSub')}</p>
+                    <p className="mt-1 inline-block border px-1.5 py-0.5 font-bold" style={{ fontSize: '11px', borderColor: '#d4a017', backgroundColor: '#ffffe0', color: '#7a5c00' }}>{t('upload.pending')}</p>
+                    <h3 className="mt-2 font-bold uppercase" style={{ fontSize: '11px', color: '#666' }}>{t('pp.stages')}</h3>
+                    <ul className="mt-1 space-y-1" style={{ fontSize: '12px' }}>
+                      {stageKeys.map((k, index) => (
+                        <li key={k} className="flex items-start gap-1.5">
+                          <span className="font-bold" style={{ color: index < 2 ? '#1a7a1a' : '#b5651d' }}>{index < 2 ? '✓' : '•'}</span>
+                          <span>{t(k)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="border bg-white" style={{ borderColor: BORDER }}>
+                  <h2 className="border-b px-2 py-1.5 font-bold" style={{ fontSize: '13px', color: NAVY, borderColor: BORDER, backgroundColor: '#f0f0f0' }}>{t('pp.trackTitle')}</h2>
+                  <table className="w-full" style={{ fontSize: '12px', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#f0f0f0', color: '#333' }}>
+                        <th className="border px-2 py-1 text-left" style={{ borderColor: BORDER }}>{t('pp.application')}</th>
+                        <th className="border px-2 py-1 text-left" style={{ borderColor: BORDER }}>{t('epfo.status')}</th>
+                        <th className="border px-2 py-1 text-left" style={{ borderColor: BORDER }}>{t('pp.action')}</th>
                       </tr>
                     </thead>
-                    <tbody style={{ color: '#212529' }}>
-                      <tr className="border-t" style={{ borderColor: COLORS.legacyBorder }}>
-                        <td className="px-5 py-3 pr-4">BNGO40217846125 · Fresh</td>
-                        <td className="px-5 py-3 pr-4"><span className="rounded-[3px] px-2 py-1 font-bold" style={{ backgroundColor: '#FFF3CD', color: '#664D03', fontSize: '12px' }}>{t('pp.rowStatus')}</span></td>
-                        <td className="px-5 py-3 pr-4"><button type="button" onClick={() => setStep('upload')} className="font-bold hover:underline" style={{ color: '#125699' }}>{t('pp.uploadBtn')}</button></td>
+                    <tbody>
+                      <tr>
+                        <td className="border px-2 py-1.5" style={{ borderColor: BORDER }}>BNGO40217846125 · Fresh</td>
+                        <td className="border px-2 py-1.5" style={{ borderColor: BORDER }}><span className="border px-1 py-0.5" style={{ borderColor: '#d4a017', backgroundColor: '#ffffe0', fontSize: '11px' }}>{t('pp.rowStatus')}</span></td>
+                        <td className="border px-2 py-1.5" style={{ borderColor: BORDER }}><button type="button" onClick={() => setStep('upload')} className="font-bold underline" style={{ color: LINK_BLUE }}>{t('pp.uploadBtn')}</button></td>
                       </tr>
                     </tbody>
                   </table>
+                  <div className="p-2">
+                    <button
+                      type="button"
+                      onClick={() => setStep('upload')}
+                      className="border px-4 py-1 font-bold text-white"
+                      style={{ backgroundColor: NAVY, borderColor: NAVY_DARK, fontSize: '12px' }}
+                    >
+                      {t('upload.photoSig')} →
+                    </button>
+                  </div>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() => setStep('upload')}
-                  className="mt-6 rounded-[3px] px-4 py-2.5 font-bold text-white transition-colors"
-                  style={{ backgroundColor: '#000C80', fontSize: '14px' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#071064'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#000C80'; }}
-                >
-                  {t('upload.photoSig')} →
-                </button>
               </div>
-            </div>
-          </section>
-        )}
+            </section>
+          )}
 
-        {step === 'upload' && (
-          <section className="space-y-6">
-            <div className="rounded-[3px] border bg-white p-5" style={{ borderColor: COLORS.legacyBorder }}>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <h2 className="font-bold" style={{ fontSize: '18px', color: '#000C80', fontFamily: 'Arial, sans-serif' }}>{t('pp.uploadTitle')}</h2>
-                  <p className="mt-1" style={{ fontSize: '13px', color: '#6C757D' }}>ARN BNGO40217846125 · {t('pp.attemptsRem')} <strong style={{ color: '#664D03' }}>photo + signature</strong></p>
-                </div>
-                <span className="rounded-[3px] border px-3 py-1 font-bold" style={{ fontSize: '12px', color: '#495057', backgroundColor: '#F8F9FA', borderColor: COLORS.legacyBorder }}>{t('pp.stage34')}</span>
+          {step === 'upload' && (
+            <section className="space-y-3">
+              <div className="border bg-white p-2" style={{ borderColor: BORDER }}>
+                <h2 className="font-bold" style={{ fontSize: '14px', color: NAVY }}>{t('pp.uploadTitle')}</h2>
+                <p style={{ fontSize: '11px', color: '#666' }}>ARN BNGO40217846125 · {t('pp.attemptsRem')} <strong>photo + signature</strong> · {t('pp.stage34')}</p>
               </div>
-            </div>
 
-            <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-[3px] border bg-white" style={{ borderColor: COLORS.legacyBorder }}>
-                <div className="border-b px-6 py-4" style={{ borderColor: COLORS.legacyBorder, backgroundColor: '#F8F9FA' }}>
-                  <h3 className="font-bold" style={{ fontSize: '16px', color: '#000C80', fontFamily: 'Arial, sans-serif' }}>{t('pp.photo')}</h3>
-                  <p className="mt-1" style={{ fontSize: '13px', color: '#6C757D' }}>{t('pp.photoSub')}</p>
-                </div>
-                <div className="space-y-4 p-6">
-                  <ul className="space-y-2" style={{ fontSize: '14px', color: '#212529' }}>
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="border bg-white" style={{ borderColor: BORDER }}>
+                  <h3 className="border-b px-2 py-1.5 font-bold" style={{ fontSize: '13px', color: NAVY, borderColor: BORDER, backgroundColor: '#f0f0f0' }}>{t('pp.photo')}</h3>
+                  <p className="px-2 pt-1" style={{ fontSize: '11px', color: '#666' }}>{t('pp.photoSub')}</p>
+                  <ul className="space-y-1 p-2" style={{ fontSize: '12px' }}>
                     {photoKeys.map((k) => (
-                      <li key={k} className="flex items-start gap-2">
-                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: '#000C80' }} />
+                      <li key={k} className="flex items-start gap-1.5">
+                        <span style={{ color: NAVY }}>▪</span>
                         <span>{t(k)}</span>
                       </li>
                     ))}
                   </ul>
-<div className="rounded-[3px] border p-4" style={{ borderColor: COLORS.legacyBorder, backgroundColor: '#F8F9FA' }}>
-                      {/* Native Choose File — same carve-out as UPSC OTR: DocBridge's
-                          "Upload from device" card opens this dialog */}
-                      <div className="mb-3 flex flex-wrap items-center gap-3">
-                        <input
-                          id="native-passport-photo-input"
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          style={{ display: 'none' }}
-                          onChange={handleNativeInput('photo')}
-                        />
-                        <span className="rounded-[3px] border px-3 py-1.5 font-bold" style={{ fontSize: '12px', color: '#495057', borderColor: COLORS.legacyBorder, backgroundColor: '#fff' }}>Choose File</span>
-                        <span style={{ fontSize: '12px', color: '#6C757D' }}>No file chosen</span>
-                        <a href="#" onClick={(e) => e.preventDefault()} className="ml-auto" style={{ fontSize: '12px', color: '#125699', textDecoration: 'underline' }}>{t('pp.guidelines')}</a>
-                      </div>
-                      <DocBridgeWidget
-                        portalId="passport"
-                        docType="photo"
-                        requirements="Passport Seva GPSP upload. Photo exactly 630x810 pixels, JPEG only, 10KB - 250KB, white background, 80-85 percent face coverage."
-                        onSuccess={() => setDone((d) => ({ ...d, photo: true }))}
-                        deviceInputId="native-passport-photo-input"
-                        deviceFile={photoFile}
-                        onDeviceFileChange={setPhotoFile}
+                  <div className="mx-2 mb-2 border p-2" style={{ borderColor: BORDER, backgroundColor: '#fafafa' }}>
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                      <input
+                        id="native-passport-photo-input"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        style={{ display: 'none' }}
+                        onChange={handleNativeInput('photo')}
                       />
+                      <span className="border px-2 py-0.5 font-bold" style={{ fontSize: '11px', borderColor: '#999', backgroundColor: '#fff' }}>Choose File</span>
+                      <span style={{ fontSize: '11px', color: '#666' }}>No file chosen</span>
+                      <a href="#" onClick={(e) => e.preventDefault()} className="ml-auto underline" style={{ fontSize: '11px', color: LINK_BLUE }}>{t('pp.guidelines')}</a>
                     </div>
+                    <DocBridgeWidget
+                      portalId="passport"
+                      docType="photo"
+                      requirements="Passport Seva GPSP upload. Photo exactly 630x810 pixels, JPEG only, 10KB - 250KB, white background, 80-85 percent face coverage."
+                      onSuccess={() => setDone((d) => ({ ...d, photo: true }))}
+                      deviceInputId="native-passport-photo-input"
+                      deviceFile={photoFile}
+                      onDeviceFileChange={setPhotoFile}
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div className="rounded-[3px] border bg-white" style={{ borderColor: COLORS.legacyBorder }}>
-                <div className="border-b px-6 py-4" style={{ borderColor: COLORS.legacyBorder, backgroundColor: '#F8F9FA' }}>
-                  <h3 className="font-bold" style={{ fontSize: '16px', color: '#000C80', fontFamily: 'Arial, sans-serif' }}>{t('pp.signature')}</h3>
-                  <p className="mt-1" style={{ fontSize: '13px', color: '#6C757D' }}>{t('pp.sigSub')}</p>
-                </div>
-                <div className="space-y-4 p-6">
-                  <ul className="space-y-2" style={{ fontSize: '14px', color: '#212529' }}>
+                <div className="border bg-white" style={{ borderColor: BORDER }}>
+                  <h3 className="border-b px-2 py-1.5 font-bold" style={{ fontSize: '13px', color: NAVY, borderColor: BORDER, backgroundColor: '#f0f0f0' }}>{t('pp.signature')}</h3>
+                  <p className="px-2 pt-1" style={{ fontSize: '11px', color: '#666' }}>{t('pp.sigSub')}</p>
+                  <ul className="space-y-1 p-2" style={{ fontSize: '12px' }}>
                     {signatureKeys.map((k) => (
-                      <li key={k} className="flex items-start gap-2">
-                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: '#000C80' }} />
+                      <li key={k} className="flex items-start gap-1.5">
+                        <span style={{ color: NAVY }}>▪</span>
                         <span>{t(k)}</span>
                       </li>
                     ))}
                   </ul>
-<div className="rounded-[3px] border p-4" style={{ borderColor: COLORS.legacyBorder, backgroundColor: '#F8F9FA' }}>
-                      {/* Native Choose File — same carve-out as UPSC OTR */}
-                      <div className="mb-3 flex flex-wrap items-center gap-3">
-                        <input
-                          id="native-passport-signature-input"
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          style={{ display: 'none' }}
-                          onChange={handleNativeInput('signature')}
-                        />
-                        <span className="rounded-[3px] border px-3 py-1.5 font-bold" style={{ fontSize: '12px', color: '#495057', borderColor: COLORS.legacyBorder, backgroundColor: '#fff' }}>Choose File</span>
-                        <span style={{ fontSize: '12px', color: '#6C757D' }}>No file chosen</span>
-                        <a href="#" onClick={(e) => e.preventDefault()} className="ml-auto" style={{ fontSize: '12px', color: '#125699', textDecoration: 'underline' }}>{t('pp.guidelines')}</a>
-                      </div>
-                      <DocBridgeWidget
-                        portalId="passport"
-                        docType="signature"
-                        requirements="Passport signature upload. Signature scan, JPEG only, under 100KB, white paper background."
-                        onSuccess={() => setDone((d) => ({ ...d, signature: true }))}
-                        deviceInputId="native-passport-signature-input"
-                        deviceFile={signatureFile}
-                        onDeviceFileChange={setSignatureFile}
+                  <div className="mx-2 mb-2 border p-2" style={{ borderColor: BORDER, backgroundColor: '#fafafa' }}>
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                      <input
+                        id="native-passport-signature-input"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        style={{ display: 'none' }}
+                        onChange={handleNativeInput('signature')}
                       />
+                      <span className="border px-2 py-0.5 font-bold" style={{ fontSize: '11px', borderColor: '#999', backgroundColor: '#fff' }}>Choose File</span>
+                      <span style={{ fontSize: '11px', color: '#666' }}>No file chosen</span>
+                      <a href="#" onClick={(e) => e.preventDefault()} className="ml-auto underline" style={{ fontSize: '11px', color: LINK_BLUE }}>{t('pp.guidelines')}</a>
                     </div>
+                    <DocBridgeWidget
+                      portalId="passport"
+                      docType="signature"
+                      requirements="Passport signature upload. Signature scan, JPEG only, under 100KB, white paper background."
+                      onSuccess={() => setDone((d) => ({ ...d, signature: true }))}
+                      deviceInputId="native-passport-signature-input"
+                      deviceFile={signatureFile}
+                      onDeviceFileChange={setSignatureFile}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            </section>
+          )}
 
+          {step === 'submitted' && (
+            <section className="border bg-white p-3" style={{ borderColor: BORDER }}>
+              <p className="font-bold uppercase" style={{ fontSize: '11px', color: '#1a7a1a' }}>{t('upload.accepted')}</p>
+              <h2 className="mt-1 font-bold" style={{ fontSize: '18px', color: NAVY }}>{t('pp.doneTitle')}</h2>
+              <p className="mt-2 max-w-3xl" style={{ fontSize: '12px', color: '#333' }}>{t('pp.doneBody')}</p>
+              <div className="mt-3 grid gap-2 md:grid-cols-3">
+                <ResultCard label={t('pp.rc1l')} value={t('pp.rc1v')} bg="#e6f4e6" fg="#145214" />
+                <ResultCard label={t('pp.rc2l')} value={t('pp.rc2v')} bg="#e8eefc" fg={NAVY} />
+                <ResultCard label={t('upsc.rc2l')} value={t('pp.rc3v')} bg="#ffffe0" fg="#7a5c00" />
+              </div>
+            </section>
+          )}
+        </main>
 
-          </section>
-        )}
-
-        {step === 'submitted' && (
-          <section className="rounded-[3px] border bg-white p-6" style={{ borderColor: COLORS.legacyBorder }}>
-            <p className="font-bold uppercase" style={{ fontSize: '12px', color: '#198754' }}>{t('upload.accepted')}</p>
-            <h2 className="mt-2 font-bold leading-[1.2em]" style={{ fontSize: '26px', color: '#000C80', fontFamily: 'Arial, sans-serif' }}>{t('pp.doneTitle')}</h2>
-            <p className="mt-3 max-w-3xl leading-[1.5em]" style={{ fontSize: '14px', color: '#212529' }}>
-              {t('pp.doneBody')}
-            </p>
-            <div className="mt-6 grid gap-4 md:grid-cols-3">
-              <ResultCard label={t('pp.rc1l')} value={t('pp.rc1v')} tone="green" />
-              <ResultCard label={t('pp.rc2l')} value={t('pp.rc2v')} tone="blue" />
-              <ResultCard label={t('upsc.rc2l')} value={t('pp.rc3v')} tone="saffron" />
-            </div>
-          </section>
-        )}
-      </main>
+        <footer className="border-t px-1 py-2 text-center" style={{ borderColor: '#ddd', fontSize: '11px', color: '#666' }}>
+          <span className="mx-1" style={{ color: LINK_BLUE }}>Terms &amp; Conditions</span> |
+          <span className="mx-1" style={{ color: LINK_BLUE }}>Privacy Policy</span> |
+          <span className="mx-1" style={{ color: LINK_BLUE }}>Contact Us</span>
+          <span className="mt-0.5 block">Content owned and maintained by PSP Division, Ministry of External Affairs · Demo mock for hackathon evaluation</span>
+        </footer>
+      </div>
     </div>
   );
 }
@@ -335,37 +371,22 @@ export default function PassportPortal() {
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <label className="mb-1 block font-bold" style={{ fontSize: '13px', color: '#212529' }}>{label}</label>
+      <label className="mb-0.5 block font-bold" style={{ fontSize: '12px', color: '#222' }}>{label}</label>
       <input
         readOnly
         value={value}
-        className="w-full rounded-[3px] border px-3 py-2.5"
-        style={{ borderColor: '#CCC', backgroundColor: COLORS.white, fontSize: '14px', color: '#212529', height: '40px' }}
+        className="w-full border px-1.5 py-1"
+        style={{ borderColor: '#999', fontSize: '12px', backgroundColor: '#fff' }}
       />
     </div>
   );
 }
 
-function ResultCard({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: string;
-  tone: 'green' | 'saffron' | 'blue';
-}) {
-  const styles =
-    tone === 'green'
-      ? { backgroundColor: '#D1E7DD', color: '#0F5132', borderColor: '#BADBCC' }
-      : tone === 'saffron'
-        ? { backgroundColor: '#FFF3CD', color: '#664D03', borderColor: '#FFC107' }
-        : { backgroundColor: '#E3EBFC', color: '#000C80', borderColor: '#B6C6F5' };
-
+function ResultCard({ label, value, bg, fg }: { label: string; value: string; bg: string; fg: string }) {
   return (
-    <div className="rounded-[3px] border p-4" style={styles}>
-      <p className="font-bold uppercase" style={{ fontSize: '12px' }}>{label}</p>
-      <p className="mt-2 font-bold leading-[1.5em]" style={{ fontSize: '14px' }}>{value}</p>
+    <div className="border p-2" style={{ backgroundColor: bg, color: fg, borderColor: BORDER }}>
+      <p className="font-bold uppercase" style={{ fontSize: '11px' }}>{label}</p>
+      <p className="mt-1 font-bold" style={{ fontSize: '12px' }}>{value}</p>
     </div>
   );
 }

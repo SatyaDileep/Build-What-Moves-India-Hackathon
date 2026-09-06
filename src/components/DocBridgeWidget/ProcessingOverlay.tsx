@@ -5,6 +5,7 @@ import { COLORS } from '@/lib/constants';
 import { useVoiceGuide } from '@/hooks/useVoiceGuide';
 import { useLang, voiceLang } from '@/lib/i18n';
 import { isVoiceOn } from '@/lib/voice';
+import TricolorBar from '@/components/ui/TricolorBar';
 
 interface ProcessingOverlayProps {
   state: WidgetState;
@@ -71,11 +72,9 @@ export default function ProcessingOverlay({ state, source = 'digilocker', portal
       className="p-8 rounded-lg overflow-hidden"
       style={{ backgroundColor: COLORS.gray[50], border: `1px solid ${COLORS.gray[200]}` }}
     >
-      {/* Soft tricolor accent */}
-      <div className="flex h-1 -mt-8 -mx-8 mb-6 opacity-90" aria-hidden="true">
-        <div className="flex-1" style={{ backgroundColor: COLORS.saffron }} />
-        <div className="flex-1 border-x" style={{ backgroundColor: COLORS.white, borderColor: COLORS.gray[200] }} />
-        <div className="flex-1" style={{ backgroundColor: COLORS.green }} />
+      {/* Tricolor accent with Ashoka Chakra */}
+      <div className="-mx-8 -mt-8 mb-6">
+        <TricolorBar className="h-2.5" />
       </div>
 
       {/* Animated spinner */}

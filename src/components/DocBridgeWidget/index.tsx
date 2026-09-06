@@ -10,8 +10,9 @@ import DigiLockerModal from './DigiLockerModal';
 import ProcessingOverlay from './ProcessingOverlay';
 import PreviewPanel from './PreviewPanel';
 import PrivacyBadge from '@/components/ui/PrivacyBadge';
-import { useLang } from '@/lib/i18n';
-import { dwellForSpeech } from '@/lib/voice';
+import { useLang, voiceLang } from '@/lib/i18n';
+import { useVoiceGuide } from '@/hooks/useVoiceGuide';
+import { dwellForSpeech, isVoiceOn } from '@/lib/voice';
 
 function portalDisplayName(portalId: DocBridgeWidgetProps['portalId']): string {
   return portalId === 'epfo' ? 'EPFO' : portalId === 'vahan' ? 'Sarathi' : portalId === 'upsc' ? 'UPSC' : portalId === 'passport' ? 'Passport Seva' : portalId === 'ssc' ? 'SSC' : portalId === 'nsp' ? 'NSP' : 'portal';
@@ -67,6 +68,10 @@ interface DocBridgeWidgetProps {
   deviceInputId?: string;
   deviceFile?: File | null;
   onDeviceFileChange?: (file: File | null) => void;
+  // Portal-specific override for the source-chooser heading/subtext
+  // (e.g. EPFO KYC). Falls back to the shared w.where / w.whereSub copy.
+  sourceHeading?: string;
+  sourceSub?: string;
 }
 
 export default function DocBridgeWidget({ 
@@ -78,8 +83,10 @@ export default function DocBridgeWidget({
   deviceInputId,
   deviceFile,
   onDeviceFileChange,
+  sourceHeading,
+  sourceSub,
 }: DocBridgeWidgetProps) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [state, setState] = useState<WidgetState>('idle');
   const [showModal, setShowModal] = useState(false);
   const [showSaveAuthModal, setShowSaveAuthModal] = useState(false);
@@ -92,6 +99,8 @@ export default function DocBridgeWidget({
   const [batchProgress, setBatchProgress] = useState<{ done: number; total: number } | null>(null);
   const [lastSaved, setLastSaved] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  // Congratulatory narration on completion — only when voice is opted in.
+  useVoiceGuide(isVoiceOn() && state === 'success', t('w.congrats'), voiceLang(lang));
 
   const startDigiLocker = () => {
     setError(null);
@@ -470,9 +479,9 @@ export default function DocBridgeWidget({
               </div>
             ) : (
               <>
-                <p className="text-sm font-semibold mb-1" style={{ color: COLORS.primary }}>{t('w.where')}</p>
+                <p className="text-sm font-semibold mb-1" style={{ color: COLORS.primary }}>{sourceHeading ?? t('w.where')}</p>
                 <p className="text-xs mb-4" style={{ color: COLORS.gray[600] }}>
-                  {t('w.whereSub')}
+                  {sourceSub ?? t('w.whereSub')}
                 </p>
                 <div className="grid gap-3 pb-1 sm:grid-cols-2">
                   <SourceOption

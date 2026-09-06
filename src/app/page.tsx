@@ -42,7 +42,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#FDFBF7] text-[#1F2937]">
-      <TricolorBar className="h-1.5" />
+      <TricolorBar />
 
       <header className="border-b border-stone-200/60 bg-[#fffdf9]/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-6">

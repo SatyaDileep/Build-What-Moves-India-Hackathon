@@ -5,6 +5,7 @@ import { DigiLockerAsset } from '@/types';
 import { COLORS, USER_PROFILES } from '@/lib/constants';
 import { supabase } from '@/lib/supabase';
 import { useLang } from '@/lib/i18n';
+import TricolorBar from '@/components/ui/TricolorBar';
 
 interface DigiLockerModalProps {
   portalId: 'epfo' | 'upsc' | 'vahan' | 'passport' | 'ssc' | 'nsp';
@@ -196,11 +197,7 @@ export default function DigiLockerModal({
         className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden"
         style={{ maxHeight: '90vh' }}
       >
-        <div className="flex h-1.5" aria-hidden="true">
-          <div className="flex-1" style={{ backgroundColor: COLORS.saffron }} />
-          <div className="flex-1" style={{ backgroundColor: COLORS.white }} />
-          <div className="flex-1" style={{ backgroundColor: COLORS.green }} />
-        </div>
+        <TricolorBar className="h-2.5" />
         {/* Header */}
         <div 
           className="p-6 text-white"

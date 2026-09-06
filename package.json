@@ -9,7 +9,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "screenshots": "node scripts/capture-screenshots.mjs"
+    "screenshots": "node scripts/capture-screenshots.mjs",
+    "journeys": "node scripts/capture-journeys.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.3",
