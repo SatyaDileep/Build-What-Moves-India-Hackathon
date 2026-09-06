@@ -67,7 +67,7 @@ const dict: Record<string, { en: string; hi: string }> = {
   'w.saveBackSub': { en: "Next time you need this document for another portal, it's already correctly sized.", hi: 'अगली बार दूसरे पोर्टल के लिए यह पहले से सही साइज़ में मिलेगा।' },
   'w.signInSave': { en: 'Sign in and save to DigiLocker', hi: 'साइन इन करें और DigiLocker में सहेजें' },
   'w.signInSaveSub': { en: 'Connect your DigiLocker — this optimized file will be ready for reuse on other portals.', hi: 'DigiLocker जोड़ें — यह फ़ाइल अन्य पोर्टलों पर पुनः उपयोग हेतु तैयार रहेगी।' },
-  'w.signedIn': { en: 'Signed in — will save to DigiLocker', hi: 'साइन इन हो गया — DigiLocker में सहेजा जाएगा' },
+  'w.signedIn': { en: 'You are now signed in — file gets saved to DigiLocker', hi: 'अब आप साइन इन हैं — फ़ाइल DigiLocker में सहेजी जाएगी' },
   'w.signedInSub': { en: 'This optimized file will be linked to your DigiLocker for reuse.', hi: 'यह फ़ाइल पुनः उपयोग हेतु DigiLocker से जुड़ जाएगी।' },
   'w.change': { en: 'Change', hi: 'बदलें' },
   'w.signInArrow': { en: 'Sign in →', hi: 'साइन इन →' },
