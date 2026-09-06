@@ -35,7 +35,9 @@ export default function EPFOPortal() {
         </div>
       )}
       <div className="flex flex-wrap items-center gap-3 px-4 py-3" style={{ borderBottom: '1px solid #e5e5e5' }}>
-        <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white" style={{ background: 'radial-gradient(circle at 35% 35%, #2a7de1, #0b3c92)', border: '3px solid #c0392b' }}>EPFO</span>
+        <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white" style={{ border: '3px solid #c0392b' }}>
+          <img src="/epfo.png" alt="EPFO logo" className="h-full w-full object-contain" />
+        </span>
         <span>
           <span className="block text-[14px] font-bold tracking-wide" style={{ color: '#1a8a8a' }}>{t('epfo.orgName')}</span>
           <span className="block text-[13px]" style={{ color: '#b5651d' }}>{t('epfo.ministry')}</span>

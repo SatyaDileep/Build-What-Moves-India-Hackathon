@@ -46,19 +46,8 @@ export default function GovernmentHeader({
         <div style={{ backgroundColor: '#fff' }}>
           <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-2.5">
             <div className="flex items-center gap-3">
-              <span className="flex h-[58px] w-[58px] shrink-0 flex-col items-center justify-center" aria-label="Satyameva Jayate">
-                <svg viewBox="0 0 58 58" className="h-[52px] w-[52px]" role="img" aria-label="National Emblem">
-                  <g fill="none" stroke="#1C5C89" strokeWidth="1.5">
-                    <circle cx="29" cy="22" r="12" />
-                    <circle cx="29" cy="22" r="3" fill="#1C5C89" stroke="none" />
-                    {Array.from({ length: 24 }).map((_, i) => {
-                      const a = (i * 15 * Math.PI) / 180;
-                      return <line key={i} x1={29 + 4.5 * Math.cos(a)} y1={22 + 4.5 * Math.sin(a)} x2={29 + 11 * Math.cos(a)} y2={22 + 11 * Math.sin(a)} strokeWidth="0.8" />;
-                    })}
-                  </g>
-                  <rect x="20" y="37" width="18" height="2.5" fill="#1C5C89" />
-                  <text x="29" y="47" textAnchor="middle" fontSize="6.5" fontWeight="700" fill="#1C5C89" fontFamily="Roboto, sans-serif">सत्यमेव जयते</text>
-                </svg>
+              <span className="flex h-[58px] w-[58px] shrink-0 items-center justify-center" aria-label="NSP logo">
+                <img src="/nsp.png" alt="National Scholarship Portal logo" className="h-[52px] w-[52px] object-contain" />
               </span>
               <span className="hidden h-12 w-px bg-[#ccc] sm:block" />
               <span>

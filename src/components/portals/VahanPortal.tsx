@@ -298,7 +298,9 @@ function SarathiHeader({ fraudDismissed, onDismissFraud }: { fraudDismissed: boo
 
       <div style={{ backgroundColor: '#fff', borderBottom: '3px solid #1a5fb4' }}>
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-2.5">
-          <span className="flex h-11 w-11 items-center justify-center rounded-sm text-[9px] font-bold text-white" style={{ backgroundColor: '#8a6d1b' }}>MoRTH</span>
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-sm bg-white">
+            <img src="/parivahan.png" alt="Parivahan Sewa logo" className="h-full w-full object-cover" />
+          </span>
           <span>
             <span className="block text-[13px] font-bold leading-tight text-[#1a1a1a]">सड़क परिवहन और राजमार्ग मंत्रालय</span>
             <span className="block text-[12px] leading-tight text-slate-600">Ministry of Road Transport & Highways</span>

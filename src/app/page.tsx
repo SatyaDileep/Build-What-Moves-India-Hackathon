@@ -67,7 +67,7 @@ export default function Home() {
               One upload layer for India&apos;s many official portals.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600 sm:text-xl">
-              UPSC, Sarathi, EPFO, Passport Seva, SSC, and NSP each enforce a different size, format, and dimension — so the same photo that clears one portal bounces on another. Complying often means handing that document to a third-party tool. DocBridge prepares it in the browser to match each portal&apos;s own rules — so the upload you came to do, finally goes through.
+              UPSC, Parivahan Sewa, EPFO, Passport Seva, and NSP each enforce a different size, format, and dimension — so the same photo that clears one portal bounces on another. Complying often means handing that document to a third-party tool. DocBridge prepares it in the browser to match each portal&apos;s own rules — so the upload you came to do, finally goes through.
             </p>
             <div className="relative z-10 mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
               <button
@@ -164,7 +164,7 @@ export default function Home() {
       <section id="portals" className="mx-auto max-w-6xl px-5 py-16 sm:px-6">
         <div className="max-w-3xl">
           <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#EA580C]">Login to see it in action</p>
-          <h2 className="mt-3 text-3xl font-bold tracking-[-0.03em] text-[#1E3A8A] sm:text-4xl">Six real portals. One calm upload layer.</h2>
+          <h2 className="mt-3 text-3xl font-bold tracking-[-0.03em] text-[#1E3A8A] sm:text-4xl">Five real portals. One calm upload layer.</h2>
           <p className="mt-4 text-lg leading-8 text-slate-600">
             Each portal tells a familiar story — a form stalls on a document, and the fix lives somewhere else. Login to land on that portal&apos;s own home, follow the nudge, and watch DocBridge streamline the upload in your browser.
           </p>
@@ -174,7 +174,8 @@ export default function Home() {
           <PortalCard
             step="01"
             accent="#138808"
-            eyebrow="EPFO · Member Portal"
+            eyebrow="EPFO"
+            logo="/epfo.png"
             title="Login to EPFO portal to see it in action"
             description="Employees&apos; Provident Fund Organisation — member KYC, passbook, claims, transfer and e-nomination."
             href="/epfo"
@@ -185,7 +186,8 @@ export default function Home() {
           <PortalCard
             step="02"
             accent="#0b3c92"
-            eyebrow="Passport Seva · MEA"
+            eyebrow="PassportSeva"
+            logo="/passport.png"
             title="Login to Passport Seva to see it in action"
             description="Ministry of External Affairs — passport applications, document uploads and PSK appointment booking."
             href="/passport"
@@ -196,7 +198,8 @@ export default function Home() {
           <PortalCard
             step="03"
             accent="#1E3A8A"
-            eyebrow="UPSC · CSE 2026"
+            eyebrow="UPSC"
+            logo="/upsc.png"
             title="Login to UPSC portal to see it in action"
             description="Union Public Service Commission — Civil Services Examination applications and OTR-based candidate services."
             href="/upsc"
@@ -207,7 +210,8 @@ export default function Home() {
           <PortalCard
             step="04"
             accent="#0d6b07"
-            eyebrow="NSP · Scholarship"
+            eyebrow="NSP"
+            logo="/nsp.png"
             title="Login to NSP to see it in action"
             description="National Scholarship Portal — merit and welfare scholarships with one OTR across schemes."
             href="/nsp"
@@ -218,25 +222,16 @@ export default function Home() {
           <PortalCard
             step="05"
             accent="#EA580C"
-            eyebrow="Vahan · Sarathi"
-            title="Login to Vahan portal to see it in action"
+            eyebrow="Parivahan Sewa"
+            logo="/parivahan.png"
+            title="Login to Parivahan Sewa portal to see it in action"
             description="Ministry of Road Transport & Highways — driving licence, learner permits and vehicle services via Sarathi."
             href="/vahan"
-            cta="Open Vahan login →"
+            cta="Open Parivahan Sewa login →"
             busy={portalNav === '/vahan'}
             onNavigateStart={() => setPortalNav('/vahan')}
           />
-          <PortalCard
-            step="06"
-            accent="#9a3412"
-            eyebrow="SSC · OTR"
-            title="Login to SSC portal to see it in action"
-            description="Staff Selection Commission — One Time Registration for CGL, CHSL and MTS examinations."
-            href="/ssc"
-            cta="Open SSC login →"
-            busy={portalNav === '/ssc'}
-            onNavigateStart={() => setPortalNav('/ssc')}
-          />
+
         </div>
       </section>
 
@@ -300,7 +295,7 @@ export default function Home() {
 
       {isPortalModalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 overflow-y-auto p-4 sm:p-6"
           role="dialog"
           aria-modal="true"
           aria-labelledby="portal-modal-title"
@@ -310,12 +305,13 @@ export default function Home() {
             type="button"
             aria-label="Close portal chooser"
             onClick={() => !portalNav && setIsPortalModalOpen(false)}
-            className="absolute inset-0 bg-[#0f172a]/30 backdrop-blur-[14px] backdrop-saturate-150 transition-opacity duration-300"
+            className="fixed inset-0 bg-[#0f172a]/30 backdrop-blur-[14px] backdrop-saturate-150 transition-opacity duration-300"
+            style={{ position: 'fixed' }}
           />
           {/* Subtle gradient sheen */}
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-[#1E3A8A]/10" />
+          <div className="pointer-events-none fixed inset-0 bg-gradient-to-br from-white/30 via-transparent to-[#1E3A8A]/10" />
 
-          <div className="relative w-full max-w-5xl animate-[modalIn_420ms_cubic-bezier(0.16,1,0.3,1)] overflow-hidden rounded-[2rem] border border-white/40 bg-white/70 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.22),0_8px_30px_rgba(0,0,0,0.08)] backdrop-blur-[18px] sm:p-8">
+          <div className="relative mx-auto my-8 w-full max-w-5xl animate-[modalIn_420ms_cubic-bezier(0.16,1,0.3,1)] overflow-hidden rounded-[2rem] border border-white/40 bg-white/70 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.22),0_8px_30px_rgba(0,0,0,0.08)] backdrop-blur-[18px] sm:p-8">
             <div className="flex items-start justify-between gap-5">
               <div className="max-w-2xl">
                 <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#EA580C]">Choose a portal</p>
@@ -338,12 +334,11 @@ export default function Home() {
             </div>
 
             <div className="mt-8 grid gap-5 md:grid-cols-3">
-              <ModalPortalCard step="01" accent="#138808" eyebrow="EPFO · Member Portal" title="EPFO portal" description="Member KYC, passbook, claims, transfer and e-nomination." href="/epfo" cta="Login to EPFO →" busy={portalNav === '/epfo'} onNavigateStart={() => setPortalNav('/epfo')} onNavigate={() => {}} />
-              <ModalPortalCard step="02" accent="#0b3c92" eyebrow="Passport Seva · MEA" title="Passport portal" description="Passport applications, document uploads and PSK appointment booking." href="/passport" cta="Login to Passport →" busy={portalNav === '/passport'} onNavigateStart={() => setPortalNav('/passport')} onNavigate={() => {}} />
-              <ModalPortalCard step="03" accent="#1E3A8A" eyebrow="UPSC · CSE 2026" title="UPSC portal" description="Civil Services Examination applications and OTR-based candidate services." href="/upsc" cta="Login to UPSC →" busy={portalNav === '/upsc'} onNavigateStart={() => setPortalNav('/upsc')} onNavigate={() => {}} />
-              <ModalPortalCard step="04" accent="#0d6b07" eyebrow="NSP · Scholarship" title="NSP portal" description="Merit and welfare scholarships with one OTR across schemes." href="/nsp" cta="Login to NSP →" busy={portalNav === '/nsp'} onNavigateStart={() => setPortalNav('/nsp')} onNavigate={() => {}} />
-              <ModalPortalCard step="05" accent="#EA580C" eyebrow="Vahan · Sarathi" title="Vahan portal" description="Driving licence, learner permits and vehicle services via Sarathi." href="/vahan" cta="Login to Vahan →" busy={portalNav === '/vahan'} onNavigateStart={() => setPortalNav('/vahan')} onNavigate={() => {}} />
-              <ModalPortalCard step="06" accent="#9a3412" eyebrow="SSC · OTR" title="SSC portal" description="One Time Registration for CGL, CHSL and MTS examinations." href="/ssc" cta="Login to SSC →" busy={portalNav === '/ssc'} onNavigateStart={() => setPortalNav('/ssc')} onNavigate={() => {}} />
+              <ModalPortalCard step="01" accent="#138808"            eyebrow="EPFO · Members' Portal" title="EPFO portal" description="Member KYC, passbook, claims, transfer and e-nomination." href="/epfo" cta="Login to EPFO →" logo="/epfo.png" busy={portalNav === '/epfo'} onNavigateStart={() => setPortalNav('/epfo')} onNavigate={() => {}} />
+              <ModalPortalCard step="02" accent="#0b3c92"            eyebrow="Passport Seva · Ministry of External Affairs" title="Passport portal" description="Passport applications, document uploads and PSK appointment booking." href="/passport" cta="Login to Passport →" logo="/passport.png" busy={portalNav === '/passport'} onNavigateStart={() => setPortalNav('/passport')} onNavigate={() => {}} />
+              <ModalPortalCard step="03" accent="#1E3A8A" eyebrow="UPSC · Civil Services Examination" title="UPSC portal" description="Civil Services Examination applications and OTR-based candidate services." href="/upsc" cta="Login to UPSC →" logo="/upsc.png" busy={portalNav === '/upsc'} onNavigateStart={() => setPortalNav('/upsc')} onNavigate={() => {}} />
+              <ModalPortalCard step="04" accent="#0d6b07" eyebrow="NSP · National Scholarship Portal" title="NSP portal" description="Merit and welfare scholarships with one OTR across schemes." href="/nsp" cta="Login to NSP →" logo="/nsp.png" busy={portalNav === '/nsp'} onNavigateStart={() => setPortalNav('/nsp')} onNavigate={() => {}} />
+              <ModalPortalCard step="05" accent="#EA580C" eyebrow="Parivahan Sewa · Ministry of Road Transport & Highways" title="Parivahan Sewa portal" description="Driving licence, learner permits and vehicle services via Sarathi." href="/vahan" cta="Login to Parivahan Sewa →" logo="/parivahan.png" busy={portalNav === '/vahan'} onNavigateStart={() => setPortalNav('/vahan')} onNavigate={() => {}} />
             </div>
 
             <p className="mt-6 rounded-2xl bg-white/60 px-4 py-3 text-xs leading-5 text-slate-500 ring-1 ring-black/5">
@@ -372,6 +367,7 @@ function PortalCard({
   description,
   href,
   cta,
+  logo,
   busy = false,
   onNavigateStart,
 }: {
@@ -382,6 +378,7 @@ function PortalCard({
   description: string;
   href: string;
   cta: string;
+  logo?: string;
   busy?: boolean;
   onNavigateStart?: () => void;
 }) {
@@ -394,9 +391,15 @@ function PortalCard({
       className={`group relative flex flex-col overflow-hidden rounded-3xl border border-stone-200/60 bg-white/80 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 ease-in-out hover:-translate-y-1 hover:border-blue-300 hover:shadow-[0_16px_40px_rgba(30,58,138,0.14)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1E3A8A] ${busy ? 'pointer-events-none' : ''}`}
     >
       <div className="flex items-start justify-between">
-        <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-bold text-white" style={{ backgroundColor: accent }}>
-          {step}
-        </span>
+        {logo ? (
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-[0_4px_14px_rgba(0,0,0,0.08)] ring-1 ring-black/5">
+            <img src={logo} alt="" aria-hidden="true" className="max-h-10 max-w-10 object-contain" />
+          </span>
+        ) : (
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-bold text-white" style={{ backgroundColor: accent }}>
+            {step}
+          </span>
+        )}
         <span className="rounded-full border border-stone-200/60 bg-white px-3 py-1 text-xs font-semibold" style={{ color: accent }}>
           {eyebrow}
         </span>
@@ -428,6 +431,7 @@ function ModalPortalCard({
   description,
   href,
   cta,
+  logo,
   busy = false,
   onNavigateStart,
   onNavigate,
@@ -439,6 +443,7 @@ function ModalPortalCard({
   description: string;
   href: string;
   cta: string;
+  logo?: string;
   busy?: boolean;
   onNavigateStart?: () => void;
   onNavigate: () => void;
@@ -455,9 +460,15 @@ function ModalPortalCard({
       className={`group relative flex flex-col overflow-hidden rounded-3xl border border-white/50 bg-white/80 p-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] backdrop-blur transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-white hover:shadow-[0_16px_40px_rgba(30,58,138,0.16)] ${busy ? 'pointer-events-none' : ''}`}
     >
       <div className="flex items-start justify-between">
-        <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-bold text-white" style={{ backgroundColor: accent }}>
-          {step}
-        </span>
+        {logo ? (
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-[0_4px_14px_rgba(0,0,0,0.08)] ring-1 ring-black/5">
+            <img src={logo} alt="" aria-hidden="true" className="max-h-10 max-w-10 object-contain" />
+          </span>
+        ) : (
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-bold text-white" style={{ backgroundColor: accent }}>
+            {step}
+          </span>
+        )}
         <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold ring-1 ring-black/5" style={{ color: accent }}>
           {eyebrow}
         </span>

@@ -66,7 +66,9 @@ export default function PassportPortal() {
 
       <div style={{ backgroundColor: '#fff', borderBottom: '1px solid #d4d4d4' }}>
         <div className="mx-auto flex max-w-[980px] items-center gap-3 px-3 py-2">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white" style={{ background: 'radial-gradient(circle at 35% 35%, #0a4a90, #003366)', border: '2px solid #b5651d' }}>PSP</span>
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white" style={{ border: '2px solid #b5651d' }}>
+            <img src="/passport.png" alt="Passport Seva logo" className="h-full w-full object-contain" />
+          </span>
           <span>
             <span className="block font-bold leading-tight" style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontSize: '28px', color: NAVY }}>Passport Seva</span>
             <span className="block" style={{ fontSize: '11px', color: '#555' }}>PSP Division — Ministry of External Affairs, Government of India</span>

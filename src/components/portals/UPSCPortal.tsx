@@ -450,19 +450,8 @@ function UpscGovHeader({ welcomeText, userIdText }: { welcomeText?: string; user
       <div style={{ backgroundColor: '#fff' }}>
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-3">
           <div className="flex items-center gap-3">
-            <span className="flex h-14 w-14 shrink-0 items-center justify-center" aria-label="National Emblem">
-              <svg viewBox="0 0 64 64" className="h-12 w-12" role="img" aria-label="National Emblem">
-                <g fill="none" stroke="#8a6d1b" strokeWidth="1.6">
-                  <circle cx="32" cy="24" r="13" />
-                  <circle cx="32" cy="24" r="3" fill="#8a6d1b" stroke="none" />
-                  {Array.from({ length: 24 }).map((_, i) => {
-                    const a = (i * 15 * Math.PI) / 180;
-                    return <line key={i} x1={32 + 4.5 * Math.cos(a)} y1={24 + 4.5 * Math.sin(a)} x2={32 + 12 * Math.cos(a)} y2={24 + 12 * Math.sin(a)} strokeWidth="0.9" />;
-                  })}
-                </g>
-                <rect x="14" y="40" width="36" height="9" rx="1" fill="#7a1f1f" />
-                <text x="32" y="47.5" textAnchor="middle" fontSize="6.5" fontWeight="700" fill="#ffd766" fontFamily="Arial">UPSC</text>
-              </svg>
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center" aria-label="UPSC logo">
+              <img src="/upsc.png" alt="UPSC logo" className="h-14 w-14 object-contain" />
             </span>
             <span>
               <span className="block text-[19px] font-bold leading-tight text-[#1a1a1a]" style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}>संघ लोक सेवा आयोग</span>
