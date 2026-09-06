@@ -10,7 +10,7 @@
 
 Every day the same story repeats across India. A pensioner at a cyber café, a student applying for a scholarship, a first-time passport applicant — all of them stopped by the same thing: **one file the portal silently rejects.**
 
-UPSC, Sarathi, EPFO, Passport Seva, SSC, NSP — each asks for the same kind of document (a photograph, a signature, a passbook), yet each demands it in its **own hidden way**: file type, quality, exact proportions, even the background colour. Miss any detail and the upload fails — without telling you why.
+UPSC, Parivahan Sewa, EPFO, Passport Seva, NSP — each asks for the same kind of document (a photograph, a signature, a passbook), yet each demands it in its **own hidden way**: file type, quality, exact dimensions, even the background colour. Miss any detail and the upload fails — without telling you why.
 
 So citizens do what anyone would: download their Aadhaar or passbook, hunt for a *"resize my PDF online"* site, upload it to an unknown service, compress, retry, fail, retry. **Their document is now sitting on a stranger's server.**
 
@@ -20,14 +20,22 @@ For the rural, the elderly, the first-time user, a rejected upload isn't "try ag
 
 DocBridge removes the retry loop. One calm upload experience that —
 
-- **Fetches from somewhere you already trust** — DigiLocker, with your consent, instead of a random file-converter site.
-- **Fixes the document on your own device** — prepared to exactly what the portal will accept, before a single byte leaves your hands.
-- **Shows you the result first** — the original next to the ready-to-submit copy. Download it if you like, adjust it if you don't.
+- **Fetches from somewhere you already trust** — DigiLocker, with your consent — or accepts a file directly from your device. Both paths are first-class.
+- **Reads the portal's own rules** — OpenAI models are used to read each portal's stated requirements and turn them into precise preparation instructions. No rules are hardcoded or guessed per document.
+- **Prepares the document on your own device** — resized, converted, compressed, and quality-checked in the browser, before a single byte leaves your hands.
+- **Shows you the result first** — the original next to the ready-to-submit copy. Adjust it manually if you like; the choice stays with you.
 - **Submits a file the portal already accepts** — the submit step is checked against strict rules that mirror the live portals' own validation. No changes to any government backend needed.
 
-When a document is ready, you can **save it back to your DigiLocker with auto-tags**. So the photograph you perfected for Passport Seva can be **reused on Sarathi minutes later** — no re-uploading, no re-cropping, nothing redone.
+When a document is ready, you can **save it back to your DigiLocker with automatic tags**. So the photograph you perfected for Passport Seva can be **reused on Parivahan minutes later** — already prepared, verified instantly, never reworked.
 
 > **Upload once. Portal-ready everywhere.**
+
+## Built for every citizen
+
+- **Guided by voice** — every key step can be spoken aloud, in English or हिंदी, for elderly and first-time users.
+- **"How DocBridge works in 3 easy steps"** — an illustrated, narrated walkthrough available on every portal, so no one wonders what just happened to their document.
+- **Two languages everywhere** — full English and हिंदी across every portal, toggleable at any moment, including the guided walkthrough and its voice narration.
+- **Already-prepared documents stay untouched** — when you pick a document you saved earlier, DocBridge verifies it instead of reworking it, preserving the exact quality you approved.
 
 ## Who this moves
 
@@ -36,23 +44,22 @@ When a document is ready, you can **save it back to your DigiLocker with auto-ta
 - **Students & job-seekers** — scholarships and exam applications stall on the tiniest technicalities.
 - **Even developers** — the "quick resize" detour that puts a copy of your Aadhaar on the internet.
 
-## The experience — six real journeys
+## The experience — five real journeys
 
 You land on the portal's own home, log in, get a gentle nudge (*"your photograph upload is pending"*), and then DocBridge does its work until your file is accepted — end to end, in English and हिंदी.
 
 - **EPFO** — a pensioner's passbook fetched from DigiLocker and made ready in one step.
 - **UPSC** — the photograph and signature on an OTR form that accepts no deviation.
-- **Sarathi (Vahan)** — a licence photo with its famously tight size window.
-- **Passport Seva** — photo + signature matched to a strict template, saved back with tags.
-- **SSC** — the smallest photograph and signature boxes in any portal.
-- **NSP** — a scholarship application and its parent's income certificate — batch upload where the portal genuinely allows several files at once; a calm single upload everywhere else.
+- **Parivahan Sewa** — a licence photo with its famously tight size window.
+- **Passport Seva** — photo + signature matched to a strict template, with live camera capture, drawing a signature on screen, or DigiLocker — your choice.
+- **NSP** — a scholarship application and its parent's income certificate — several documents at once where the portal genuinely allows it; a calm single upload everywhere else.
 
 ### A moment worth trying
 
 1. Open **Passport Seva** and upload a photo and signature with *"save to DigiLocker"* on.
-2. Sign in to **Sarathi**.
+2. Sign in to **Parivahan Sewa**.
 3. Open DigiLocker — your saved copies sit at the top, tagged *optimised for Passport Seva*.
-4. Pick one. The Sarathi-ready version appears before you blink.
+4. Pick one. It is verified instantly and appears ready before you blink.
 
 No third-party site ever sees your documents.
 
@@ -60,64 +67,17 @@ No third-party site ever sees your documents.
 
 **Live → [incredible-taffy-db08a6.netlify.app](https://incredible-taffy-db08a6.netlify.app)**
 
-Locally:
+Every login is pre-filled — one click to sign in, all the way to Submit. Screenshots of each journey, in both languages, are in the `docs` folder.
 
-```bash
-npm install
-npm run dev
-```
+## How it works — in 3 easy steps
 
-- `/epfo` — bring a bulky passbook; watch it come back small and accepted.
-- `/upsc` — photograph + signature OTR upload, then a calm "submitting…" beat that settles into a success banner.
-- `/vahan` — a photo that was far too big comes back exactly right.
-- …and the same story on `/passport`, `/ssc`, `/nsp`.
+1. **Choose your documents.** There are 2 supported ways: sign in to DigiLocker and select your issued documents — consent-based — or upload a file from your phone or computer.
+2. **OpenAI models read the portal's rules and prepare your documents to match** — the right type, size, and dimensions, worked out on your own device.
+3. **Verify, select, and submit — right here.** No third-party sites, no hopping between tools. You approve the final copy, and you can fine-tune it manually whenever you wish.
 
-Every login is pre-filled — one click to sign in, all the way to Submit.
+## Privacy, plainly
 
-## User journeys — every step, as a real user sees it
-
-Regenerate: `npm run journeys` (requires `npm run dev` on :3000).
-
-### Passport Seva (English) — live photo → 630×810px, portal-ready
-
-| Step | Screenshot |
-|------|------------|
-| 1 Login | ![01 login](docs/journeys/passport-en/01-login.png) |
-| 2 Dashboard nudge | ![02 nudge](docs/journeys/passport-en/02-dashboard-nudge.png) |
-| 3 Upload rules | ![03 rules](docs/journeys/passport-en/03-upload-requirements.png) |
-| 4 Live capture | ![04 camera](docs/journeys/passport-en/04-live-capture.png) |
-| 5 Capture review | ![05 review](docs/journeys/passport-en/05-capture-review.png) |
-| 6 Processing | ![06 processing](docs/journeys/passport-en/06-processing.png) |
-| 7 Before/after preview | ![07 preview](docs/journeys/passport-en/07-preview-compare.png) |
-| 8 Widget success | ![08 success](docs/journeys/passport-en/08-widget-success.png) |
-| 9 Signature pad | ![09 pad](docs/journeys/passport-en/09-signature-draw.png) |
-| 10 Portal done (photo done, signature still pending — needs both) | ![10 done](docs/journeys/passport-en/10-portal-done.png) |
-
-### EPFO (हिंदी) — passbook 4.2 MB → 55 KB PDF, 99% smaller
-
-| Step | Screenshot |
-|------|------------|
-| 1 साइन इन | ![01 login](docs/journeys/epfo-hi/01-login.png) |
-| 2 Dashboard nudge | ![02 nudge](docs/journeys/epfo-hi/02-dashboard-nudge.png) |
-| 3 KYC upload | ![03 kyc](docs/journeys/epfo-hi/03-upload-requirements.png) |
-| 4 DigiLocker auth | ![04 auth](docs/journeys/epfo-hi/04-digilocker-aadhaar.png) |
-| 5 OTP | ![05 otp](docs/journeys/epfo-hi/05-digilocker-otp.png) |
-| 6 Vault select | ![06 vault](docs/journeys/epfo-hi/06-digilocker-select.png) |
-| 7 Processing | ![07 processing](docs/journeys/epfo-hi/07-processing.png) |
-| 8 Before/after preview | ![08 preview](docs/journeys/epfo-hi/08-preview-compare.png) |
-| 9 Widget success | ![09 success](docs/journeys/epfo-hi/09-widget-success.png) |
-| 10 Portal success | ![10 done](docs/journeys/epfo-hi/10-portal-done.png) |
-
-## Screenshots — every site, English and हिंदी
-
-| Site | English | Hindi |
-|------|---------|-------|
-| EPFO | ![epfo EN](docs/screenshots/epfo-en.png) | ![epfo HI](docs/screenshots/epfo-hi.png) |
-| UPSC | ![upsc EN](docs/screenshots/upsc-en.png) | ![upsc HI](docs/screenshots/upsc-hi.png) |
-| Vahan / Sarathi | ![vahan EN](docs/screenshots/vahan-en.png) | ![vahan HI](docs/screenshots/vahan-hi.png) |
-| Passport Seva | ![passport EN](docs/screenshots/passport-en.png) | ![passport HI](docs/screenshots/passport-hi.png) |
-| SSC | ![ssc EN](docs/screenshots/ssc-en.png) | ![ssc HI](docs/screenshots/ssc-hi.png) |
-| NSP | ![nsp EN](docs/screenshots/nsp-en.png) | ![nsp HI](docs/screenshots/nsp-hi.png) |
+Your documents never leave your device during preparation. OpenAI models are used only to read the portals' stated requirements and guide the optimisation — the documents themselves are never sent anywhere. Everything happens in your browser, on your terms.
 
 ## Vision
 
@@ -125,4 +85,4 @@ Public digital services should feel as thoughtful as the people they serve. Trus
 
 ## Acknowledgement
 
-Built honestly with AI — OpenAI Codex / Muse Spark — with human judgment steering the experience. Every upload rule was learned from the real portals and verified against the real validation logic, so the demo holds up the moment a judge presses Submit.
+Built honestly with OpenAI models assisting — with human judgment steering the experience. Every upload rule was learned from the real portals and verified against their actual validation behaviour, so the demo holds up the moment a judge presses Submit.

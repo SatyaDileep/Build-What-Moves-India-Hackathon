@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import DocBridgeWidget from '@/components/DocBridgeWidget';
 import GovernmentHeader from '@/components/ui/GovernmentHeader';
 import PortalNudge from '@/components/ui/PortalNudge';
+import HowItWorksModal, { HowItWorksTrigger } from '@/components/ui/HowItWorksModal';
 import { COLORS } from '@/lib/constants';
 import { useLang } from '@/lib/i18n';
 
@@ -18,6 +19,7 @@ export default function NSPPortal() {
   const { t } = useLang();
   const [step, setStep] = useState<JourneyStep>('login');
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
+  const [showHowModal, setShowHowModal] = useState(false);
   const [done, setDone] = useState({ photo: false, income: false });
 
   useEffect(() => {
@@ -139,6 +141,9 @@ export default function NSPPortal() {
                 ctaLabel={t('upload.docs')}
                 onAction={() => setStep('upload')}
                 onDismiss={() => setNudgeDismissed(true)}
+                secondaryAction={
+                  <HowItWorksTrigger onClick={() => setShowHowModal(true)} tone="chip" />
+                }
                 tone="amber"
               />
             ) : (
@@ -328,6 +333,8 @@ export default function NSPPortal() {
           <p className="mt-2 px-4 py-2" style={{ background: '#D9D9D9', fontSize: '16px', color: '#000', lineHeight: '50px' }}>{t('nsp.updated')}</p>
         </div>
       </footer>
+
+      <HowItWorksModal open={showHowModal} onClose={() => setShowHowModal(false)} />
     </div>
   );
 }

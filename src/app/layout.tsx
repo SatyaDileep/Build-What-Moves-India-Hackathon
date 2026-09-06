@@ -17,12 +17,12 @@ const devanagari = Noto_Sans_Devanagari({
 
 export const metadata: Metadata = {
   title: "DocBridge - Smart Document Upload Middleware",
-  description: "AI-powered middleware that automatically parses portal requirements, fetches documents from DigiLocker, and optimizes them to meet strict government upload specifications.",
-  keywords: ["DocBridge", "document upload", "DigiLocker", "government portal", "EPFO", "UPSC", "AI", "middleware"],
+  description: "Document readiness middleware — OpenAI models are used to read each portal's upload requirements, fetch documents from DigiLocker, and prepare them to meet strict government upload specifications.",
+  keywords: ["DocBridge", "document upload", "DigiLocker", "government portal", "EPFO", "UPSC", "OpenAI", "middleware"],
   authors: [{ name: "DocBridge Team" }],
   openGraph: {
     title: "DocBridge - Smart Document Upload Middleware",
-    description: "Never get rejected again. AI-powered document processing for Indian government portals.",
+    description: "Never get rejected again. Document preparation for Indian government portals, powered by OpenAI models.",
     type: "website",
   },
 };

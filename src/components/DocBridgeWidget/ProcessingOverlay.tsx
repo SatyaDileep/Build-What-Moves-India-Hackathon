@@ -58,12 +58,12 @@ export default function ProcessingOverlay({ state, source = 'digilocker', portal
   const STEPS: { label: string; tag?: string; sub?: string }[] = state === 'submitting'
     ? [
         { label: source === 'device' ? t('ov.fileReady') : t('ov.fetched'), sub: t('ov.verified') },
-        { label: `${t('ov.optimizingFor')} ${portalLabel}`, sub: portalHint, tag: 'AI' },
+        { label: `${t('ov.optimizingFor')} ${portalLabel}`, sub: portalHint, tag: 'OpenAI' },
         { label: t('ov.validSubmit'), sub: t('ov.almost') },
       ]
     : [
         { label: source === 'device' ? t('ov.fileAdded') : t('ov.fetching'), sub: source === 'device' ? t('ov.localFile') : t('ov.consent') },
-        { label: `${t('ov.optimizingFor')} ${portalLabel}…`, sub: portalHint, tag: 'AI' },
+        { label: `${t('ov.optimizingFor')} ${portalLabel}…`, sub: portalHint, tag: 'OpenAI' },
         { label: t('ov.validating'), sub: t('ov.checkFormat') },
       ];
 

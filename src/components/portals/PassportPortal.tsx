@@ -6,6 +6,7 @@ import DocBridgeWidget from '@/components/DocBridgeWidget';
 import TricolorBar from '@/components/ui/TricolorBar';
 import VoiceToggle from '@/components/ui/VoiceToggle';
 import { LanguageToggle, useLang } from '@/lib/i18n';
+import HowItWorksModal, { HowItWorksTrigger } from '@/components/ui/HowItWorksModal';
 
 type JourneyStep = 'login' | 'dashboard' | 'upload' | 'submitted';
 
@@ -27,6 +28,7 @@ export default function PassportPortal() {
   const { t } = useLang();
   const [step, setStep] = useState<JourneyStep>('login');
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
+  const [showHowModal, setShowHowModal] = useState(false);
   const [done, setDone] = useState({ photo: false, signature: false });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [signatureFile, setSignatureFile] = useState<File | null>(null);
@@ -195,7 +197,8 @@ export default function PassportPortal() {
                   >
                     {t('upload.photoSig')} →
                   </button>
-                  <div className="mt-1 flex items-center gap-2">
+                  <div className="mt-2 flex flex-wrap items-center gap-2.5">
+                    <HowItWorksTrigger onClick={() => setShowHowModal(true)} tone="chip" />
                     <VoiceToggle />
                     <button type="button" onClick={() => setNudgeDismissed(true)} className="underline" style={{ fontSize: '11px', color: LINK_BLUE }}>Dismiss</button>
                   </div>
@@ -299,7 +302,7 @@ export default function PassportPortal() {
                       deviceInputId="native-passport-photo-input"
                       deviceFile={photoFile}
                       onDeviceFileChange={setPhotoFile}
-                      captureModes={['camera', 'device']}
+                      captureModes={['camera', 'digilocker', 'device']}
                       assistantNote={t('pp.smartPhoto')}
                     />
                   </div>
@@ -336,7 +339,7 @@ export default function PassportPortal() {
                       deviceInputId="native-passport-signature-input"
                       deviceFile={signatureFile}
                       onDeviceFileChange={setSignatureFile}
-                      captureModes={['draw', 'device']}
+                      captureModes={['draw', 'digilocker', 'device']}
                       assistantNote={t('pp.smartSig')}
                     />
                   </div>
@@ -366,6 +369,8 @@ export default function PassportPortal() {
           <span className="mt-0.5 block">Content owned and maintained by PSP Division, Ministry of External Affairs · Demo mock for hackathon evaluation</span>
         </footer>
       </div>
+
+      <HowItWorksModal open={showHowModal} onClose={() => setShowHowModal(false)} />
     </div>
   );
 }

@@ -13,6 +13,8 @@ interface PortalNudgeProps {
   dismissible?: boolean;
   tone?: 'amber' | 'blue' | 'green';
   showVoice?: boolean;
+  // Optional secondary action rendered next to the CTA (e.g. "Know how DocBridge works").
+  secondaryAction?: React.ReactNode;
 }
 
 export default function PortalNudge({
@@ -25,6 +27,7 @@ export default function PortalNudge({
   dismissible = true,
   tone = 'amber',
   showVoice = true,
+  secondaryAction,
 }: PortalNudgeProps) {
   const palette =
     tone === 'blue'
@@ -52,15 +55,18 @@ export default function PortalNudge({
             {title}
           </h3>
           <p className="mt-1 text-sm leading-6 text-slate-600">{description}</p>
-          <button
-            type="button"
-            onClick={onAction}
-            className="mt-3 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold text-white shadow-sm transition-all hover:-translate-y-0.5"
-            style={{ backgroundColor: palette.accent }}
-          >
-            {ctaLabel}
-            <span aria-hidden="true">→</span>
-          </button>
+          <div className="mt-3 flex flex-wrap items-center gap-2.5">
+            <button
+              type="button"
+              onClick={onAction}
+              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold text-white shadow-sm transition-all hover:-translate-y-0.5"
+              style={{ backgroundColor: palette.accent }}
+            >
+              {ctaLabel}
+              <span aria-hidden="true">→</span>
+            </button>
+            {secondaryAction}
+          </div>
           {showVoice && <VoiceToggle className="mt-2" />}
         </div>
         {dismissible && onDismiss && (

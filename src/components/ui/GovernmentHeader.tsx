@@ -121,6 +121,7 @@ export default function GovernmentHeader({
             <span className="font-bold">A-</span>
             <span className="font-bold">A</span>
             <span className="font-bold">A+</span>
+            <LanguageToggle />
             <span className="text-[#ADB5BD]">|</span>
             <span style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}>{GOV_CONFIG.mottoHindi} • {t('gov.ofIndia')}</span>
           </span>

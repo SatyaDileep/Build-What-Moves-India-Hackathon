@@ -4,9 +4,10 @@ import Link from 'next/link';
 import { useState } from 'react';
 import DocBridgeWidget from '@/components/DocBridgeWidget';
 import PortalNudge from '@/components/ui/PortalNudge';
+import HowItWorksModal, { HowItWorksTrigger } from '@/components/ui/HowItWorksModal';
 import TricolorBar from '@/components/ui/TricolorBar';
 import { COLORS } from '@/lib/constants';
-import { useLang, voiceLang } from '@/lib/i18n';
+import { useLang, voiceLang, LanguageToggle } from '@/lib/i18n';
 import { useVoiceGuide } from '@/hooks/useVoiceGuide';
 import { isVoiceOn } from '@/lib/voice';
 
@@ -18,6 +19,7 @@ export default function EPFOPortal() {
   const { t, lang } = useLang();
   const [step, setStep] = useState<JourneyStep>('login');
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
+  const [showHowModal, setShowHowModal] = useState(false);
   const [alerts, setAlerts] = useState({ rbi: true, mobile: true });
   useVoiceGuide(isVoiceOn() && step === 'submitted', t('w.congrats'), voiceLang(lang));
 
@@ -32,6 +34,7 @@ export default function EPFOPortal() {
           <span className="rounded border bg-white px-1.5 py-0.5 font-bold text-[#333]">A-</span>
           <span className="rounded border bg-white px-1.5 py-0.5 font-bold text-[#333]">A</span>
           <span className="rounded border bg-white px-1.5 py-0.5 font-bold text-[#333]">A+</span>
+          <span className="font-sans" style={{ filter: 'invert(0)' }}><EpfoLangToggle /></span>
         </div>
       )}
       <div className="flex flex-wrap items-center gap-3 px-4 py-3" style={{ borderBottom: '1px solid #e5e5e5' }}>
@@ -52,6 +55,7 @@ export default function EPFOPortal() {
               <span className="rounded border bg-white px-1.5 py-0.5 text-[11px] font-bold text-[#333]">A-</span>
               <span className="rounded border bg-white px-1.5 py-0.5 text-[11px] font-bold text-[#333]">A</span>
               <span className="rounded border bg-white px-1.5 py-0.5 text-[11px] font-bold text-[#333]">A+</span>
+              <EpfoLangToggle />
             </span>
             <button type="button" onClick={() => setStep('login')} className="rounded-md px-4 py-2 text-[13px] font-bold text-white" style={{ backgroundColor: '#c0392b' }}>⎋ {t('epfo.logout')}</button>
           </span>
@@ -161,6 +165,9 @@ export default function EPFOPortal() {
                   ctaLabel={t('epfo.nudgeCta')}
                   onAction={() => setStep('kyc')}
                   onDismiss={() => setNudgeDismissed(true)}
+                  secondaryAction={
+                    <HowItWorksTrigger onClick={() => setShowHowModal(true)} tone="chip" />
+                  }
                   tone="amber"
                 />
               ) : (
@@ -355,6 +362,7 @@ export default function EPFOPortal() {
           )}
         </div>
       </main>
+      <HowItWorksModal open={showHowModal} onClose={() => setShowHowModal(false)} />
     </div>
   );
 }
@@ -380,5 +388,25 @@ function ResultCard({
       <p className="text-xs font-semibold uppercase tracking-[0.18em]">{label}</p>
       <p className="mt-2 text-sm font-semibold leading-6">{value}</p>
     </div>
+  );
+}
+
+function EpfoLangToggle() {
+  const { lang, setLang } = useLang();
+  return (
+    <span className="inline-flex items-center gap-0.5 font-bold" role="group" aria-label="Language / भाषा">
+      {(['en', 'hi'] as const).map((l) => (
+        <button
+          key={l}
+          type="button"
+          onClick={() => setLang(l)}
+          aria-pressed={lang === l}
+          className="rounded border px-1.5 py-0.5 text-[12px] transition"
+          style={lang === l ? { backgroundColor: '#1a7a7a', color: '#fff', borderColor: '#1a7a7a' } : { backgroundColor: '#fff', color: '#333', borderColor: '#ccc' }}
+        >
+          {l === 'en' ? 'EN' : 'हिं'}
+        </button>
+      ))}
+    </span>
   );
 }

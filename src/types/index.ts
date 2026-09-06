@@ -88,6 +88,9 @@ export interface BatchItem {
   blob: Blob;
   size_mb: number;
   docType: 'photo' | 'signature' | 'income' | 'passbook' | 'other';
+  // Set when the file is an already-optimized DigiLocker copy — processing
+  // verifies rather than re-encodes.
+  optimizedFor?: string;
   result?: ProcessingResult;
   status: 'queued' | 'processing' | 'done' | 'error';
   error?: string;

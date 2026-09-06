@@ -5,7 +5,8 @@ import { useEffect, useState } from 'react';
 import DocBridgeWidget from '@/components/DocBridgeWidget';
 import VoiceToggle from '@/components/ui/VoiceToggle';
 import { COLORS } from '@/lib/constants';
-import { useLang } from '@/lib/i18n';
+import { useLang, LanguageToggle } from '@/lib/i18n';
+import HowItWorksModal, { HowItWorksTrigger } from '@/components/ui/HowItWorksModal';
 
 type JourneyStep = 'state' | 'menu' | 'lookup' | 'upload' | 'submitted';
 
@@ -33,11 +34,13 @@ export default function VahanPortal() {
   const [step, setStep] = useState<JourneyStep>('state');
   const [stateName, setStateName] = useState('Delhi');
   const [fraudDismissed, setFraudDismissed] = useState(false);
+  const [showHowModal, setShowHowModal] = useState(false);
   const [done, setDone] = useState({ photo: false, signature: false });
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#eef1f5', fontFamily: "Arial, 'Open Sans', sans-serif" }}>
-      <SarathiHeader fraudDismissed={fraudDismissed} onDismissFraud={() => setFraudDismissed(true)} />
+      <SarathiHeader fraudDismissed={fraudDismissed} onDismissFraud={() => setFraudDismissed(true)} onShowHow={() => setShowHowModal(true)} />
+      <HowItWorksModal open={showHowModal} onClose={() => setShowHowModal(false)} />
 
       <div className="mx-auto mt-3 max-w-6xl px-4">
         <div className="mb-2 flex items-center justify-between rounded-sm border bg-white px-4 py-2 text-[12.5px] shadow-sm" style={{ borderColor: '#c9d2dc' }}>
@@ -266,7 +269,7 @@ export default function VahanPortal() {
 }
 
 // Sarathi 4.0 chrome: gov bar + masthead + fraud notice
-function SarathiHeader({ fraudDismissed, onDismissFraud }: { fraudDismissed: boolean; onDismissFraud: () => void }) {
+function SarathiHeader({ fraudDismissed, onDismissFraud, onShowHow }: { fraudDismissed: boolean; onDismissFraud: () => void; onShowHow: () => void }) {
   const [now, setNow] = useState('');
   useEffect(() => {
     const tick = () => setNow(new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }).toUpperCase());
@@ -290,6 +293,8 @@ function SarathiHeader({ fraudDismissed, onDismissFraud }: { fraudDismissed: boo
             <span className="font-bold">A-</span>
             <span className="font-bold">A</span>
             <span className="font-bold">A+</span>
+            <span className="text-white/50">|</span>
+            <LanguageToggle />
             <span className="text-white/50">|</span>
             <span className="cursor-pointer font-bold hover:underline">Login</span>
           </span>
@@ -327,6 +332,7 @@ function SarathiHeader({ fraudDismissed, onDismissFraud }: { fraudDismissed: boo
           <div className="mx-auto flex max-w-6xl items-start gap-2 px-4 py-1.5 text-[11.5px] leading-5 text-amber-900">
             <span aria-hidden="true">🛡️</span>
             <span className="flex-1"><strong>Beware of fraudulent websites and apps.</strong> Driving Licence services are only on <strong>parivahan.gov.in</strong> and the official <strong>NexGen mParivahan</strong> app — do not use unknown links or apps.</span>
+            <HowItWorksTrigger onClick={onShowHow} tone="chip" />
             <button type="button" onClick={onDismissFraud} className="font-bold underline">Dismiss</button>
           </div>
         </div>

@@ -77,7 +77,7 @@ export const PORTALS: PortalConfig[] = [
     id: 'upsc',
     name: 'UPSC / State PSC Job Application Portal',
     description: 'Document Upload - Passport Photo',
-    requirements: 'Upload latest Passport Photo. JPEG only. File size 20KB - 200KB. Resolution 350px - 1000px. Plain white background. Face must cover 3/4th (75%) of the photo. A live photograph must also be captured and matched.',
+    requirements: 'Upload latest Passport Photo. JPEG only. File size 20KB - 200KB. Pixel dimensions minimum 350 x 350 px, maximum 1000 x 1000 px. Plain white background. Face must cover 3/4th (75%) of the photo. A live photograph must also be captured and matched.',
     constraint: { format: 'jpeg', min_kb: 20, max_kb: 200, width_cm: 3.5, height_cm: 4.5, bg_color: 'white' },
     persona: { name: 'Priya', age: 22, role: 'Applicant' },
   },

@@ -41,7 +41,10 @@ function boldDocBridge(text: string): React.ReactNode {
 }
 const SLOT_REQUIREMENTS: Record<string, Partial<Record<BatchItem['docType'], string>>> = {
   epfo: { passbook: 'EPFO passbook. PDF format, maximum size 500KB, account number must be visible.' },
-  upsc: { photo: 'UPSC passport photo. JPEG only, 20KB - 200KB, 350px - 1000px, white background.' },
+  upsc: {
+    photo: 'UPSC photograph. JPEG only, 20KB - 300KB, minimum 350 x 350 pixels, maximum 1000 x 1000 pixels, white background.',
+    signature: 'UPSC signature. JPEG only, 20KB - 300KB, minimum 350 x 350 pixels, maximum 1000 x 1000 pixels, white background.',
+  },
   vahan: {
     photo: 'Sarathi driving licence photo. JPEG only, 10KB - 20KB, 35mm x 45mm, white background.',
     signature: 'Sarathi driving licence signature upload. Signature scan, JPEG only, 10KB - 20KB, 30x10mm strip, black ink on white paper.',
@@ -161,10 +164,10 @@ export default function DocBridgeWidget({
   }, [deviceFile, deviceInputId]);
 
   const [lastBlob, setLastBlob] = useState<Blob | null>(null);
-  const [lastMeta, setLastMeta] = useState<{ name: string; type: string; size_mb: number } | null>(null);
+  const [lastMeta, setLastMeta] = useState<{ name: string; type: string; size_mb: number; optimizedFor?: string } | null>(null);
   const [isRecompressing, setIsRecompressing] = useState(false);
 
-  const runProcessing = async (blob: Blob, meta: { name: string; type: string; size_mb: number }, opts?: { aggressive?: boolean; rotation?: number; enhance?: boolean; targetKB?: number; targetWidth?: number; targetHeight?: number }) => {
+  const runProcessing = async (blob: Blob, meta: { name: string; type: string; size_mb: number; optimizedFor?: string }, opts?: { aggressive?: boolean; rotation?: number; enhance?: boolean; targetKB?: number; targetWidth?: number; targetHeight?: number }) => {
     const conn = (navigator as any)?.connection?.effectiveType;
     if ((conn === '2g' || conn === 'slow-2g') && !opts?.aggressive && !opts?.rotation && !opts?.enhance && !opts?.targetKB) opts = { ...opts, aggressive: true };
     try {
@@ -218,6 +221,7 @@ export default function DocBridgeWidget({
       name: asset.name,
       type: asset.type,
       size_mb: asset.size_mb,
+      optimizedFor: asset.source === 'optimized' ? asset.optimizedFor : undefined,
     });
   };
 
@@ -232,6 +236,7 @@ export default function DocBridgeWidget({
       type: asset.type,
       size_mb: asset.size_mb,
       blob: blobs[i],
+      optimizedFor: asset.source === 'optimized' ? asset.optimizedFor : undefined,
     })));
   };
 
@@ -256,13 +261,14 @@ export default function DocBridgeWidget({
     await runProcessing(file, { name: file.name, type: file.type, size_mb: file.size / (1024 * 1024) });
   };
 
-  const makeBatchItem = (meta: { name: string; type: string; size_mb: number; blob: Blob }): BatchItem => ({
+  const makeBatchItem = (meta: { name: string; type: string; size_mb: number; blob: Blob; optimizedFor?: string }): BatchItem => ({
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     name: meta.name,
     type: meta.type,
     blob: meta.blob,
     size_mb: meta.size_mb,
     docType: (docType as BatchItem['docType'] | undefined) ?? inferDocType(meta.name),
+    optimizedFor: meta.optimizedFor,
     status: 'queued',
   });
 
@@ -286,7 +292,7 @@ export default function DocBridgeWidget({
         setBatchProgress({ done: i, total: items.length });
         const constraint = await parsePortalConstraints(requirementFor(item));
         await wait(300);
-        const result = await processDocument(item.blob, constraint, { name: item.name, type: item.type, size_mb: item.size_mb });
+        const result = await processDocument(item.blob, constraint, { name: item.name, type: item.type, size_mb: item.size_mb, optimizedFor: item.optimizedFor });
         setBatchItems((prev) => prev.map((it) => (it.id === item.id ? { ...it, result, status: 'done' as BatchItem['status'] } : it)));
       } catch (err: any) {
         setBatchItems((prev) => prev.map((it) => (it.id === item.id ? { ...it, status: 'error' as BatchItem['status'], error: err?.message || t('w.errProcess') } : it)));
@@ -308,7 +314,7 @@ export default function DocBridgeWidget({
     await dwellForSpeech(`${t('ov.optimizingFor')} ${portalDisplayName(portalId)}`, 300);
     try {
       const constraint = await parsePortalConstraints(requirementFor(item));
-      const result = await processDocument(item.blob, constraint, { name: item.name, type: item.type, size_mb: item.size_mb }, opts);
+      const result = await processDocument(item.blob, constraint, { name: item.name, type: item.type, size_mb: item.size_mb, optimizedFor: item.optimizedFor }, opts);
       setBatchItems((prev) => prev.map((it) => (it.id === id ? { ...it, result, status: 'done' as BatchItem['status'], error: undefined, submitted: undefined, submitError: undefined } : it)));
     } catch (err: any) {
       setBatchItems((prev) => prev.map((it) => (it.id === id ? { ...it, status: 'error' as BatchItem['status'], error: err?.message || t('w.errProcess') } : it)));
@@ -476,8 +482,8 @@ export default function DocBridgeWidget({
     <div className="relative">
       {/* Source chooser */}
       {state === 'idle' && (
-        <div className="space-y-3">
-          <div className="rounded-xl border p-5 pb-6" style={{ borderColor: COLORS.gray[300], backgroundColor: COLORS.primaryLight }}>
+        <div className="space-y-2">
+          <div className="rounded-xl border p-4" style={{ borderColor: COLORS.gray[300], backgroundColor: COLORS.primaryLight }}>
             {deviceInputId && deviceFile ? (
               /* Carve-out: a file was chosen through the portal's native input. */
               <div className="flex items-center gap-3">
@@ -508,17 +514,17 @@ export default function DocBridgeWidget({
               </div>
             ) : (
               <>
-                <p className="text-sm font-semibold mb-1" style={{ color: COLORS.primary }}>{sourceHeading ?? t('w.where')}</p>
-                <p className="text-xs mb-4" style={{ color: COLORS.gray[600] }}>
+                <p className="text-sm font-semibold mb-0.5" style={{ color: COLORS.primary }}>{sourceHeading ?? t('w.where')}</p>
+                <p className="text-xs mb-3" style={{ color: COLORS.gray[600] }}>
                   {boldDocBridge(sourceSub ?? t('w.whereSub'))}
                 </p>
                 {assistantNote && (
-                  <p className="mb-4 flex items-start gap-1.5 rounded-lg border px-3 py-2 text-xs leading-5" style={{ borderColor: '#BBF7D0', backgroundColor: '#F0FDF4', color: '#166534' }}>
+                  <p className="mb-3 flex items-start gap-1.5 text-xs leading-5" style={{ color: '#166534' }}>
                     <span aria-hidden="true">✨</span>
                     <span>{boldDocBridge(assistantNote)}</span>
                   </p>
                 )}
-                <div className="grid gap-3 pb-1 sm:grid-cols-2">
+                <div className="grid gap-2.5 pb-0.5 sm:grid-cols-2">
                   {captureModes.includes('digilocker') && (
                     <SourceOption
                       title={t('w.fromDigi')}
@@ -720,18 +726,18 @@ function SourceOption({ title, description, icon, onClick, onDragOver, onDrop, d
       onClick={onClick}
       onDragOver={onDragOver}
       onDrop={onDrop}
-      className="group flex cursor-pointer flex-col items-start gap-2 rounded-xl border-2 bg-white p-4 text-left shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_12px_30px_rgba(30,58,138,0.18)] focus-visible:outline-2 focus-visible:outline-offset-2"
+      className="group flex cursor-pointer flex-col items-start gap-1.5 rounded-lg border bg-white p-3.5 text-left transition-all duration-200 hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2"
       style={{ borderColor: COLORS.gray[300], ...(dragHint ? { borderStyle: 'dashed' } : {}) }}
       onMouseEnter={(e) => { e.currentTarget.style.borderColor = COLORS.primary; }}
       onMouseLeave={(e) => { e.currentTarget.style.borderColor = COLORS.gray[300]; }}
     >
-      <span className="flex w-full items-center justify-between">
-        <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg" style={{ backgroundColor: COLORS.primaryLight, color: COLORS.primary }}>
+      <span className="flex w-full items-center gap-2.5">
+        <span className="inline-flex h-8 w-8 items-center justify-center rounded-md" style={{ backgroundColor: COLORS.primaryLight, color: COLORS.primary }}>
           {icon}
         </span>
+        <span className="flex-1 text-sm font-bold" style={{ color: COLORS.gray[800] }}>{title}</span>
         <span aria-hidden="true" className="text-lg font-bold transition-transform duration-200 group-hover:translate-x-1" style={{ color: COLORS.primary }}>→</span>
       </span>
-      <span className="mt-1 block text-sm font-bold" style={{ color: COLORS.gray[800] }}>{title}</span>
       <span className="block text-xs leading-5" style={{ color: COLORS.gray[500] }}>{description}</span>
     </button>
   );

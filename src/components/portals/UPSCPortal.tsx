@@ -4,8 +4,9 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import DocBridgeWidget from '@/components/DocBridgeWidget';
 import PortalNudge from '@/components/ui/PortalNudge';
+import HowItWorksModal, { HowItWorksTrigger } from '@/components/ui/HowItWorksModal';
 import { COLORS } from '@/lib/constants';
-import { useLang } from '@/lib/i18n';
+import { useLang, LanguageToggle } from '@/lib/i18n';
 
 type JourneyStep = 'login' | 'dashboard' | 'upload' | 'submitting' | 'submitted';
 
@@ -39,6 +40,7 @@ export default function UPSCPortal() {
   const { t } = useLang();
   const [step, setStep] = useState<JourneyStep>('login');
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
+  const [showHowModal, setShowHowModal] = useState(false);
   const [done, setDone] = useState({ photo: false, signature: false });
   // Files chosen through the OTR card's hidden native inputs (carve-out mode).
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -192,6 +194,9 @@ export default function UPSCPortal() {
                 ctaLabel={t('upload.continuePhoto')}
                 onAction={() => setStep('upload')}
                 onDismiss={() => setNudgeDismissed(true)}
+                secondaryAction={
+                  <HowItWorksTrigger onClick={() => setShowHowModal(true)} tone="chip" />
+                }
                 tone="amber"
               />
             ) : (
@@ -321,7 +326,7 @@ export default function UPSCPortal() {
                     <DocBridgeWidget
                       portalId="upsc"
                       docType="photo"
-                      requirements="Upload latest Passport Photo. JPEG only. File size 20KB - 200KB. Resolution 350px - 1000px. Plain white background. Face must cover 3/4th (75%) of the photo. A live photograph must also be captured and matched."
+                      requirements="Upload latest Passport Photo. JPEG only. File size 20KB - 200KB. Pixel dimensions minimum 350 x 350 px, maximum 1000 x 1000 px. Plain white background. Face must cover 3/4th (75%) of the photo. A live photograph must also be captured and matched."
                       onSuccess={() => setDone((d) => ({ ...d, photo: true }))}
                       deviceInputId="native-photo-input"
                       deviceFile={photoFile}
@@ -413,6 +418,8 @@ export default function UPSCPortal() {
         )}
       </main>
 
+      <HowItWorksModal open={showHowModal} onClose={() => setShowHowModal(false)} />
+
       {/* Gov footer strip */}
       <footer className="border-t py-4 text-center text-[11.5px] text-slate-500" style={{ borderColor: '#c9d2dc', backgroundColor: '#f4f7fb' }}>
         Content owned, updated and maintained by Union Public Service Commission · Demo recreation for hackathon — Helpline: 1800-118-711
@@ -441,7 +448,7 @@ function UpscGovHeader({ welcomeText, userIdText }: { welcomeText?: string; user
             ))}
             <span className="flex h-5 w-5 items-center justify-center rounded-sm bg-[#1a3a6b] text-[10px] font-bold text-white">A</span>
             <span className="flex h-5 w-5 items-center justify-center rounded-sm bg-[#0a66c2] text-[10px] font-bold text-white">in</span>
-            <span className="font-semibold">हिन्दी</span>
+            <LanguageToggle />
           </span>
         </div>
       </div>

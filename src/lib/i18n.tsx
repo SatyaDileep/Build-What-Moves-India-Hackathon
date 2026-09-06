@@ -33,9 +33,9 @@ const dict: Record<string, { en: string; hi: string }> = {
   'w.where': { en: 'Use DocBridge for seamless experience', hi: 'सहज अनुभव के लिए DocBridge अपनाएँ' },
   'w.whereSub': { en: 'DocBridge works with either a trusted source or a file you already have.', hi: 'DocBridge विश्वसनीय स्रोत या आपके पास मौजूद फ़ाइल — दोनों से काम करता है।' },
   'w.fromDigi': { en: 'From DigiLocker', hi: 'DigiLocker से' },
-  'w.fromDigiSub': { en: 'Authorised, consent-based access to your issued documents.', hi: 'आपके जारी दस्तावेज़ों तक अधिकृत, सहमति-आधारित पहुँच।' },
+  'w.fromDigiSub': { en: 'Already have an issued photo or signature? Pull it with consent.', hi: 'जारी दस्तावेज़ मौजूद? सहमति से प्राप्त करें।' },
   'w.fromDevice': { en: 'Upload from device', hi: 'डिवाइस से अपलोड करें' },
-  'w.fromDeviceSub': { en: 'Pick a photo or PDF you already have on your phone or computer.', hi: 'अपने फोन या कंप्यूटर पर मौजूद फोटो या PDF चुनें।' },
+  'w.fromDeviceSub': { en: 'Pick a photo or PDF already on your phone or computer.', hi: 'फोन या कंप्यूटर पर मौजूद फोटो या PDF चुनें।' },
   'w.orDrag': { en: 'or drag & drop here', hi: 'या यहाँ खींचकर छोड़ें' },
   'w.fileSelected': { en: 'File selected', hi: 'फ़ाइल चुनी गई' },
   'w.fileChosen': { en: 'Chosen for the OTR upload', hi: 'OTR अपलोड के लिए चुनी गई' },
@@ -76,9 +76,9 @@ const dict: Record<string, { en: string; hi: string }> = {
   'w.successSub': { en: 'Your document has been successfully processed and submitted.', hi: 'आपका दस्तावेज़ सफलतापूर्वक तैयार और जमा हो गया।' },
   'w.congrats': { en: 'Congratulations! Your documents have been successfully submitted with the help of DocBridge, seamlessly.', hi: 'बधाई हो! DocBridge की मदद से आपके दस्तावेज़ सफलतापूर्वक जमा हो गए — बिल्कुल सहजता से।' },
   'w.takePhoto': { en: 'Take Live Photo', hi: 'लाइव फोटो लें' },
-  'w.takePhotoSub': { en: 'Use your camera for a fresh, correctly-sized photo.', hi: 'ताज़ा, सही साइज़ की फोटो हेतु कैमरा इस्तेमाल करें।' },
+  'w.takePhotoSub': { en: 'Fresh photo from your camera, sized right.', hi: 'कैमरे से ताज़ा, सही साइज़ फोटो।' },
   'w.drawSign': { en: 'Draw on Screen', hi: 'स्क्रीन पर बनाएँ' },
-  'w.drawSignSub': { en: 'Sign with your finger or stylus, no paper needed.', hi: 'बिना कागज़, उँगली या स्टाइलस से हस्ताक्षर करें।' },
+  'w.drawSignSub': { en: 'Sign with finger or stylus — no paper.', hi: 'उँगली या स्टाइलस से हस्ताक्षर — बिना कागज़।' },
   'w.capture': { en: 'Capture', hi: 'कैप्चर करें' },
   'w.retake': { en: 'Retake', hi: 'फिर से लें' },
   'w.usePhoto': { en: 'Use this photo', hi: 'यही फोटो इस्तेमाल करें' },
@@ -147,7 +147,7 @@ const dict: Record<string, { en: string; hi: string }> = {
   'ov.verified': { en: 'Verified', hi: 'सत्यापित' },
   'ov.validSubmit': { en: 'Validating & submitting', hi: 'जाँच व जमा' },
   'ov.almost': { en: 'Almost done…', hi: 'लगभग पूर्ण…' },
-  'privacy.title': { en: '100% browser-private — AI only calculates size and dimensions; files never leave your browser.', hi: '100% ब्राउज़र-प्राइवेट — AI केवल साइज़ व आयाम मापता है; फ़ाइलें ब्राउज़र से बाहर नहीं जातीं।' },
+  'privacy.title': { en: '100% browser-private — OpenAI models are used only to calculate size and dimensions; files never leave your browser.', hi: '100% ब्राउज़र-प्राइवेट — OpenAI मॉडल केवल साइज़ व आयाम मापने हेतु उपयोग होते हैं; फ़ाइलें ब्राउज़र से बाहर नहीं जातीं।' },
   'dl.title': { en: 'Connect DigiLocker', hi: 'DigiLocker जोड़ें' },
   'dl.consent': { en: 'Consent-based fetch. DocBridge never stores your files.', hi: 'सहमति-आधारित प्राप्ति। DocBridge आपकी फ़ाइलें संग्रहित नहीं करता।' },
   'dl.select': { en: 'Select a document to continue', hi: 'आगे बढ़ने हेतु दस्तावेज़ चुनें' },
@@ -207,6 +207,22 @@ const dict: Record<string, { en: string; hi: string }> = {
   'epfo.qlTrackClaim': { en: 'Track Claim', hi: 'दावा ट्रैक करें' },
   'epfo.qlNomination': { en: 'e-Nomination', hi: 'ई-नामांकन' },
   'epfo.qlHistory': { en: 'Member Service History', hi: 'सदस्य सेवा इतिहास' },
+  'how.eyebrow': { en: 'DocBridge · 3 easy steps', hi: 'DocBridge · 3 आसान चरण' },
+  'how.title': { en: 'How DocBridge works in 3 easy steps', hi: 'DocBridge 3 आसान चरणों में कैसे काम करता है' },
+  'how.step1': { en: 'Sign in with DigiLocker or upload from your device', hi: 'DigiLocker से साइन इन करें या डिवाइस से अपलोड करें' },
+  'how.step1Narration': { en: 'Choose your documents. There are 2 supported ways:', hi: 'अपने दस्तावेज़ चुनें। 2 समर्थित तरीके हैं:' },
+  'how.step1Way1': { en: 'Sign in to DigiLocker and select your issued documents — consent-based.', hi: 'DigiLocker में साइन इन करें और अपने जारी दस्तावेज़ चुनें — सहमति-आधारित।' },
+  'how.step1Way2': { en: 'Upload a file from your phone or computer.', hi: 'अपने फोन या कंप्यूटर से फ़ाइल अपलोड करें।' },
+  'how.step2': { en: 'OpenAI models read portal rules & optimize your files', hi: 'OpenAI मॉडल पोर्टल नियम पढ़कर फ़ाइलें अनुकूलित करते हैं' },
+  'how.step2Narration': { en: 'Step 2: OpenAI models are used to read the portal rules and optimize your documents to match — right size, format and dimensions.', hi: 'चरण 2: पोर्टल के नियम पढ़ने और दस्तावेज़ों को उसी अनुसार अनुकूलित करने हेतु OpenAI मॉडल उपयोग होते हैं — सही साइज़, फ़ॉर्मेट व आयाम।' },
+  'how.step3': { en: 'Verify, select & submit — no hopping', hi: 'जाँचें, चुनें व सबमिट करें — अलग-अलग साइट नहीं' },
+  'how.step3Narration': { en: 'Step 3: Verify the optimized files, select and submit right here. No third-party sites, no hopping — everything stays in your browser, and you can manually adjust anytime.', hi: 'चरण 3: अनुकूलित फ़ाइलें जाँचें, चुनें और यहीं सबमिट करें। न तीसरी साइट, न इधर-उधर भटकना — सब कुछ आपके ब्राउज़र में, और ज़रूरत पड़े तो स्वयं भी समायोजित कर सकते हैं।' },
+  'how.narrationOn': { en: 'Narration on', hi: 'वॉइस चालू' },
+  'how.narrationOff': { en: 'Hear this', hi: 'सुनें' },
+  'how.gotIt': { en: 'Got it', hi: 'समझ गए' },
+  'how.hearAgain': { en: 'Replay', hi: 'फिर सुनें' },
+  'how.privacy': { en: 'No third-party sites. No hopping. DocBridge processes everything in your browser — OpenAI models are used only to read the rules and guide the optimization. You can also adjust manually when needed.', hi: 'न तीसरी साइट, न इधर-उधर। DocBridge सब कुछ आपके ब्राउज़र में करता है — नियम पढ़ने व मार्गदर्शन हेतु OpenAI मॉडल उपयोग होते हैं। ज़रूरत पड़े तो स्वयं भी समायोजित करें।' },
+  'how.trigger': { en: 'Know how DocBridge works', hi: 'जानें DocBridge कैसे काम करता है' },
   'epfo.skipHassle': { en: 'Skip the Formatting Hassle', hi: 'फ़ॉर्मेटिंग की झंझट छोड़ें' },
   'epfo.skipHassleSub': { en: 'The portal requires specific file sizes and formats. Choose your document below, and DocBridge will automatically resize and convert it for a seamless upload.', hi: 'पोर्टल को विशिष्ट फ़ाइल साइज़ और प्रारूप चाहिए। नीचे अपना दस्तावेज़ चुनें — DocBridge इसे स्वतः रीसाइज़ और कन्वर्ट करके सहज अपलोड हेतु तैयार करेगा।' },
   'epfo.nudgeEyebrow': { en: 'Action required · Manage → KYC', hi: 'कार्रवाई आवश्यक · प्रबंध → केवाईसी' },
@@ -458,8 +474,8 @@ const dict: Record<string, { en: string; hi: string }> = {
   'pp.guidelines': { en: 'Photograph & Signature Guidelines', hi: 'फोटो व हस्ताक्षर दिशानिर्देश' },
   'pp.viewPhotoRules': { en: 'View Photo Rules', hi: 'फोटो नियम देखें' },
   'pp.viewSigRules': { en: 'View Signature Rules', hi: 'हस्ताक्षर नियम देखें' },
-  'pp.smartPhoto': { en: 'DocBridge will automatically crop and compress this to Passport Seva photo requirements — no manual resizing needed.', hi: 'DocBridge इसे स्वतः क्रॉप व कंप्रेस करके Passport Seva फोटो नियमों के अनुरूप बनाएगा — मैनुअल रीसाइज़ की ज़रूरत नहीं।' },
-  'pp.smartSig': { en: 'DocBridge will automatically trim and compress this to Passport Seva signature requirements.', hi: 'DocBridge इसे स्वतः ट्रिम व कंप्रेस करके Passport Seva हस्ताक्षर नियमों के अनुरूप बनाएगा।' },
+  'pp.smartPhoto': { en: 'Auto-cropped and compressed to Passport Seva photo rules.', hi: 'Passport Seva फोटो नियमों अनुसार स्वतः क्रॉप व कंप्रेस।' },
+  'pp.smartSig': { en: 'Auto-trimmed and compressed to Passport Seva signature rules.', hi: 'Passport Seva हस्ताक्षर नियमों अनुसार स्वतः ट्रिम व कंप्रेस।' },
   'pp.whyAttempts': { en: 'Checked before you continue:', hi: 'आगे बढ़ने से पहले जाँचा जाता है:' },
   'pp.whyAttemptsBody': { en: 'DocBridge verifies pixels, format and size before submission — so each upload goes through calmly.', hi: 'जमा से पहले DocBridge पिक्सेल, प्रारूप व साइज़ सत्यापित करता है — ताकि हर अपलोड शांति से पूर्ण हो।' },
   'pp.uploadTitle': { en: 'Upload photograph & signature', hi: 'फोटो व हस्ताक्षर अपलोड करें' },
@@ -775,14 +791,20 @@ export function useLang() {
 export function LanguageToggle({ compact = false }: { compact?: boolean }) {
   const { lang, setLang } = useLang();
   return (
-    <div className={`inline-flex items-center rounded-full border border-white/30 bg-white/10 p-0.5 text-xs font-bold ${compact ? '' : ''}`} role="group" aria-label="Language / भाषा">
+    <div
+      className="inline-flex items-center overflow-hidden rounded-full p-0.5 text-xs font-bold shadow-sm"
+      style={{ backgroundColor: '#1E3A8A', border: '1px solid #1E3A8A' }}
+      role="group"
+      aria-label="Language / भाषा"
+    >
       {(['en', 'hi'] as Lang[]).map(l => (
         <button
           key={l}
           type="button"
           onClick={() => setLang(l)}
           aria-pressed={lang === l}
-          className={`rounded-full px-2.5 py-1 transition ${lang === l ? 'bg-white text-[#1E3A8A]' : 'text-white/80 hover:text-white'}`}
+          className={`rounded-full px-2.5 py-1 transition ${lang === l ? '' : 'opacity-80 hover:opacity-100'}`}
+          style={lang === l ? { backgroundColor: '#FF9933', color: '#1a1a1a' } : { color: '#ffffff' }}
         >
           {l === 'en' ? 'EN' : 'हिं'}
         </button>

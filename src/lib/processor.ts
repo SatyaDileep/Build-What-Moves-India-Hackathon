@@ -402,9 +402,43 @@ function createSyntheticCanvas(constraint: DocumentConstraint): HTMLCanvasElemen
 export async function processDocument(
   file: Blob,
   constraint: DocumentConstraint,
-  assetMeta?: { name: string; type: string; size_mb: number },
+  assetMeta?: { name: string; type: string; size_mb: number; optimizedFor?: string },
   opts?: { aggressive?: boolean; rotation?: number; enhance?: boolean; targetKB?: number; targetWidth?: number; targetHeight?: number }
 ): Promise<ProcessingResult> {
+  // Already-optimized DigiLocker copy: it was prepared by DocBridge for this
+  // portal when it was saved, so verify instead of re-encoding. Preserves the
+  // exact bytes/quality of the earlier pass.
+  if (assetMeta?.optimizedFor) {
+    const sizeKB = file.size / 1024;
+    const capKB = constraint.max_kb;
+    const withinCap = !capKB || sizeKB <= capKB;
+    let dimensions: { width: number; height: number } | undefined;
+    try {
+      const c = await fileToCanvas(file);
+      dimensions = { width: c.width, height: c.height };
+    } catch { /* non-image optimized copy — dims stay undefined */ }
+    return {
+      success: true,
+      original: {
+        blob: file,
+        size_mb: assetMeta.size_mb ?? file.size / (1024 * 1024),
+        dimensions,
+        assetName: assetMeta.name,
+        assetType: assetMeta.type,
+      },
+      processed: {
+        blob: file,
+        size_kb: sizeKB,
+        dimensions,
+        warning: withinCap
+          ? `Already optimized${assetMeta.optimizedFor ? ` for ${assetMeta.optimizedFor}` : ''} — verified ${Math.round(sizeKB)}KB, no further processing needed. Preserved original quality.`
+          : `Already optimized${assetMeta.optimizedFor ? ` for ${assetMeta.optimizedFor}` : ''}, but this portal's ${capKB}KB cap is tighter — recompress if needed.`,
+        wasScaled: false,
+      },
+      constraint,
+    };
+  }
+
   const isPDFSource = file.type === 'application/pdf' || assetMeta?.type === 'application/pdf' || assetMeta?.name?.toLowerCase().endsWith('.pdf');
   const wantsPDF = constraint.format === 'pdf';
 
