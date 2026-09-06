@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 // Picks the best available voice for the target lang (e.g. hi-IN → Hindi).
 function pickVoice(lang: string): SpeechSynthesisVoice | null {
@@ -16,6 +17,13 @@ function pickVoice(lang: string): SpeechSynthesisVoice | null {
 export function useVoiceGuide(enabled: boolean, text: string, lang: string = 'en-IN') {
   const [speaking, setSpeaking] = useState(false);
   const utterRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const pathname = usePathname();
+
+  // Navigation away (SPA route change) must always silence the guide —
+  // even if the speaking component's own cleanup races with the queue.
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+  }, [pathname]);
 
   useEffect(() => {
     if (!enabled || !text || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
@@ -25,7 +33,7 @@ export function useVoiceGuide(enabled: boolean, text: string, lang: string = 'en
       if (cancelled) return;
       const u = new SpeechSynthesisUtterance(text);
       u.lang = lang;
-      u.rate = 0.95;
+      u.rate = 1.08;
       const voice = pickVoice(lang);
       if (voice) u.voice = voice;
       utterRef.current = u;
@@ -41,7 +49,10 @@ export function useVoiceGuide(enabled: boolean, text: string, lang: string = 'en
     return () => {
       cancelled = true;
       window.speechSynthesis.removeEventListener('voiceschanged', speak);
-      window.speechSynthesis.cancel();
+      // Chrome quirk: a bare cancel() can leave a just-started utterance
+      // running — pause first, then cancel, on the next tick.
+      window.speechSynthesis.pause();
+      setTimeout(() => window.speechSynthesis.cancel(), 0);
     };
   }, [enabled, text, lang]);
 

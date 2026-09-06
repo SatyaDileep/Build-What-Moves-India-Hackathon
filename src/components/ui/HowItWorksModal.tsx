@@ -38,8 +38,16 @@ function speak(text: string, lang: string) {
   window.speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = lang;
-  u.rate = 0.88;
+  u.rate = 1.08;
   window.speechSynthesis.speak(u);
+}
+
+// Full spoken text for a step: narration line + bullet points. Bullets are
+// part of the script (step 1's two ways), so they must be read aloud too.
+function stepScript(step: Step, t: (k: string) => string): string {
+  const parts = [t(step.narrationKey)];
+  if (step.bullets) parts.push(...step.bullets.map((b) => t(b)));
+  return parts.join('. ');
 }
 
 export default function HowItWorksModal({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -54,17 +62,25 @@ export default function HowItWorksModal({ open, onClose }: { open: boolean; onCl
     setVoiceAvailable(typeof window !== 'undefined' && 'speechSynthesis' in window);
   }, []);
 
-  // Reset on open.
+  // Reset on open. Narration is ON by default — the walkthrough is explicitly
+  // triggered by the user, so it opens already speaking step 1. The per-step
+  // narration effect below performs the actual speak once narrating flips true.
   useEffect(() => {
     if (open) {
       setActive(0);
       setDone(false);
-      setNarrating(false);
+      setNarrating(voiceAvailable);
     }
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        // Chrome quirk: pause-then-cancel on the next tick actually stops a
+        // just-started utterance; a bare cancel() can leave it speaking.
+        window.speechSynthesis.pause();
+        setTimeout(() => window.speechSynthesis.cancel(), 0);
+      }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   // Auto-advance paced by the narration length (min 5s, +70ms/char) so each
@@ -72,8 +88,8 @@ export default function HowItWorksModal({ open, onClose }: { open: boolean; onCl
   useEffect(() => {
     if (!open || done) return;
     const step = STEPS[active];
-    const narration = t(step.narrationKey) + (step.bullets ? t(step.bullets[0]) + t(step.bullets[1]) : '');
-    const baseMs = 5000 + narration.length * 70;
+    const narration = stepScript(step, t);
+    const baseMs = 3200 + narration.length * 48;
     timerRef.current = setTimeout(() => {
       if (active < STEPS.length - 1) {
         setActive((a) => a + 1);
@@ -89,7 +105,7 @@ export default function HowItWorksModal({ open, onClose }: { open: boolean; onCl
   // Voice narration when toggled on.
   useEffect(() => {
     if (!open || !narrating) return;
-    speak(t(STEPS[active].narrationKey), voiceLang(lang));
+    speak(stepScript(STEPS[active], t), voiceLang(lang));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, narrating, active, lang]);
 
@@ -102,7 +118,7 @@ export default function HowItWorksModal({ open, onClose }: { open: boolean; onCl
       // Fresh narration run: restart from step 1.
       setDone(false);
       setActive(0);
-      speak(t(STEPS[0].narrationKey), voiceLang(lang));
+      speak(stepScript(STEPS[0], t), voiceLang(lang));
     } else if (typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel();
   };
 

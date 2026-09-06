@@ -369,7 +369,7 @@ const DOCBRIDGE_MOCK_PORTALS = [
 
 // Merge mock portals into main registry for testing
 if (typeof DOCBRIDGE_PORTALS !== 'undefined') {
-  DOCBRIDGE_PORTALS = DOCBRIDGE_PORTALS.concat(DOCBRIDGE_MOCK_PORTALS);
+  DOCBRIDGE_PORTALS.push(...DOCBRIDGE_MOCK_PORTALS);
 }
 
 // Portals where PDF processing is needed (v2) — shown as "limited support" in v1

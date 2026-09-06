@@ -11,10 +11,10 @@ export function isVoiceOn(): boolean {
   }
 }
 
-// Rough speech duration: ~14 chars/sec at rate 0.95 + settle buffer, capped.
+// Rough speech duration: ~16 chars/sec at rate 1.08 + settle buffer, capped.
 export function estimateSpeechMs(text: string): number {
   if (!text) return 0;
-  return Math.min(Math.round((text.length / 14) * 1000) + 600, 9000);
+  return Math.min(Math.round((text.length / 16) * 1000) + 500, 8000);
 }
 
 // Wait baseMs normally; when voice is on, wait at least the narration length.

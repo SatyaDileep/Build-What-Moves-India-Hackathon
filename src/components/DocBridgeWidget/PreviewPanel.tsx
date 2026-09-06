@@ -95,6 +95,13 @@ function SinglePreview({
   const reduction = originalSizeKB > 0
     ? Math.round((1 - processedSizeKB / originalSizeKB) * 100)
     : 0;
+  // Size can legitimately grow when the portal demands a bigger canvas than
+  // the source (e.g. 640×480 selfie → exact 630×810) — explain it so it never
+  // reads as a bug.
+  const grew = processedSizeKB > originalSizeKB;
+  const grewNote = grew && result.original.dimensions && result.processed.dimensions
+    ? { from: result.original.dimensions, to: result.processed.dimensions }
+    : null;
 
   const portalName = portalLabel(portalId);
   const isOverLimit = !!result.constraint.max_kb && processedSizeKB > result.constraint.max_kb + 0.5;
@@ -181,7 +188,13 @@ function SinglePreview({
               <span className="text-sm font-bold" style={{ color: COLORS.success }}>{formatSize(processedSizeKB)}</span>
               {result.processed.dimensions && <span className="ml-2 text-sm" style={{ color: COLORS.success }}>{result.processed.dimensions.width}×{result.processed.dimensions.height}px</span>}
               {reduction > 0 && <span className="ml-2 text-sm font-bold" style={{ color: COLORS.success }}>{reduction}% {t('w.smaller')}</span>}
+              {grew && <span className="ml-2 text-xs font-bold" style={{ color: COLORS.gray[500] }}>+{Math.round(processedSizeKB - originalSizeKB)}KB {t('w.grew')}</span>}
             </div>
+            {grewNote && (
+              <p className="mt-1 text-center text-[11px] leading-4" style={{ color: COLORS.gray[500] }}>
+                {t('w.grewWhy').replace('{fromW}', String(grewNote.from.width)).replace('{fromH}', String(grewNote.from.height)).replace('{toW}', String(grewNote.to.width)).replace('{toH}', String(grewNote.to.height))}
+              </p>
+            )}
             <div className="mt-3 flex items-center justify-center gap-2">
               <button type="button" onClick={handleDownload} className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border bg-white px-3 py-1.5 text-xs font-bold shadow-sm hover:-translate-y-0.5" style={{ borderColor: COLORS.success, color: COLORS.success }}><svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16" /></svg>{t('w.download')}</button>
               {canAdjust && <button type="button" onClick={() => setShowAdjust(true)} className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border bg-white px-3 py-1.5 text-xs font-bold shadow-sm hover:-translate-y-0.5" style={{ borderColor: COLORS.success, color: COLORS.success }}>{t('w.adjustSize')}</button>}

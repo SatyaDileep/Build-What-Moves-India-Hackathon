@@ -32,9 +32,9 @@ When a document is ready, you can **save it back to your DigiLocker with automat
 
 ## Built for every citizen
 
-- **Guided by voice** — every key step can be spoken aloud, in English or हिंदी, for elderly and first-time users.
+- **Guided by voice** — every key step can be spoken aloud, in English or हिंदी, for elderly and first-time users. The "How it works" walkthrough narrates each step *including* its bullet points.
 - **"How DocBridge works in 3 easy steps"** — an illustrated, narrated walkthrough available on every portal, so no one wonders what just happened to their document.
-- **Two languages everywhere** — full English and हिंदी across every portal, toggleable at any moment, including the guided walkthrough and its voice narration.
+- **Two languages everywhere** — full English and हिंदी across every portal, toggleable at any moment, including the guided walkthrough, its voice narration, and the DocBridge Guide overlay.
 - **Already-prepared documents stay untouched** — when you pick a document you saved earlier, DocBridge verifies it instead of reworking it, preserving the exact quality you approved.
 
 ## Who this moves
@@ -53,6 +53,17 @@ You land on the portal's own home, log in, get a gentle nudge (*"your photograph
 - **Parivahan Sewa** — a licence photo with its famously tight size window.
 - **Passport Seva** — photo + signature matched to a strict template, with live camera capture, drawing a signature on screen, or DigiLocker — your choice.
 - **NSP** — a scholarship application and its parent's income certificate — several documents at once where the portal genuinely allows it; a calm single upload everywhere else.
+
+### The interference layer — DocBridge Guide
+
+On **Passport Seva, UPSC, and EPFO**, DocBridge demonstrates its most important idea: **the portal stays exactly as the government built it.** Instead of replacing the upload screen, DocBridge *interferes* the moment it detects one:
+
+- A **floating companion panel** appears in the corner, with a live checklist — *✓ Photo · ● Signature* — so multi-document forms never lose the user.
+- A **spotlight** dims the page and cuts a glowing frame around the exact "Choose File" row the user needs right now. One thing to look at, always.
+- The companion **walks step 1 of 2, step 2 of 2**, preparing each file against the portal's own rules, then auto-advances and confirms when every upload has passed.
+- Users can collapse it to a small pill, or toggle the spotlight off — the guide assists, it never traps.
+
+This is the same contract the DocBridge Chrome extension fulfils on live `gov.in` pages (detect `input[type=file]`, anchor, guide) — the web journeys and the extension share one architecture and one story: **government sites stay untouched; citizens get a calm, expert guide sitting beside them.**
 
 ### A moment worth trying
 
