@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { DigiLockerAsset } from '@/types';
 import { COLORS, USER_PROFILES } from '@/lib/constants';
 import { supabase } from '@/lib/supabase';
@@ -32,6 +32,9 @@ export default function DigiLockerModal({
   const [loading, setLoading] = useState(false);
   const [assets, setAssets] = useState<DigiLockerAsset[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [optimizedOpen, setOptimizedOpen] = useState(true);
+  // Generated previews for issued documents (lazy, per asset id).
+  const [previews, setPreviews] = useState<Record<string, string>>({});
   const isMulti = !!onAssetsSelected;
 
   const maxBatch = 3;
@@ -83,6 +86,26 @@ export default function DigiLockerModal({
     setLoading(false);
   };
 
+  // Issued documents have no stored bytes — lazily synthesize a preview from
+  // the same generator the fetch path uses, so rows show a real thumbnail.
+  useEffect(() => {
+    let cancelled = false;
+    if (step !== 'select') return;
+    (async () => {
+      for (const a of issuedAssets) {
+        if (cancelled || previews[a.id]) continue;
+        try {
+          const blob = await supabase.fetchAsset(a.id);
+          const url = URL.createObjectURL(blob);
+          if (cancelled) { URL.revokeObjectURL(url); return; }
+          setPreviews(prev => ({ ...prev, [a.id]: url }));
+        } catch { /* thumbnail is optional */ }
+      }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, assets]);
+
   const handleAssetSelect = (asset: DigiLockerAsset) => {
     if (isMulti) {
       setSelectedIds((prev) =>
@@ -116,26 +139,24 @@ export default function DigiLockerModal({
     const checked = selectedIds.includes(asset.id);
     const isOptimized = asset.source === 'optimized';
     const sizeLabel = asset.size_mb < 0.1 ? `${Math.round(asset.size_mb * 1024)} KB` : `${asset.size_mb.toFixed(1)} MB`;
+    const thumb = isOptimized ? asset.dataUrl : previews[asset.id];
+    const isImage = asset.type.startsWith('image/');
+    // Saved meta: when it was optimized and for which portal.
+    const savedWhen = asset.processedAt
+      ? new Date(asset.processedAt).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+      : null;
     return (
       <button
         key={asset.id}
         onClick={() => handleAssetSelect(asset)}
-        className="w-full p-4 border rounded-lg text-left transition-transform hover:-translate-y-0.5"
+        className="w-full p-3 border rounded-lg text-left transition-transform hover:-translate-y-0.5"
         style={{
           borderColor: checked ? COLORS.primary : isOptimized ? '#BBF7D0' : COLORS.gray[200],
           backgroundColor: checked ? COLORS.primaryLight : isOptimized ? '#F0FDF4' : undefined,
           borderWidth: checked ? 2 : 1,
         }}
       >
-        {isOptimized && (
-          <span
-            className="mb-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
-            style={{ backgroundColor: '#DCFCE7', color: '#166534' }}
-          >
-            ✦ {t('dl.reusable').replace('{portals}', asset.optimizedFor || 'this portal')}
-          </span>
-        )}
-        <span className="flex items-center gap-4">
+        <span className="flex items-center gap-3">
           {isMulti && (
             <span
               className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border text-xs font-bold"
@@ -148,36 +169,38 @@ export default function DigiLockerModal({
               ✓
             </span>
           )}
+          {/* Left thumbnail — real document preview, not an icon. */}
           <span
-            className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg"
-            style={{ backgroundColor: isOptimized ? '#DCFCE7' : COLORS.primaryLight, color: isOptimized ? '#166534' : COLORS.primary }}
+            className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg border"
+            style={{ borderColor: isOptimized ? '#BBF7D0' : COLORS.gray[200], backgroundColor: isOptimized ? '#DCFCE7' : COLORS.primaryLight }}
           >
-            {isOptimized ? (
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+            {thumb && isImage ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={thumb} alt="" className="h-full w-full object-cover" />
             ) : (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              <span className="flex h-full w-full items-center justify-center" style={{ color: isOptimized ? '#166534' : COLORS.primary }}>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isImage ? 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' : 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'} /></svg>
+              </span>
             )}
           </span>
           <span className="min-w-0 flex-1">
+            {isOptimized && (
+              <span
+                className="mb-1 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold"
+                style={{ backgroundColor: '#DCFCE7', color: '#166534' }}
+              >
+                ✦ Optimized
+              </span>
+            )}
             <span className="block truncate font-semibold" style={{ color: COLORS.gray[800] }}>
               {asset.name}
             </span>
-            <span className="block text-sm" style={{ color: isOptimized ? '#166534' : COLORS.gray[500] }}>
-              {sizeLabel} • {asset.type.split('/')[1].toUpperCase()}
-              {isOptimized && asset.tags && asset.tags.length > 0 && (
-                <span className="ml-1.5 inline-flex flex-wrap gap-1 align-middle">
-                  {asset.tags.slice(0, 2).map((tag) => (
-                    <span key={tag} className="rounded bg-white px-1.5 py-0.5 text-[10px] font-bold" style={{ border: '1px solid #BBF7D0', color: '#166534' }}>#{tag}</span>
-                  ))}
-                </span>
-              )}
+            <span className="block text-xs" style={{ color: isOptimized ? '#047857' : COLORS.gray[500] }}>
+              {isOptimized
+                ? <>{savedWhen ? `${savedWhen} · ` : ''}{asset.optimizedFor || 'Portal'} · {sizeLabel}</>
+                : <>{sizeLabel} • {asset.type.split('/')[1].toUpperCase()}</>
+              }
             </span>
-            {isOptimized && !isMulti && (
-              <span className="mt-0.5 block text-xs" style={{ color: '#047857' }}>↻ {t('dl.reuseSub')}</span>
-            )}
-            {!isOptimized && !isMulti && (
-              <span className="mt-0.5 block text-xs" style={{ color: COLORS.gray[400] }}>{t('dl.issuedHint')}</span>
-            )}
           </span>
           {!isMulti && (
             <svg className="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: COLORS.gray[400] }}>
@@ -391,28 +414,56 @@ export default function DigiLockerModal({
                   {isMulti && selectedIds.length >= maxBatch && (
                     <p className="text-xs" style={{ color: COLORS.warning }}>Max {maxBatch} documents per batch</p>
                   )}
-                  {/* Reuse section: earned copies when present; otherwise a
-                      first-run explainer of the DocBridge advantage. */}
-                  {optimizedAssets.length > 0 ? (
-                    <div>
-                      <p className="mb-2 text-[11px] font-bold uppercase tracking-wide" style={{ color: '#047857' }}>✦ {t('dl.savedDocs')}</p>
-                      <div className="space-y-2.5">{optimizedAssets.map(renderAssetRow)}</div>
-                    </div>
-                  ) : (
-                    <div
-                      className="rounded-lg border border-dashed p-4"
-                      style={{ borderColor: '#BBF7D0', backgroundColor: '#F6FEF9' }}
-                      role="note"
-                      aria-label={t('dl.advantageTitle')}
+                  {/* Container 1: DocBridge-optimized copies (collapsible). Shows
+                      available tagged copies, or the first-run explainer. */}
+                  <div
+                    className="overflow-hidden rounded-xl border"
+                    style={{ borderColor: '#BBF7D0', backgroundColor: '#F6FEF9' }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setOptimizedOpen(o => !o)}
+                      aria-expanded={optimizedOpen}
+                      className="flex w-full items-center justify-between px-4 py-3 text-left"
                     >
-                      <p className="text-[12px] font-bold" style={{ color: '#047857' }}>✦ {t('dl.advantageTitle')}</p>
-                      <p className="mt-1 text-[11.5px] leading-4" style={{ color: '#166534' }}>{t('dl.advantageBody')}</p>
-                    </div>
-                  )}
+                      <span>
+                        <span className="block text-[11px] font-bold uppercase tracking-wide" style={{ color: '#047857' }}>✦ {t('dl.savedDocs')}</span>
+                        <span className="block text-[11px]" style={{ color: '#166534' }}>
+                          {optimizedAssets.length > 0
+                            ? t('dl.optimizedCount').replace('N', String(optimizedAssets.length))
+                            : t('dl.advantageTitle')}
+                        </span>
+                      </span>
+                      <svg
+                        className="h-4 w-4 flex-shrink-0 transition-transform"
+                        style={{ transform: optimizedOpen ? 'rotate(180deg)' : undefined, color: '#047857' }}
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    {optimizedOpen && (
+                      <div className="space-y-2.5 px-4 pb-4">
+                        {optimizedAssets.length > 0
+                          ? optimizedAssets.map(renderAssetRow)
+                          : <p className="rounded-lg border border-dashed p-3 text-[11.5px] leading-4" style={{ borderColor: '#BBF7D0', color: '#166534' }}>{t('dl.advantageBody')}</p>
+                        }
+                      </div>
+                    )}
+                  </div>
+                  {/* Container 2: all documents, excluding optimized copies. */}
                   {issuedAssets.length > 0 && (
-                    <div>
-                      <p className="mb-2 text-[11px] font-bold uppercase tracking-wide" style={{ color: COLORS.gray[500] }}>{t('dl.issuedDocs')}</p>
-                      <div className="space-y-2.5">{issuedAssets.map(renderAssetRow)}</div>
+                    <div
+                      className="overflow-hidden rounded-xl border"
+                      style={{ borderColor: COLORS.gray[200], backgroundColor: COLORS.gray[50] }}
+                    >
+                      <div className="px-4 py-3">
+                        <p className="text-[11px] font-bold uppercase tracking-wide" style={{ color: COLORS.gray[500] }}>{t('dl.allDocs')}</p>
+                        <p className="text-[11px]" style={{ color: COLORS.gray[400] }}>{t('dl.issuedHint')}</p>
+                      </div>
+                      <div className="space-y-2.5 px-4 pb-4">
+                        {issuedAssets.map(renderAssetRow)}
+                      </div>
                     </div>
                   )}
                 </div>

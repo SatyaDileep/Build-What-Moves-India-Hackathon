@@ -5,11 +5,21 @@ import { USER_PROFILES, DIGILOCKER_ASSETS } from './constants';
 
 const SAVED_KEY = 'docbridge-saved-vault';
 
+// Dedupe key for optimized copies: one copy per source document per portal.
+// Re-optimizing the same doc for the same portal replaces the old copy.
+function savedKey(a: Pick<DigiLockerAsset, 'owner' | 'name' | 'optimizedFor'>): string {
+  return `${a.owner}|${a.name}|${a.optimizedFor ?? ''}`;
+}
+
 function loadSavedAssets(): DigiLockerAsset[] {
   if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(SAVED_KEY);
-    return raw ? (JSON.parse(raw) as DigiLockerAsset[]) : [];
+    const list = raw ? (JSON.parse(raw) as DigiLockerAsset[]) : [];
+    // Clean up duplicates left by earlier versions (keep the newest).
+    const byKey = new Map<string, DigiLockerAsset>();
+    for (const a of list) byKey.set(savedKey(a), a);
+    return Array.from(byKey.values());
   } catch {
     return [];
   }
@@ -153,9 +163,23 @@ class DigiLockerClient {
       processedAt: new Date().toISOString(),
     };
 
-    savedVault.unshift(asset);
+    // Upsert: re-saving the same document for the same portal replaces the
+    // existing optimized copy instead of piling up duplicates.
+    const key = savedKey(asset);
+    const idx = savedVault.findIndex(a => savedKey(a) === key);
+    if (idx >= 0) savedVault[idx] = asset;
+    else savedVault.unshift(asset);
     persistSavedAssets(savedVault);
     return asset;
+  }
+
+  // Demo helper — wipes all DocBridge-saved optimized copies so the journey
+  // can be re-run from a clean "advantage not earned yet" state.
+  resetSavedVault(): void {
+    savedVault.length = 0;
+    if (typeof window !== 'undefined') {
+      try { localStorage.removeItem(SAVED_KEY); } catch { /* ignore */ }
+    }
   }
 
   private async generateDocumentImage(asset: DigiLockerAsset): Promise<Blob> {

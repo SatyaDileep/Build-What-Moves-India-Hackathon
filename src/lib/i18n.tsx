@@ -721,6 +721,8 @@ const dict: Record<string, { en: string; hi: string }> = {
   'dl.advantageTitle': { en: 'No optimized copies yet — that changes as you use DocBridge', hi: 'अभी कोई अनुकूलित प्रति नहीं — DocBridge के उपयोग से यह बदलेगा' },
   'dl.advantageBody': { en: 'The first time DocBridge optimizes a document, a portal-ready, tagged copy is saved back into your DigiLocker. From then on that document appears here — pick it and skip all processing.', hi: 'जब DocBridge पहली बार कोई दस्तावेज़ अनुकूलित करेगा, पोर्टल-तैयार टैग की गई प्रति आपके DigiLocker में सहेजी जाएगी। उसके बाद वह दस्तावेज़ यहाँ दिखेगा — चुनें और सारी प्रक्रिया छोड़ दें।' },
   'dl.issuedHint': { en: 'Original issued copy — DocBridge will optimize it for this portal as you upload.', hi: 'मूल जारी प्रति — अपलोड करते समय DocBridge इसे इस पोर्टल हेतु अनुकूलित करेगा।' },
+  'dl.optimizedCount': { en: 'N available — pick and go, no rework', hi: 'N उपलब्ध — चुनें और आगे बढ़ें, दोबारा बदलाव नहीं' },
+  'dl.allDocs': { en: 'All documents', hi: 'सभी दस्तावेज़' },
   'nsp.tabStudent': { en: 'Student', hi: 'छात्र' },
   'nsp.tabInstitute': { en: 'Institute', hi: 'संस्थान' },
   'nsp.tabOfficer': { en: 'Officer', hi: 'अधिकारी' },
