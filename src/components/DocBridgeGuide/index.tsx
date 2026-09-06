@@ -62,9 +62,12 @@ export default function DocBridgeGuide({
 }: DocBridgeGuideProps) {
   const { t, lang } = useLang();
   // Phases: 'page' (portal alone) → 'spotlight' (area highlighted) → 'modal' (guide up)
-  const [phase, setPhase] = useState<'page' | 'spotlight' | 'modal'>('page');
+  // 'dismissed' = modal closed: NO dim/spotlight, just a small pill anchored
+  // above the upload area so the page returns to normal.
+  const [phase, setPhase] = useState<'page' | 'spotlight' | 'modal' | 'dismissed'>('page');
   const [spotlightOn, setSpotlightOn] = useState(true);
-  const [narrating, setNarrating] = useState(false);
+  const [narrating, setNarrating] = useState(true);
+  const setPlayWelcomeOnce = (v: boolean) => {};
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [modalRect, setModalRect] = useState<DOMRect | null>(null);
   const modalCardRef = useRef<HTMLDivElement | null>(null);
@@ -78,6 +81,7 @@ export default function DocBridgeGuide({
   // Let the upload screen breathe first, then spotlight the row, then open.
   useEffect(() => {
     if (!current) return;
+    setPhase('page');
     const t1 = setTimeout(() => setPhase('spotlight'), 1100);
     const t2 = setTimeout(() => setPhase('modal'), 1900);
     return () => {
@@ -85,6 +89,29 @@ export default function DocBridgeGuide({
       clearTimeout(t2);
     };
   }, [current?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Keep tracking the upload row even while dismissed so the anchor pill can
+  // float just above it.
+  useEffect(() => {
+    if (phase !== 'dismissed' || !current) return;
+    const el = document.getElementById(current.deviceInputId);
+    if (!el) return;
+    const update = () => {
+      const r = el.getBoundingClientRect();
+      const rect = r.width === 0 || r.height === 0 ? el.parentElement?.getBoundingClientRect() ?? null : r;
+      setTargetRect(rect);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    window.addEventListener('scroll', update, true);
+    window.addEventListener('resize', update);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('scroll', update, true);
+      window.removeEventListener('resize', update);
+    };
+  }, [phase, current]);
 
   // Track the active slot's native "Choose File" row so the spotlight can
   // cut a hole around the real portal UI behind the modal.
@@ -147,8 +174,13 @@ export default function DocBridgeGuide({
     };
   }, [phase, current]);
 
-  // Narration is strictly opt-in inside the guide modal (speaker toggle) —
-  // it never starts on its own.
+  // Welcome line plays once when the modal opens (subtle, one sentence);
+  // step details only when the user taps the 🔈 toggle.
+  useVoiceGuide(
+    open && !!current,
+    t('guide.welcome'),
+    voiceLang(lang),
+  );
   useVoiceGuide(
     narrating && !!current && open,
     current ? `${t('guide.step')} ${completedCount + 1} ${t('guide.of')} ${total}: ${current.label}. ${current.assistantNote ?? current.requirements}` : '',
@@ -166,7 +198,7 @@ export default function DocBridgeGuide({
     setNarrating(false);
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.pause();
-      setTimeout(() => window.speechSynthesis.cancel(), 0);
+      window.speechSynthesis.cancel();
     }
   }, [phase]);
 
@@ -269,7 +301,7 @@ export default function DocBridgeGuide({
           role="dialog"
           aria-modal="true"
           aria-label="DocBridge guide"
-          onClick={(e) => e.target === e.currentTarget && setPhase('spotlight')}
+          onClick={(e) => e.target === e.currentTarget && setPhase('dismissed')}
         >
           <div
             ref={modalCardRef}
@@ -312,11 +344,13 @@ export default function DocBridgeGuide({
               )}
               <button
                 type="button"
-                onClick={() => setPhase('spotlight')}
-                aria-label={t('guide.collapse')}
-                className="rounded-md px-1.5 py-1 text-white/80 transition hover:bg-white/10"
+                onClick={() => setSpotlightOn((v) => !v)}
+                title={t('guide.toggleHighlight')}
+                aria-label={t('guide.toggleHighlight')}
+                aria-pressed={spotlightOn}
+                className="rounded-md px-1.5 py-1 text-[13px] text-white/80 transition hover:bg-white/10"
               >
-                ✕
+                {spotlightOn ? '👁' : '🚫'}
               </button>
             </div>
 
@@ -362,7 +396,6 @@ export default function DocBridgeGuide({
                     docType={current.id}
                     requirements={current.requirements}
                     onSuccess={() => onStepDone(current.id)}
-                    deviceInputId={current.deviceInputId}
                     deviceFile={deviceFiles[current.id] ?? null}
                     onDeviceFileChange={(f) => onDeviceFileChange?.(current.id, f)}
                     captureModes={current.captureModes ? [...current.captureModes] : undefined}
@@ -392,18 +425,26 @@ export default function DocBridgeGuide({
             </div>
           </div>
         </div>
-      )}
-
-      {/* Reopen pill — floats bottom-right when the modal is dismissed mid-journey */}
-      {phase !== 'modal' && current && (
+      )}      {/* Dismissed anchor — label above says "DocBridge Assist", sits top-right
+          of the upload area so it's clearly guiding/clickable on the page. */}
+      {phase === 'dismissed' && current && targetRect && (
         <button
           type="button"
           onClick={() => setPhase('modal')}
-          className="fixed bottom-4 right-4 z-[9995] flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-bold text-white shadow-xl"
-          style={{ backgroundColor: NAVY }}
+          className="fixed z-[9995] flex items-center gap-2 rounded-xl border px-4 py-2 text-[13px] font-bold text-white shadow-xl"
+          style={{
+            right: targetRect.right - (window.innerWidth - targetRect.right) > 60 ? 16 : targetRect.right,
+            top: Math.min(targetRect.top, window.innerHeight - 72),
+            backgroundColor: NAVY,
+          }}
         >
-          <span aria-hidden="true">🌉</span>
-          {t('guide.resume')} ({completedCount}/{total})
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px]" style={{ backgroundColor: ACCENT }}>
+            🌉
+          </span>
+          <span className="min-w-0">
+            <span className="block leading-tight text-white">DocBridge Assist — {completedCount}/{total}</span>
+            <span className="block text-[10px] leading-tight text-white/70">{current.label}</span>
+          </span>
           <span
             className="ml-1 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold"
             style={{ backgroundColor: ACCENT, color: '#1a1a1a' }}
@@ -411,7 +452,6 @@ export default function DocBridgeGuide({
             {completedCount + 1}
           </span>
         </button>
-      )}
-    </>
+      )}</>
   );
 }

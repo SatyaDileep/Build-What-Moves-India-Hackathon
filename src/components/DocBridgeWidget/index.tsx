@@ -466,16 +466,19 @@ export default function DocBridgeWidget({
 
   const handleExternalDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    if (!deviceInputId) return;
     const f = e.dataTransfer.files?.[0];
     if (!f) return;
-    // Assign straight onto the portal's hidden native input, then mirror the
-    // file up so the OTR card flips into its selected-file state.
-    const input = document.getElementById(deviceInputId) as HTMLInputElement | null;
-    if (input) {
+    if (deviceInputId) {
+      const input = document.getElementById(deviceInputId) as HTMLInputElement | null;
+      if (input) {
+        const dt = new DataTransfer();
+        dt.items.add(f);
+        input.files = dt.files;
+      }
+    } else if (fileInputRef.current) {
       const dt = new DataTransfer();
       dt.items.add(f);
-      input.files = dt.files;
+      fileInputRef.current.files = dt.files;
     }
     onDeviceFileChange?.(f);
   };
@@ -496,15 +499,16 @@ export default function DocBridgeWidget({
                   <p className="text-sm font-bold" style={{ color: COLORS.gray[800] }}>{t('w.fileSelected')}</p>
                   <p className="truncate text-xs" style={{ color: COLORS.gray[600] }}>{deviceFile.name}</p>
                   <p className="text-[11px] font-semibold" style={{ color: COLORS.success }}>✓ {t('w.fileChosen')}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => document.getElementById(deviceInputId!)?.click()}
-                  className="shrink-0 rounded-full border bg-white px-3 py-1.5 text-xs font-bold hover:-translate-y-0.5"
-                  style={{ borderColor: COLORS.primary, color: COLORS.primary }}
-                >
-                  {t('w.changeFile')}
-                </button>
+                </div>                  <button
+                    type="button"
+                    onClick={() => (deviceInputId
+                      ? document.getElementById(deviceInputId)?.click()
+                      : fileInputRef.current)?.click()}
+                    className="shrink-0 rounded-full border bg-white px-3 py-1.5 text-xs font-bold hover:-translate-y-0.5"
+                    style={{ borderColor: COLORS.primary, color: COLORS.primary }}
+                  >
+                    {t('w.changeFile')}
+                  </button>
                 <button
                   type="button"
                   onClick={() => onDeviceFileChange?.(null)}

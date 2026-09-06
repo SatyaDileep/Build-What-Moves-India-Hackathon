@@ -773,6 +773,8 @@ const dict: Record<string, { en: string; hi: string }> = {
   'guide.collapse': { en: 'Close guide', hi: 'गाइड बंद करें' },
   'guide.closeDone': { en: 'Continue on the portal', hi: 'पोर्टल पर आगे बढ़ें' },
   'guide.narrate': { en: 'Read this step aloud', hi: 'यह चरण बोलकर सुनाएँ' },
+  'guide.toggleHighlight': { en: 'Toggle upload highlight', hi: 'अपलोड हाइलाइट टॉगल करें' },
+  'guide.welcome': { en: 'DocBridge helps you upload your documents securely, with privacy guaranteed.', hi: 'DocBridge आपके दस्तावेज़ सुरक्षित रूप से अपलोड करने में मदद करता है, निजता की गारंटी के साथ।' },
   'w.grew': { en: 'larger', hi: 'बड़ा' },
   'w.grewWhy': { en: 'The portal requires exactly {toW}×{toH}px — larger than your {fromW}×{fromH}px photo, so the file grew to fill the required canvas. It stays within the portal\'s allowed range ✓', hi: 'पोर्टल को ठीक {toW}×{toH}px चाहिए — आपकी {fromW}×{fromH}px फोटो से बड़ा, इसलिए फ़ाइल ज़रूरी कैनवस को भरने के लिए बढ़ी। यह पोर्टल की सीमा में है ✓' },
   'guide.resume': { en: 'Resume guide', hi: 'गाइड जारी रखें' },

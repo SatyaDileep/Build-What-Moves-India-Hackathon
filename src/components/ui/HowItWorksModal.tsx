@@ -53,6 +53,7 @@ function stepScript(step: Step, t: (k: string) => string): string {
 export default function HowItWorksModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t, lang } = useLang();
   const [active, setActive] = useState(0);
+  const activeStep = STEPS[active] ?? STEPS[0]!;
   const [done, setDone] = useState(false);
   const [narrating, setNarrating] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -90,12 +91,11 @@ export default function HowItWorksModal({ open, onClose }: { open: boolean; onCl
     const step = STEPS[active];
     const narration = stepScript(step, t);
     const baseMs = 3200 + narration.length * 48;
-    timerRef.current = setTimeout(() => {
-      if (active < STEPS.length - 1) {
-        setActive((a) => a + 1);
-      } else {
-        setDone(true);
-      }
+    timerRef.current = setTimeout(() => {              if (active < STEPS.length - 1) {
+                setActive((a: number) => a + 1);
+              } else {
+                setDone(true);
+              }
     }, baseMs);
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
