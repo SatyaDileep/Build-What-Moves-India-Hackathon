@@ -32,7 +32,7 @@ export default function DigiLockerModal({
   const [loading, setLoading] = useState(false);
   const [assets, setAssets] = useState<DigiLockerAsset[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [optimizedOpen, setOptimizedOpen] = useState(true);
+  const [activeDocumentTab, setActiveDocumentTab] = useState<'all' | 'optimized'>('all');
   // Generated previews for issued documents (lazy, per asset id).
   const [previews, setPreviews] = useState<Record<string, string>>({});
   const isMulti = !!onAssetsSelected;
@@ -78,6 +78,7 @@ export default function DigiLockerModal({
       }
       const userAssets = supabase.getVaultWithSaved();
       setAssets(userAssets);
+      setActiveDocumentTab(userAssets.some((asset) => asset.source === 'optimized') ? 'optimized' : 'all');
       setStep('select');
     } else {
       setError(result.error || t('dl.otpErr'));
@@ -414,58 +415,55 @@ export default function DigiLockerModal({
                   {isMulti && selectedIds.length >= maxBatch && (
                     <p className="text-xs" style={{ color: COLORS.warning }}>Max {maxBatch} documents per batch</p>
                   )}
-                  {/* Container 1: DocBridge-optimized copies (collapsible). Shows
-                      available tagged copies, or the first-run explainer. */}
-                  <div
-                    className="overflow-hidden rounded-xl border"
-                    style={{ borderColor: '#BBF7D0', backgroundColor: '#F6FEF9' }}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setOptimizedOpen(o => !o)}
-                      aria-expanded={optimizedOpen}
-                      className="flex w-full items-center justify-between px-4 py-3 text-left"
-                    >
-                      <span>
-                        <span className="block text-[11px] font-bold uppercase tracking-wide" style={{ color: '#047857' }}>✦ {t('dl.savedDocs')}</span>
-                        <span className="block text-[11px]" style={{ color: '#166534' }}>
-                          {optimizedAssets.length > 0
-                            ? t('dl.optimizedCount').replace('N', String(optimizedAssets.length))
-                            : t('dl.advantageTitle')}
-                        </span>
-                      </span>
-                      <svg
-                        className="h-4 w-4 flex-shrink-0 transition-transform"
-                        style={{ transform: optimizedOpen ? 'rotate(180deg)' : undefined, color: '#047857' }}
-                        fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                  <div className="rounded-xl border p-1" style={{ borderColor: COLORS.gray[200], backgroundColor: COLORS.gray[100] }} role="tablist" aria-label="Document categories">
+                    <div className="grid grid-cols-2 gap-1">
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={activeDocumentTab === 'all'}
+                        onClick={() => setActiveDocumentTab('all')}
+                        className="rounded-lg px-3 py-2.5 text-left transition-colors"
+                        style={{
+                          backgroundColor: activeDocumentTab === 'all' ? '#FFFFFF' : 'transparent',
+                          color: activeDocumentTab === 'all' ? COLORS.gray[800] : COLORS.gray[500],
+                          boxShadow: activeDocumentTab === 'all' ? '0 1px 3px rgba(15, 23, 42, 0.12)' : 'none',
+                        }}
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                    {optimizedOpen && (
-                      <div className="space-y-2.5 px-4 pb-4">
-                        {optimizedAssets.length > 0
-                          ? optimizedAssets.map(renderAssetRow)
-                          : <p className="rounded-lg border border-dashed p-3 text-[11.5px] leading-4" style={{ borderColor: '#BBF7D0', color: '#166534' }}>{t('dl.advantageBody')}</p>
-                        }
-                      </div>
+                        <span className="block text-xs font-bold">{t('dl.allDocs')}</span>
+                        <span className="mt-0.5 block text-[11px]" style={{ color: activeDocumentTab === 'all' ? COLORS.gray[500] : COLORS.gray[400] }}>
+                          {filteredAssets.length} {filteredAssets.length === 1 ? 'document' : 'documents'}
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={activeDocumentTab === 'optimized'}
+                        onClick={() => setActiveDocumentTab('optimized')}
+                        className="rounded-lg px-3 py-2.5 text-left transition-colors"
+                        style={{
+                          backgroundColor: activeDocumentTab === 'optimized' ? '#FFFFFF' : 'transparent',
+                          color: activeDocumentTab === 'optimized' ? '#166534' : COLORS.gray[500],
+                          boxShadow: activeDocumentTab === 'optimized' ? '0 1px 3px rgba(15, 23, 42, 0.12)' : 'none',
+                        }}
+                      >
+                        <span className="block text-xs font-bold">✦ {t('dl.savedDocs')}</span>
+                        <span className="mt-0.5 block text-[11px]" style={{ color: activeDocumentTab === 'optimized' ? '#047857' : COLORS.gray[400] }}>
+                          {optimizedAssets.length} {optimizedAssets.length === 1 ? 'document' : 'documents'}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="space-y-2.5">
+                    {activeDocumentTab === 'optimized' ? (
+                      optimizedAssets.length > 0
+                        ? optimizedAssets.map(renderAssetRow)
+                        : <p className="rounded-xl border border-dashed p-4 text-center text-xs leading-5" style={{ borderColor: '#BBF7D0', backgroundColor: '#F6FEF9', color: '#166534' }}>{t('dl.advantageBody')}</p>
+                    ) : (
+                      filteredAssets.length > 0
+                        ? filteredAssets.map(renderAssetRow)
+                        : <p className="rounded-xl border border-dashed p-4 text-center text-xs" style={{ borderColor: COLORS.gray[300], color: COLORS.gray[500] }}>{t('dl.noDocs')}</p>
                     )}
                   </div>
-                  {/* Container 2: all documents, excluding optimized copies. */}
-                  {issuedAssets.length > 0 && (
-                    <div
-                      className="overflow-hidden rounded-xl border"
-                      style={{ borderColor: COLORS.gray[200], backgroundColor: COLORS.gray[50] }}
-                    >
-                      <div className="px-4 py-3">
-                        <p className="text-[11px] font-bold uppercase tracking-wide" style={{ color: COLORS.gray[500] }}>{t('dl.allDocs')}</p>
-                        <p className="text-[11px]" style={{ color: COLORS.gray[400] }}>{t('dl.issuedHint')}</p>
-                      </div>
-                      <div className="space-y-2.5 px-4 pb-4">
-                        {issuedAssets.map(renderAssetRow)}
-                      </div>
-                    </div>
-                  )}
                 </div>
               )}
             </div>
