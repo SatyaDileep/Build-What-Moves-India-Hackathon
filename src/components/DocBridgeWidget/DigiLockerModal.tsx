@@ -175,6 +175,9 @@ export default function DigiLockerModal({
             {isOptimized && !isMulti && (
               <span className="mt-0.5 block text-xs" style={{ color: '#047857' }}>↻ {t('dl.reuseSub')}</span>
             )}
+            {!isOptimized && !isMulti && (
+              <span className="mt-0.5 block text-xs" style={{ color: COLORS.gray[400] }}>{t('dl.issuedHint')}</span>
+            )}
           </span>
           {!isMulti && (
             <svg className="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: COLORS.gray[400] }}>
@@ -188,13 +191,13 @@ export default function DigiLockerModal({
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto z-50 flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
       aria-label="DigiLocker Authentication"
     >
       <div 
-        className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden"
+        className="bg-white rounded-xl shadow-2xl w-full max-w-md flex flex-col overflow-hidden"
         style={{ maxHeight: '90vh' }}
       >
         <TricolorBar className="h-2.5" />
@@ -227,8 +230,9 @@ export default function DigiLockerModal({
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-6">
+        {/* Content — scrolls inside the capped-height card so the header,
+            footer, and batch CTA stay reachable on short screens. */}
+        <div className="p-6 overflow-y-auto">
           {/* Aadhaar Step */}
           {step === 'aadhaar' && (
             <div>
@@ -387,10 +391,22 @@ export default function DigiLockerModal({
                   {isMulti && selectedIds.length >= maxBatch && (
                     <p className="text-xs" style={{ color: COLORS.warning }}>Max {maxBatch} documents per batch</p>
                   )}
-                  {optimizedAssets.length > 0 && (
+                  {/* Reuse section: earned copies when present; otherwise a
+                      first-run explainer of the DocBridge advantage. */}
+                  {optimizedAssets.length > 0 ? (
                     <div>
                       <p className="mb-2 text-[11px] font-bold uppercase tracking-wide" style={{ color: '#047857' }}>✦ {t('dl.savedDocs')}</p>
                       <div className="space-y-2.5">{optimizedAssets.map(renderAssetRow)}</div>
+                    </div>
+                  ) : (
+                    <div
+                      className="rounded-lg border border-dashed p-4"
+                      style={{ borderColor: '#BBF7D0', backgroundColor: '#F6FEF9' }}
+                      role="note"
+                      aria-label={t('dl.advantageTitle')}
+                    >
+                      <p className="text-[12px] font-bold" style={{ color: '#047857' }}>✦ {t('dl.advantageTitle')}</p>
+                      <p className="mt-1 text-[11.5px] leading-4" style={{ color: '#166534' }}>{t('dl.advantageBody')}</p>
                     </div>
                   )}
                   {issuedAssets.length > 0 && (
@@ -406,7 +422,7 @@ export default function DigiLockerModal({
         </div>
 
         {isMulti && step === 'select' && (
-          <div className="border-t px-6 py-3.5" style={{ borderColor: COLORS.gray[200] }}>
+          <div className="flex-shrink-0 border-t px-6 py-3.5" style={{ borderColor: COLORS.gray[200] }}>
             <button
               type="button"
               disabled={selectedIds.length === 0}
@@ -426,7 +442,7 @@ export default function DigiLockerModal({
 
         {/* Footer */}
         <div 
-          className="px-6 py-4 border-t"
+          className="flex-shrink-0 px-6 py-4 border-t"
           style={{ 
             backgroundColor: COLORS.gray[50],
             borderColor: COLORS.gray[200]
