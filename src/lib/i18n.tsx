@@ -74,6 +74,7 @@ const dict: Record<string, { en: string; hi: string }> = {
   'w.submitTo': { en: 'Submit to', hi: 'जमा करें —' },
   'w.success': { en: 'Success!', hi: 'सफल!' },
   'w.successSub': { en: 'Your document has been successfully processed and submitted.', hi: 'आपका दस्तावेज़ सफलतापूर्वक तैयार और जमा हो गया।' },
+  'w.optimizedReady': { en: 'Your file is now optimized as per the site requirements. You can choose to upload it, or adjust it if needed.', hi: 'आपकी फ़ाइल अब साइट की आवश्यकताओं के अनुसार अनुकूलित हो गई है। आप इसे अपलोड कर सकते हैं, या आवश्यकता हो तो समायोजित भी कर सकते हैं।' },
   'w.congrats': { en: 'Congratulations! Your documents have been successfully submitted with the help of DocBridge, seamlessly.', hi: 'बधाई हो! DocBridge की मदद से आपके दस्तावेज़ सफलतापूर्वक जमा हो गए — बिल्कुल सहजता से।' },
   'w.takePhoto': { en: 'Take Live Photo', hi: 'लाइव फोटो लें' },
   'w.takePhotoSub': { en: 'Fresh photo from your camera, sized right.', hi: 'कैमरे से ताज़ा, सही साइज़ फोटो।' },
