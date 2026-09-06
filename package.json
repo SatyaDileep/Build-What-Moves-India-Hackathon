@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "predev": "node scripts/clean-next-cache.mjs",
-    "dev": "next dev",
+    "dev": "npx next dev",
     "prebuild": "node scripts/clean-next-cache.mjs",
     "build": "next build",
     "start": "next start",
@@ -25,8 +25,8 @@
   "devDependencies": {
     "@netlify/plugin-nextjs": "^5.15.13",
     "@playwright/test": "^1.62.1",
-    "@types/node": "^20",
-    "@types/react": "^18",
+    "@types/node": "20.19.43",
+    "@types/react": "18.3.31",
     "@types/react-dom": "^18",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",

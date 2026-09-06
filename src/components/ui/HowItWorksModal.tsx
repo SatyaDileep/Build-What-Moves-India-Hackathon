@@ -209,9 +209,9 @@ export default function HowItWorksModal({ open, onClose }: { open: boolean; onCl
                 <p className="text-sm font-semibold leading-6 text-slate-800 sm:text-[15px]">
                   {t(STEPS[active].narrationKey)}
                 </p>
-                {STEPS[active].bullets && (
+                {(STEPS[active]?.bullets ?? []).length > 0 && (
                   <ul className="mt-2 space-y-1.5">
-                    {STEPS[active].bullets.map((b) => (
+                    {STEPS[active]!.bullets!.map((b) => (
                       <li key={b} className="flex items-start gap-2 text-sm leading-6 text-slate-700">
                         <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: '#EA580C' }} aria-hidden="true" />
                         <span className="font-semibold">{t(b)}</span>
