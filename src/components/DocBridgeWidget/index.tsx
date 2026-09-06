@@ -7,6 +7,8 @@ import { supabase } from '@/lib/supabase';
 import { parsePortalConstraints } from '@/lib/openai';
 import { processDocument } from '@/lib/processor';
 import DigiLockerModal from './DigiLockerModal';
+import CameraCapture from './CameraCapture';
+import SignaturePad from './SignaturePad';
 import ProcessingOverlay from './ProcessingOverlay';
 import PreviewPanel from './PreviewPanel';
 import PrivacyBadge from '@/components/ui/PrivacyBadge';
@@ -30,8 +32,13 @@ function inferDocType(name: string): BatchItem['docType'] {
   return 'other';
 }
 
-// Requirement copy per portal slot — must carry the same keywords the local
-// constraint parser keys on so a mixed batch resolves each file's rules.
+// Emphasizes the product name inside helper copy (EN + HI strings both
+// carry "DocBridge" in Latin script).
+function boldDocBridge(text: string): React.ReactNode {
+  const parts = text.split('DocBridge');
+  if (parts.length === 1) return text;
+  return parts.flatMap((p, i) => (i === 0 ? [p] : [<strong key={i}>DocBridge</strong>, p]));
+}
 const SLOT_REQUIREMENTS: Record<string, Partial<Record<BatchItem['docType'], string>>> = {
   epfo: { passbook: 'EPFO passbook. PDF format, maximum size 500KB, account number must be visible.' },
   upsc: { photo: 'UPSC passport photo. JPEG only, 20KB - 200KB, 350px - 1000px, white background.' },
@@ -72,6 +79,13 @@ interface DocBridgeWidgetProps {
   // (e.g. EPFO KYC). Falls back to the shared w.where / w.whereSub copy.
   sourceHeading?: string;
   sourceSub?: string;
+  // Which source cards the chooser offers. Defaults to DigiLocker + device.
+  // 'camera' opens a live-photo capture, 'draw' a signature pad; the captured
+  // file flows through the same pipeline as any other upload.
+  captureModes?: Array<'digilocker' | 'device' | 'camera' | 'draw'>;
+  // Trust micro-copy rendered under the chooser heading (e.g. Passport's
+  // auto-crop/compress promise).
+  assistantNote?: string;
 }
 
 export default function DocBridgeWidget({ 
@@ -85,6 +99,8 @@ export default function DocBridgeWidget({
   onDeviceFileChange,
   sourceHeading,
   sourceSub,
+  captureModes = ['digilocker', 'device'],
+  assistantNote,
 }: DocBridgeWidgetProps) {
   const { t, lang } = useLang();
   const [state, setState] = useState<WidgetState>('idle');
@@ -98,6 +114,8 @@ export default function DocBridgeWidget({
   const [batchItems, setBatchItems] = useState<BatchItem[]>([]);
   const [batchProgress, setBatchProgress] = useState<{ done: number; total: number } | null>(null);
   const [lastSaved, setLastSaved] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
+  const [showPad, setShowPad] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   // Congratulatory narration on completion — only when voice is opted in.
   useVoiceGuide(isVoiceOn() && state === 'success', t('w.congrats'), voiceLang(lang));
@@ -119,9 +137,20 @@ export default function DocBridgeWidget({
     }
   };
 
-  // When the portal hands us a chosen file (via its native input), start
-  // processing it directly — skipping the widget's own "Where is your
-  // document?" step, which is replaced by the OTR card's selected-file state.
+  // Files from live capture (camera / signature pad) join the same pipeline:
+  // in carve-out mode they are handed to the portal's flow, otherwise they
+  // are processed directly like a device upload.
+  const handleCapturedFile = (file: File) => {
+    setShowCamera(false);
+    setShowPad(false);
+    setError(null);
+    if (deviceInputId) {
+      onDeviceFileChange?.(file);
+    } else {
+      setSource('device');
+      void handleManualFile(file);
+    }
+  };
   const prevExternalRef = useRef<File | null>(null);
   useEffect(() => {
     if (!deviceInputId || !deviceFile || deviceFile === prevExternalRef.current) return;
@@ -481,26 +510,52 @@ export default function DocBridgeWidget({
               <>
                 <p className="text-sm font-semibold mb-1" style={{ color: COLORS.primary }}>{sourceHeading ?? t('w.where')}</p>
                 <p className="text-xs mb-4" style={{ color: COLORS.gray[600] }}>
-                  {sourceSub ?? t('w.whereSub')}
+                  {boldDocBridge(sourceSub ?? t('w.whereSub'))}
                 </p>
+                {assistantNote && (
+                  <p className="mb-4 flex items-start gap-1.5 rounded-lg border px-3 py-2 text-xs leading-5" style={{ borderColor: '#BBF7D0', backgroundColor: '#F0FDF4', color: '#166534' }}>
+                    <span aria-hidden="true">✨</span>
+                    <span>{boldDocBridge(assistantNote)}</span>
+                  </p>
+                )}
                 <div className="grid gap-3 pb-1 sm:grid-cols-2">
-                  <SourceOption
-                    title={t('w.fromDigi')}
-                    description={t('w.fromDigiSub')}
-                    icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>}
-                    onClick={startDigiLocker}
-                  />
-                  <SourceOption
-                    title={t('w.fromDevice')}
-                    description={deviceInputId ? `${t('w.fromDeviceSub')} ${t('w.orDrag')}` : t('w.fromDeviceSub')}
-                    icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>}
-                    onClick={startManualUpload}
-                    {...(deviceInputId ? {
-                      onDragOver: (e: React.DragEvent) => e.preventDefault(),
-                      onDrop: handleExternalDrop,
-                      dragHint: true,
-                    } : {})}
-                  />
+                  {captureModes.includes('digilocker') && (
+                    <SourceOption
+                      title={t('w.fromDigi')}
+                      description={t('w.fromDigiSub')}
+                      icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>}
+                      onClick={startDigiLocker}
+                    />
+                  )}
+                  {captureModes.includes('camera') && (
+                    <SourceOption
+                      title={t('w.takePhoto')}
+                      description={t('w.takePhotoSub')}
+                      icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>}
+                      onClick={() => { setError(null); setShowCamera(true); }}
+                    />
+                  )}
+                  {captureModes.includes('draw') && (
+                    <SourceOption
+                      title={t('w.drawSign')}
+                      description={t('w.drawSignSub')}
+                      icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>}
+                      onClick={() => { setError(null); setShowPad(true); }}
+                    />
+                  )}
+                  {captureModes.includes('device') && (
+                    <SourceOption
+                      title={t('w.fromDevice')}
+                      description={deviceInputId ? `${t('w.fromDeviceSub')} ${t('w.orDrag')}` : t('w.fromDeviceSub')}
+                      icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>}
+                      onClick={startManualUpload}
+                      {...(deviceInputId ? {
+                        onDragOver: (e: React.DragEvent) => e.preventDefault(),
+                        onDrop: handleExternalDrop,
+                        dragHint: true,
+                      } : {})}
+                    />
+                  )}
                 </div>
               </>
             )}
@@ -610,6 +665,21 @@ export default function DocBridgeWidget({
             {t('w.processAnother')}
           </button>
         </div>
+      )}
+
+      {/* Live capture — camera / signature pad feed the same pipeline */}
+      {showCamera && (
+        <CameraCapture
+          onCapture={handleCapturedFile}
+          onClose={() => setShowCamera(false)}
+          onFallback={startManualUpload}
+        />
+      )}
+      {showPad && (
+        <SignaturePad
+          onCapture={handleCapturedFile}
+          onClose={() => setShowPad(false)}
+        />
       )}
 
       {/* DigiLocker Modal — fetch flow */}

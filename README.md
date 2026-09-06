@@ -78,19 +78,19 @@ Every login is pre-filled — one click to sign in, all the way to Submit.
 
 Regenerate: `npm run journeys` (requires `npm run dev` on :3000).
 
-### Passport Seva (English) — photo 6.1 MB → 25 KB, 630×810px
+### Passport Seva (English) — live photo → 630×810px, portal-ready
 
 | Step | Screenshot |
 |------|------------|
 | 1 Login | ![01 login](docs/journeys/passport-en/01-login.png) |
 | 2 Dashboard nudge | ![02 nudge](docs/journeys/passport-en/02-dashboard-nudge.png) |
 | 3 Upload rules | ![03 rules](docs/journeys/passport-en/03-upload-requirements.png) |
-| 4 DigiLocker auth | ![04 auth](docs/journeys/passport-en/04-digilocker-aadhaar.png) |
-| 5 OTP | ![05 otp](docs/journeys/passport-en/05-digilocker-otp.png) |
-| 6 Vault select | ![06 vault](docs/journeys/passport-en/06-digilocker-select.png) |
-| 7 Processing | ![07 processing](docs/journeys/passport-en/07-processing.png) |
-| 8 Before/after preview | ![08 preview](docs/journeys/passport-en/08-preview-compare.png) |
-| 9 Widget success | ![09 success](docs/journeys/passport-en/09-widget-success.png) |
+| 4 Live capture | ![04 camera](docs/journeys/passport-en/04-live-capture.png) |
+| 5 Capture review | ![05 review](docs/journeys/passport-en/05-capture-review.png) |
+| 6 Processing | ![06 processing](docs/journeys/passport-en/06-processing.png) |
+| 7 Before/after preview | ![07 preview](docs/journeys/passport-en/07-preview-compare.png) |
+| 8 Widget success | ![08 success](docs/journeys/passport-en/08-widget-success.png) |
+| 9 Signature pad | ![09 pad](docs/journeys/passport-en/09-signature-draw.png) |
 | 10 Portal done (photo done, signature still pending — needs both) | ![10 done](docs/journeys/passport-en/10-portal-done.png) |
 
 ### EPFO (हिंदी) — passbook 4.2 MB → 55 KB PDF, 99% smaller

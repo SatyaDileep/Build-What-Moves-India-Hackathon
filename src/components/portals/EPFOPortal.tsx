@@ -125,9 +125,6 @@ export default function EPFOPortal() {
 
               <div className="relative rounded-xl border bg-white px-4 pb-4 pt-8" style={{ borderColor: '#e0e0e0' }}>
                 <span className="absolute -top-1 left-1/2 flex h-16 w-16 -translate-x-1/2 items-center justify-center rounded-full border bg-white text-2xl" style={{ borderColor: '#1a7a7a' }}>👥</span>
-                <div className="mt-8 rounded-md px-3 py-3 text-center text-[13px] leading-5" style={{ backgroundColor: '#fef3cd', color: '#664d03', border: '1px solid #ffe69c' }}>
-                  {t('epfo.invalidCreds')}
-                </div>
                 <div className="mt-4 space-y-3">
                   <div>
                     <label className="mb-1 block text-[13px] font-bold text-[#222]">{t('epfo.uan')} <span style={{ color: '#d32f2f' }}>*</span></label>

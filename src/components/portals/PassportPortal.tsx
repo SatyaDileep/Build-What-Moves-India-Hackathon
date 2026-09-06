@@ -269,28 +269,26 @@ export default function PassportPortal() {
                 <div className="border bg-white" style={{ borderColor: BORDER }}>
                   <h3 className="border-b px-2 py-1.5 font-bold" style={{ fontSize: '13px', color: NAVY, borderColor: BORDER, backgroundColor: '#f0f0f0' }}>{t('pp.photo')}</h3>
                   <p className="px-2 pt-1" style={{ fontSize: '11px', color: '#666' }}>{t('pp.photoSub')}</p>
-                  <ul className="space-y-1 p-2" style={{ fontSize: '12px' }}>
-                    {photoKeys.map((k) => (
-                      <li key={k} className="flex items-start gap-1.5">
-                        <span style={{ color: NAVY }}>▪</span>
-                        <span>{t(k)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="mx-2 mb-2 border p-2" style={{ borderColor: BORDER, backgroundColor: '#fafafa' }}>
-                    <div className="mb-2 flex flex-wrap items-center gap-2">
-                      <input
-                        id="native-passport-photo-input"
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        style={{ display: 'none' }}
-                        onChange={handleNativeInput('photo')}
-                      />
-                      <span className="border px-2 py-0.5 font-bold" style={{ fontSize: '11px', borderColor: '#999', backgroundColor: '#fff' }}>Choose File</span>
-                      <span style={{ fontSize: '11px', color: '#666' }}>No file chosen</span>
-                      <a href="#" onClick={(e) => e.preventDefault()} className="ml-auto underline" style={{ fontSize: '11px', color: LINK_BLUE }}>{t('pp.guidelines')}</a>
-                    </div>
+                  <details className="mx-2 mt-1 border px-2 py-1" style={{ borderColor: BORDER, backgroundColor: '#fafafa', fontSize: '12px' }}>
+                    <summary className="cursor-pointer underline" style={{ color: LINK_BLUE }}>{t('pp.viewPhotoRules')}</summary>
+                    <ul className="mt-1 space-y-1 pb-1" style={{ fontSize: '12px' }}>
+                      {photoKeys.map((k) => (
+                        <li key={k} className="flex items-start gap-1.5">
+                          <span style={{ color: NAVY }}>▪</span>
+                          <span>{t(k)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                  <div className="m-2 border p-2" style={{ borderColor: BORDER, backgroundColor: '#fafafa' }}>
+                    <input
+                      id="native-passport-photo-input"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      style={{ display: 'none' }}
+                      onChange={handleNativeInput('photo')}
+                    />
                     <DocBridgeWidget
                       portalId="passport"
                       docType="photo"
@@ -299,6 +297,8 @@ export default function PassportPortal() {
                       deviceInputId="native-passport-photo-input"
                       deviceFile={photoFile}
                       onDeviceFileChange={setPhotoFile}
+                      captureModes={['camera', 'device']}
+                      assistantNote={t('pp.smartPhoto')}
                     />
                   </div>
                 </div>
@@ -306,28 +306,26 @@ export default function PassportPortal() {
                 <div className="border bg-white" style={{ borderColor: BORDER }}>
                   <h3 className="border-b px-2 py-1.5 font-bold" style={{ fontSize: '13px', color: NAVY, borderColor: BORDER, backgroundColor: '#f0f0f0' }}>{t('pp.signature')}</h3>
                   <p className="px-2 pt-1" style={{ fontSize: '11px', color: '#666' }}>{t('pp.sigSub')}</p>
-                  <ul className="space-y-1 p-2" style={{ fontSize: '12px' }}>
-                    {signatureKeys.map((k) => (
-                      <li key={k} className="flex items-start gap-1.5">
-                        <span style={{ color: NAVY }}>▪</span>
-                        <span>{t(k)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="mx-2 mb-2 border p-2" style={{ borderColor: BORDER, backgroundColor: '#fafafa' }}>
-                    <div className="mb-2 flex flex-wrap items-center gap-2">
-                      <input
-                        id="native-passport-signature-input"
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        style={{ display: 'none' }}
-                        onChange={handleNativeInput('signature')}
-                      />
-                      <span className="border px-2 py-0.5 font-bold" style={{ fontSize: '11px', borderColor: '#999', backgroundColor: '#fff' }}>Choose File</span>
-                      <span style={{ fontSize: '11px', color: '#666' }}>No file chosen</span>
-                      <a href="#" onClick={(e) => e.preventDefault()} className="ml-auto underline" style={{ fontSize: '11px', color: LINK_BLUE }}>{t('pp.guidelines')}</a>
-                    </div>
+                  <details className="mx-2 mt-1 border px-2 py-1" style={{ borderColor: BORDER, backgroundColor: '#fafafa', fontSize: '12px' }}>
+                    <summary className="cursor-pointer underline" style={{ color: LINK_BLUE }}>{t('pp.viewSigRules')}</summary>
+                    <ul className="mt-1 space-y-1 pb-1" style={{ fontSize: '12px' }}>
+                      {signatureKeys.map((k) => (
+                        <li key={k} className="flex items-start gap-1.5">
+                          <span style={{ color: NAVY }}>▪</span>
+                          <span>{t(k)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                  <div className="m-2 border p-2" style={{ borderColor: BORDER, backgroundColor: '#fafafa' }}>
+                    <input
+                      id="native-passport-signature-input"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      style={{ display: 'none' }}
+                      onChange={handleNativeInput('signature')}
+                    />
                     <DocBridgeWidget
                       portalId="passport"
                       docType="signature"
@@ -336,6 +334,8 @@ export default function PassportPortal() {
                       deviceInputId="native-passport-signature-input"
                       deviceFile={signatureFile}
                       onDeviceFileChange={setSignatureFile}
+                      captureModes={['draw', 'device']}
+                      assistantNote={t('pp.smartSig')}
                     />
                   </div>
                 </div>
