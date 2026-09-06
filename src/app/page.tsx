@@ -173,28 +173,6 @@ export default function Home() {
         <div className="mt-10 grid gap-6 md:grid-cols-3">
           <PortalCard
             step="01"
-            accent="#1E3A8A"
-            eyebrow="UPSC · CSE 2026"
-            title="Login to UPSC portal to see it in action"
-            description="Union Public Service Commission — Civil Services Examination applications and OTR-based candidate services."
-            href="/upsc"
-            cta="Open UPSC login →"
-            busy={portalNav === '/upsc'}
-            onNavigateStart={() => setPortalNav('/upsc')}
-          />
-          <PortalCard
-            step="02"
-            accent="#EA580C"
-            eyebrow="Vahan · Sarathi"
-            title="Login to Vahan portal to see it in action"
-            description="Ministry of Road Transport & Highways — driving licence, learner permits and vehicle services via Sarathi."
-            href="/vahan"
-            cta="Open Vahan login →"
-            busy={portalNav === '/vahan'}
-            onNavigateStart={() => setPortalNav('/vahan')}
-          />
-          <PortalCard
-            step="03"
             accent="#138808"
             eyebrow="EPFO · Member Portal"
             title="Login to EPFO portal to see it in action"
@@ -205,7 +183,7 @@ export default function Home() {
             onNavigateStart={() => setPortalNav('/epfo')}
           />
           <PortalCard
-            step="04"
+            step="02"
             accent="#0b3c92"
             eyebrow="Passport Seva · MEA"
             title="Login to Passport Seva to see it in action"
@@ -216,18 +194,18 @@ export default function Home() {
             onNavigateStart={() => setPortalNav('/passport')}
           />
           <PortalCard
-            step="05"
-            accent="#9a3412"
-            eyebrow="SSC · OTR"
-            title="Login to SSC portal to see it in action"
-            description="Staff Selection Commission — One Time Registration for CGL, CHSL and MTS examinations."
-            href="/ssc"
-            cta="Open SSC login →"
-            busy={portalNav === '/ssc'}
-            onNavigateStart={() => setPortalNav('/ssc')}
+            step="03"
+            accent="#1E3A8A"
+            eyebrow="UPSC · CSE 2026"
+            title="Login to UPSC portal to see it in action"
+            description="Union Public Service Commission — Civil Services Examination applications and OTR-based candidate services."
+            href="/upsc"
+            cta="Open UPSC login →"
+            busy={portalNav === '/upsc'}
+            onNavigateStart={() => setPortalNav('/upsc')}
           />
           <PortalCard
-            step="06"
+            step="04"
             accent="#0d6b07"
             eyebrow="NSP · Scholarship"
             title="Login to NSP to see it in action"
@@ -236,6 +214,28 @@ export default function Home() {
             cta="Open NSP login →"
             busy={portalNav === '/nsp'}
             onNavigateStart={() => setPortalNav('/nsp')}
+          />
+          <PortalCard
+            step="05"
+            accent="#EA580C"
+            eyebrow="Vahan · Sarathi"
+            title="Login to Vahan portal to see it in action"
+            description="Ministry of Road Transport & Highways — driving licence, learner permits and vehicle services via Sarathi."
+            href="/vahan"
+            cta="Open Vahan login →"
+            busy={portalNav === '/vahan'}
+            onNavigateStart={() => setPortalNav('/vahan')}
+          />
+          <PortalCard
+            step="06"
+            accent="#9a3412"
+            eyebrow="SSC · OTR"
+            title="Login to SSC portal to see it in action"
+            description="Staff Selection Commission — One Time Registration for CGL, CHSL and MTS examinations."
+            href="/ssc"
+            cta="Open SSC login →"
+            busy={portalNav === '/ssc'}
+            onNavigateStart={() => setPortalNav('/ssc')}
           />
         </div>
       </section>
@@ -338,12 +338,12 @@ export default function Home() {
             </div>
 
             <div className="mt-8 grid gap-5 md:grid-cols-3">
-              <ModalPortalCard step="01" accent="#1E3A8A" eyebrow="UPSC · CSE 2026" title="UPSC portal" description="Civil Services Examination applications and OTR-based candidate services." href="/upsc" cta="Login to UPSC →" busy={portalNav === '/upsc'} onNavigateStart={() => setPortalNav('/upsc')} onNavigate={() => {}} />
-              <ModalPortalCard step="02" accent="#EA580C" eyebrow="Vahan · Sarathi" title="Vahan portal" description="Driving licence, learner permits and vehicle services via Sarathi." href="/vahan" cta="Login to Vahan →" busy={portalNav === '/vahan'} onNavigateStart={() => setPortalNav('/vahan')} onNavigate={() => {}} />
-              <ModalPortalCard step="03" accent="#138808" eyebrow="EPFO · Member Portal" title="EPFO portal" description="Member KYC, passbook, claims, transfer and e-nomination." href="/epfo" cta="Login to EPFO →" busy={portalNav === '/epfo'} onNavigateStart={() => setPortalNav('/epfo')} onNavigate={() => {}} />
-              <ModalPortalCard step="04" accent="#0b3c92" eyebrow="Passport Seva · MEA" title="Passport portal" description="Passport applications, document uploads and PSK appointment booking." href="/passport" cta="Login to Passport →" busy={portalNav === '/passport'} onNavigateStart={() => setPortalNav('/passport')} onNavigate={() => {}} />
-              <ModalPortalCard step="05" accent="#9a3412" eyebrow="SSC · OTR" title="SSC portal" description="One Time Registration for CGL, CHSL and MTS examinations." href="/ssc" cta="Login to SSC →" busy={portalNav === '/ssc'} onNavigateStart={() => setPortalNav('/ssc')} onNavigate={() => {}} />
-              <ModalPortalCard step="06" accent="#0d6b07" eyebrow="NSP · Scholarship" title="NSP portal" description="Merit and welfare scholarships with one OTR across schemes." href="/nsp" cta="Login to NSP →" busy={portalNav === '/nsp'} onNavigateStart={() => setPortalNav('/nsp')} onNavigate={() => {}} />
+              <ModalPortalCard step="01" accent="#138808" eyebrow="EPFO · Member Portal" title="EPFO portal" description="Member KYC, passbook, claims, transfer and e-nomination." href="/epfo" cta="Login to EPFO →" busy={portalNav === '/epfo'} onNavigateStart={() => setPortalNav('/epfo')} onNavigate={() => {}} />
+              <ModalPortalCard step="02" accent="#0b3c92" eyebrow="Passport Seva · MEA" title="Passport portal" description="Passport applications, document uploads and PSK appointment booking." href="/passport" cta="Login to Passport →" busy={portalNav === '/passport'} onNavigateStart={() => setPortalNav('/passport')} onNavigate={() => {}} />
+              <ModalPortalCard step="03" accent="#1E3A8A" eyebrow="UPSC · CSE 2026" title="UPSC portal" description="Civil Services Examination applications and OTR-based candidate services." href="/upsc" cta="Login to UPSC →" busy={portalNav === '/upsc'} onNavigateStart={() => setPortalNav('/upsc')} onNavigate={() => {}} />
+              <ModalPortalCard step="04" accent="#0d6b07" eyebrow="NSP · Scholarship" title="NSP portal" description="Merit and welfare scholarships with one OTR across schemes." href="/nsp" cta="Login to NSP →" busy={portalNav === '/nsp'} onNavigateStart={() => setPortalNav('/nsp')} onNavigate={() => {}} />
+              <ModalPortalCard step="05" accent="#EA580C" eyebrow="Vahan · Sarathi" title="Vahan portal" description="Driving licence, learner permits and vehicle services via Sarathi." href="/vahan" cta="Login to Vahan →" busy={portalNav === '/vahan'} onNavigateStart={() => setPortalNav('/vahan')} onNavigate={() => {}} />
+              <ModalPortalCard step="06" accent="#9a3412" eyebrow="SSC · OTR" title="SSC portal" description="One Time Registration for CGL, CHSL and MTS examinations." href="/ssc" cta="Login to SSC →" busy={portalNav === '/ssc'} onNavigateStart={() => setPortalNav('/ssc')} onNavigate={() => {}} />
             </div>
 
             <p className="mt-6 rounded-2xl bg-white/60 px-4 py-3 text-xs leading-5 text-slate-500 ring-1 ring-black/5">
