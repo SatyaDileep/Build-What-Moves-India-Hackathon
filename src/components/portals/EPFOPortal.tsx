@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import DocBridgeWidget from '@/components/DocBridgeWidget';
+import DocBridgeGuide from '@/components/DocBridgeGuide';
 import PortalNudge from '@/components/ui/PortalNudge';
 import HowItWorksModal, { HowItWorksTrigger } from '@/components/ui/HowItWorksModal';
 import TricolorBar from '@/components/ui/TricolorBar';
@@ -22,6 +22,18 @@ export default function EPFOPortal() {
   const [showHowModal, setShowHowModal] = useState(false);
   const [alerts, setAlerts] = useState({ rbi: true, mobile: true });
   useVoiceGuide(isVoiceOn() && step === 'submitted', t('w.congrats'), voiceLang(lang));
+
+  // DocBridge Guide overlay — KYC page keeps its native passbook dropzone;
+  // the floating companion spotlights it and walks the single upload step.
+  const guideSteps = [
+    {
+      id: 'passbook',
+      label: t('epfo.passbookCopy'),
+      requirements: 'Upload Passbook copy. Must be PDF format. Maximum size 500 KB. Account number must be visible.',
+      deviceInputId: 'native-epfo-passbook-input',
+      captureModes: ['digilocker', 'device'] as const,
+    },
+  ];
 
   const masthead = (signedIn: boolean) => (
     <header style={{ backgroundColor: '#fff' }}>
@@ -308,6 +320,13 @@ export default function EPFOPortal() {
 
                   <div>
                     <label className="mb-2 block text-sm font-medium text-slate-700">{t('epfo.passbookCopy')}</label>
+                    <input
+                      id="native-epfo-passbook-input"
+                      type="file"
+                      accept="application/pdf"
+                      className="hidden"
+                      style={{ display: 'none' }}
+                    />
                     <div className="rounded-xl border-2 border-dashed p-8 text-center" style={{ borderColor: COLORS.gray[300], color: COLORS.gray[500] }}>
                       <svg className="mx-auto mb-3 h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -317,15 +336,13 @@ export default function EPFOPortal() {
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-stone-200/60 bg-[#fffaf3] p-4">
-                      <DocBridgeWidget
-                        portalId="epfo"
-                        requirements="Upload Passbook copy. Must be PDF format. Maximum size 500 KB. Account number must be visible."
-                        onSuccess={() => setStep('submitted')}
-                        sourceHeading={t('epfo.skipHassle')}
-                        sourceSub={t('epfo.skipHassleSub')}
-                      />
-                  </div>
+                  {/* DocBridge Guide overlay — interference layer over the native dropzone */}
+                  <DocBridgeGuide
+                    portalId="epfo"
+                    steps={guideSteps}
+                    done={{ passbook: false }}
+                    onStepDone={() => setStep('submitted')}
+                  />
                 </div>
               </div>
             </section>

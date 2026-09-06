@@ -762,6 +762,19 @@ const dict: Record<string, { en: string; hi: string }> = {
   'nsp.quickLinks': { en: 'Student quick links', hi: 'छात्र त्वरित लिंक' },
   'nsp.footer': { en: 'Copyright Policy · Privacy Policy · Terms and Conditions · Disclaimer · Hyperlink · Site Map', hi: 'कॉपीराइट नीति · गोपनीयता नीति · नियम व शर्तें · अस्वीकरण · हाइपरलिंक · साइट मानचित्र' },
   'nsp.updated': { en: 'Last update: June 2026', hi: 'अंतिम अद्यतन: जून 2026' },
+  // DocBridge Guide overlay — the interference layer that walks upload screens
+  'guide.companion': { en: 'Upload Guide', hi: 'अपलोड गाइड' },
+  'guide.step': { en: 'Step', hi: 'चरण' },
+  'guide.of': { en: 'of', hi: '/' },
+  'guide.now': { en: 'Now', hi: 'अब' },
+  'guide.uploadHere': { en: 'Upload here', hi: 'यहाँ अपलोड करें' },
+  'guide.doNow': { en: 'Let\'s add your {label} — pick where it comes from:', hi: 'आपका {label} जोड़ें — चुनें कहाँ से लाना है:' },
+  'guide.spotlight': { en: 'Toggle upload spotlight', hi: 'अपलोड स्पॉटलाइट टॉगल करें' },
+  'guide.collapse': { en: 'Minimize guide', hi: 'गाइड छोटा करें' },
+  'guide.resume': { en: 'Resume guide', hi: 'गाइड जारी रखें' },
+  'guide.allDone': { en: 'All uploads complete', hi: 'सभी अपलोड पूर्ण' },
+  'guide.allDoneMsg': { en: 'All uploads complete — ready to submit!', hi: 'सभी अपलोड पूर्ण — जमा करने के लिए तैयार!' },
+  'guide.allDoneSub': { en: 'DocBridge verified every file against the portal rules.', hi: 'DocBridge ने हर फ़ाइल को पोर्टल नियमों के अनुसार जाँचा।' },
 };
 
 const Ctx = createContext<{ lang: Lang; setLang: (l: Lang) => void; t: (k: string) => string }>({ lang: 'en', setLang: () => {}, t: (k) => k });

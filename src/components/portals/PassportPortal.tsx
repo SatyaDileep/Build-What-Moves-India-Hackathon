@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import DocBridgeWidget from '@/components/DocBridgeWidget';
+import DocBridgeGuide from '@/components/DocBridgeGuide';
 import TricolorBar from '@/components/ui/TricolorBar';
 import VoiceToggle from '@/components/ui/VoiceToggle';
 import { LanguageToggle, useLang } from '@/lib/i18n';
@@ -34,11 +34,37 @@ export default function PassportPortal() {
   const [signatureFile, setSignatureFile] = useState<File | null>(null);
   const [captcha, setCaptcha] = useState('7 3 9 4');
 
+  // DocBridge Guide overlay — the portal page keeps its native upload rows;
+  // the guide companion walks photo → signature with a spotlight on each.
+  const guideSteps = [
+    {
+      id: 'photo',
+      label: t('pp.photo'),
+      requirements: 'Passport Seva GPSP upload. Photo exactly 630x810 pixels, JPEG only, 10KB - 250KB, white background, 80-85 percent face coverage.',
+      deviceInputId: 'native-passport-photo-input',
+      captureModes: ['camera', 'digilocker', 'device'] as const,
+      assistantNote: t('pp.smartPhoto'),
+    },
+    {
+      id: 'signature',
+      label: t('pp.signature'),
+      requirements: 'Passport signature upload. Signature scan, JPEG only, under 100KB, white paper background.',
+      deviceInputId: 'native-passport-signature-input',
+      captureModes: ['draw', 'digilocker', 'device'] as const,
+      assistantNote: t('pp.smartSig'),
+    },
+  ];
+
   const handleNativeInput = (slot: 'photo' | 'signature') => (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
     if (slot === 'photo') setPhotoFile(file);
     else setSignatureFile(file);
     e.target.value = '';
+  };
+
+  const handleGuideDeviceFile = (id: string, file: File | null) => {
+    if (id === 'photo') setPhotoFile(file);
+    else setSignatureFile(file);
   };
 
   useEffect(() => {
@@ -270,6 +296,8 @@ export default function PassportPortal() {
                 <p style={{ fontSize: '11px', color: '#666' }}>ARN BNGO40217846125 · {t('pp.attemptsRem')} <strong>photo + signature</strong> · {t('pp.stage34')}</p>
               </div>
 
+              {/* Native portal upload rows — untouched. DocBridge Guide overlays as a
+                  floating companion and spotlights whichever row is active. */}
               <div className="grid gap-3 md:grid-cols-2">
                 <div className="border bg-white" style={{ borderColor: BORDER }}>
                   <h3 className="border-b px-2 py-1.5 font-bold" style={{ fontSize: '13px', color: NAVY, borderColor: BORDER, backgroundColor: '#f0f0f0' }}>{t('pp.photo')}</h3>
@@ -294,17 +322,10 @@ export default function PassportPortal() {
                       style={{ display: 'none' }}
                       onChange={handleNativeInput('photo')}
                     />
-                    <DocBridgeWidget
-                      portalId="passport"
-                      docType="photo"
-                      requirements="Passport Seva GPSP upload. Photo exactly 630x810 pixels, JPEG only, 10KB - 250KB, white background, 80-85 percent face coverage."
-                      onSuccess={() => setDone((d) => ({ ...d, photo: true }))}
-                      deviceInputId="native-passport-photo-input"
-                      deviceFile={photoFile}
-                      onDeviceFileChange={setPhotoFile}
-                      captureModes={['camera', 'digilocker', 'device']}
-                      assistantNote={t('pp.smartPhoto')}
-                    />
+                    <div className="flex items-center gap-2">
+                      <span style={{ fontSize: '12px', color: '#666' }}>Choose File</span>
+                      <span className="ml-auto" style={{ fontSize: '11px', color: '#999' }}>JPEG · 10–250 KB · 630×810 px</span>
+                    </div>
                   </div>
                 </div>
 
@@ -331,20 +352,22 @@ export default function PassportPortal() {
                       style={{ display: 'none' }}
                       onChange={handleNativeInput('signature')}
                     />
-                    <DocBridgeWidget
-                      portalId="passport"
-                      docType="signature"
-                      requirements="Passport signature upload. Signature scan, JPEG only, under 100KB, white paper background."
-                      onSuccess={() => setDone((d) => ({ ...d, signature: true }))}
-                      deviceInputId="native-passport-signature-input"
-                      deviceFile={signatureFile}
-                      onDeviceFileChange={setSignatureFile}
-                      captureModes={['draw', 'digilocker', 'device']}
-                      assistantNote={t('pp.smartSig')}
-                    />
+                    <div className="flex items-center gap-2">
+                      <span style={{ fontSize: '12px', color: '#666' }}>Choose File</span>
+                      <span className="ml-auto" style={{ fontSize: '11px', color: '#999' }}>JPEG · under 100 KB</span>
+                    </div>
                   </div>
                 </div>
               </div>
+
+              <DocBridgeGuide
+                portalId="passport"
+                steps={guideSteps}
+                done={{ photo: done.photo, signature: done.signature }}
+                onStepDone={(id) => setDone((d) => ({ ...d, [id]: true }))}
+                deviceFiles={{ photo: photoFile, signature: signatureFile }}
+                onDeviceFileChange={handleGuideDeviceFile}
+              />
             </section>
           )}
 

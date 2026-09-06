@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import DocBridgeWidget from '@/components/DocBridgeWidget';
+import DocBridgeGuide from '@/components/DocBridgeGuide';
 import PortalNudge from '@/components/ui/PortalNudge';
 import HowItWorksModal, { HowItWorksTrigger } from '@/components/ui/HowItWorksModal';
 import { COLORS } from '@/lib/constants';
@@ -53,6 +53,30 @@ export default function UPSCPortal() {
     // Reset so choosing the same file again still fires onChange.
     e.target.value = '';
   };
+
+  const handleGuideDeviceFile = (id: string, file: File | null) => {
+    if (id === 'photo') setPhotoFile(file);
+    else setSignatureFile(file);
+  };
+
+  // DocBridge Guide overlay — OTR page keeps its native Choose File rows;
+  // the floating companion spotlights each row and walks photo → signature.
+  const guideSteps = [
+    {
+      id: 'photo',
+      label: 'Photo',
+      requirements: 'Upload latest Passport Photo. JPEG only. File size 20KB - 200KB. Pixel dimensions minimum 350 x 350 px, maximum 1000 x 1000 px. Plain white background. Face must cover 3/4th (75%) of the photo. A live photograph must also be captured and matched.',
+      deviceInputId: 'native-photo-input',
+      captureModes: ['camera', 'digilocker', 'device'] as const,
+    },
+    {
+      id: 'signature',
+      label: 'Signature',
+      requirements: 'UPSC signature upload. Signature scan, JPEG only, 20KB - 200KB, height and width between 350 and 1000 pixels, white paper background, running handwriting.',
+      deviceInputId: 'native-signature-input',
+      captureModes: ['draw', 'digilocker', 'device'] as const,
+    },
+  ];
 
   // Both OTR slots accepted → hold a "Submitting…" beat (~1s) so the user sees
   // the upload happen, then advance to the submitted receipt. No jarring jump.
@@ -321,18 +345,6 @@ export default function UPSCPortal() {
                     <span className="text-[12px] text-slate-400">Choose File</span>
                     <a href="#" onClick={(e) => e.preventDefault()} className="ml-auto text-[12px] text-[#0b3c92] underline">View guidelines for uploading photo</a>
                   </div>
-                  <div className="mt-3 rounded-sm border border-dashed p-4" style={{ borderColor: '#9db6d8', backgroundColor: '#f6f9fd' }}>
-                    <p className="mb-3 text-[12px] font-bold uppercase tracking-[0.12em] text-[#1a3a6b]">DocBridge assist — {t('upsc.step35doc')}</p>
-                    <DocBridgeWidget
-                      portalId="upsc"
-                      docType="photo"
-                      requirements="Upload latest Passport Photo. JPEG only. File size 20KB - 200KB. Pixel dimensions minimum 350 x 350 px, maximum 1000 x 1000 px. Plain white background. Face must cover 3/4th (75%) of the photo. A live photograph must also be captured and matched."
-                      onSuccess={() => setDone((d) => ({ ...d, photo: true }))}
-                      deviceInputId="native-photo-input"
-                      deviceFile={photoFile}
-                      onDeviceFileChange={setPhotoFile}
-                    />
-                  </div>
                 </div>
               </div>
 
@@ -365,21 +377,19 @@ export default function UPSCPortal() {
                     <span className="text-[12px] text-slate-400">Choose File</span>
                     <a href="#" onClick={(e) => e.preventDefault()} className="ml-auto text-[12px] text-[#0b3c92] underline">View guidelines for uploading signature</a>
                   </div>
-                  <div className="mt-3 rounded-sm border border-dashed p-4" style={{ borderColor: '#9db6d8', backgroundColor: '#f6f9fd' }}>
-                    <p className="mb-3 text-[12px] font-bold uppercase tracking-[0.12em] text-[#1a3a6b]">DocBridge assist — Signature</p>
-                    <DocBridgeWidget
-                      portalId="upsc"
-                      docType="signature"
-                      requirements="UPSC signature upload. Signature scan, JPEG only, 20KB - 200KB, height and width between 350 and 1000 pixels, white paper background, running handwriting."
-                      onSuccess={() => setDone((d) => ({ ...d, signature: true }))}
-                      deviceInputId="native-signature-input"
-                      deviceFile={signatureFile}
-                      onDeviceFileChange={setSignatureFile}
-                    />
-                  </div>
                 </div>
               </div>
             </div>
+
+            {/* DocBridge Guide overlay — interference layer over the native OTR rows */}
+            <DocBridgeGuide
+              portalId="upsc"
+              steps={guideSteps}
+              done={{ photo: done.photo, signature: done.signature }}
+              onStepDone={(id) => setDone((d) => ({ ...d, [id]: true }))}
+              deviceFiles={{ photo: photoFile, signature: signatureFile }}
+              onDeviceFileChange={handleGuideDeviceFile}
+            />
           </section>
         )}
 
