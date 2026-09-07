@@ -31,24 +31,17 @@ export default function VoiceToggle({ withHint = false, className = '' }: VoiceT
   };
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={voiceOn}
-        aria-label={t('nudge.voiceHint')}
-        onClick={toggle}
-        className="inline-flex items-center gap-2 rounded-full border bg-white px-3 py-1.5 text-xs font-bold shadow-sm transition-colors hover:-translate-y-0.5"
-        style={{ borderColor: voiceOn ? '#059669' : COLORS.gray[300], color: voiceOn ? '#065F46' : COLORS.gray[600] }}
-      >
-        <span aria-hidden="true">{voiceOn ? '🔊' : '🔈'}</span>
-        {voiceOn ? t('ov.voiceOn') : t('ov.voiceOff')}
-      </button>
-      {withHint && (
-        <span className="text-[11.5px] leading-4 text-slate-500" style={{ maxWidth: '26ch' }}>
-          {t('nudge.voiceHint')} · {t('nudge.voiceSub')}
-        </span>
-      )}
-    </div>
+    <button
+      type="button"
+      role="switch"
+      aria-checked={voiceOn}
+      aria-label={t('nudge.voiceHint')}
+      onClick={toggle}
+      className={`inline-flex items-center gap-1.5 rounded-full border bg-white px-2.5 py-1 text-[11.5px] font-bold shadow-sm transition-colors hover:-translate-y-0.5 ${className}`}
+      style={{ borderColor: voiceOn ? '#059669' : COLORS.gray[300], color: voiceOn ? '#065F46' : COLORS.gray[600] }}
+    >
+      <span aria-hidden="true">{voiceOn ? '🔊' : '🔈'}</span>
+      {voiceOn ? t('ov.voiceOn') : t('ov.voiceOff')}
+    </button>
   );
 }

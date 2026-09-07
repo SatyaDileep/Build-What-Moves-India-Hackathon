@@ -89,6 +89,14 @@ interface DocBridgeWidgetProps {
   // Trust micro-copy rendered under the chooser heading (e.g. Passport's
   // auto-crop/compress promise).
   assistantNote?: string;
+  // Optional refs the parent guide can use to observe widget state/source for
+  // per-site narration without coupling the widget to the guide.
+  // Guide passes mutable refs (from useRef) so the widget can mirror state/source.
+  widgetStateRef?: React.MutableRefObject<string>;
+  sourceRef?: React.MutableRefObject<string>;
+  // Optional callback the parent guide uses to react to widget phase changes
+  // (e.g. delayed 'ready to upload' narration after optimization).
+  onWidgetPhase?: (phase: string) => void;
 }
 
 export default function DocBridgeWidget({ 
@@ -104,9 +112,13 @@ export default function DocBridgeWidget({
   sourceSub,
   captureModes = ['digilocker', 'device'],
   assistantNote,
+  widgetStateRef,
+  sourceRef,
+  onWidgetPhase,
 }: DocBridgeWidgetProps) {
   const { t, lang } = useLang();
   const [state, setState] = useState<WidgetState>('idle');
+  const notifyPhase = (s: WidgetState) => { if (onWidgetPhase) onWidgetPhase(s); if (widgetStateRef) widgetStateRef.current = s; };
   const [showModal, setShowModal] = useState(false);
   const [showSaveAuthModal, setShowSaveAuthModal] = useState(false);
   const [isSaveAuthed, setIsSaveAuthed] = useState(false);
@@ -129,10 +141,13 @@ export default function DocBridgeWidget({
     setError(null);
     setShowModal(true);
     setState('authenticating');
+    notifyPhase('authenticating');
+    if (sourceRef) sourceRef.current = 'digilocker';
   };
 
   const startManualUpload = () => {
     setError(null);
+    if (sourceRef) sourceRef.current = 'device';
     if (deviceInputId) {
       // Carve-out mode: open the portal's hidden native input instead of the
       // widget's internal one so the OTR card owns the browser dialog.
@@ -149,6 +164,7 @@ export default function DocBridgeWidget({
     setShowCamera(false);
     setShowPad(false);
     setError(null);
+    if (sourceRef) sourceRef.current = 'device';
     if (deviceInputId) {
       onDeviceFileChange?.(file);
     } else {
@@ -178,15 +194,18 @@ export default function DocBridgeWidget({
       const portalName = portalDisplayName(portalId);
 
       setState('parsing');
+      notifyPhase('parsing');
       await dwellForSpeech(`${t('ov.reading')} ${portalName}`, 1600);
       const constraint = await parsePortalConstraints(requirements);
       setState('processing');
+      notifyPhase('processing');
       await dwellForSpeech(`${t('ov.optimizingFor')} ${portalName}`, 400);
       const result = await processDocument(blob, constraint, meta, opts);
       await dwellForSpeech('', 1400);
 
       setProcessingResult(result);
       setState('previewing');
+      notifyPhase('previewing');
       return result;
     } catch (err: any) {
       setError(err?.message || t('w.errProcess'));
@@ -202,6 +221,11 @@ export default function DocBridgeWidget({
     await runProcessing(lastBlob, lastMeta, { aggressive: true });
     setIsRecompressing(false);
   };
+  const handleRetake = () => {
+    setError(null);
+    setState('idle');
+    notifyPhase('idle');
+  };
   const handleAdjust = async (choice: { targetKB: number; aggressive: boolean; targetWidth?: number; targetHeight?: number }) => {
     if (!lastBlob || !lastMeta) return;
     setError(null);
@@ -216,6 +240,7 @@ export default function DocBridgeWidget({
   const handleAssetSelected = async (asset: DigiLockerAsset) => {
     setSelectedAsset(asset);
     setSource('digilocker');
+    if (sourceRef) sourceRef.current = 'digilocker';
     setShowModal(false);
 
     const fileBlob = await supabase.fetchAsset(asset.id);
@@ -230,6 +255,7 @@ export default function DocBridgeWidget({
   // B3 — multi-document batch: N DigiLocker assets → N previews → one Submit all.
   const handleAssetsSelected = async (assets: DigiLockerAsset[]) => {
     setSource('digilocker');
+    if (sourceRef) sourceRef.current = 'digilocker';
     setShowModal(false);
     setSelectedAsset(assets[0] ?? null);
     const blobs = await supabase.fetchAssets(assets.map((a) => a.id));
@@ -414,10 +440,12 @@ export default function DocBridgeWidget({
     if (out.success) {
       setLastSaved(saveToDigiLocker);
       setState('success');
+      notifyPhase('success');
       onSuccess?.(out);
     } else {
       setError(out.error || 'Submission failed');
       setState('previewing');
+      notifyPhase('previewing');
     }
   };
 

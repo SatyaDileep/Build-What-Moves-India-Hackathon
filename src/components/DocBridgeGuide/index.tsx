@@ -6,6 +6,7 @@ import { COLORS } from '@/lib/constants';
 import { useLang, voiceLang } from '@/lib/i18n';
 import { useVoiceGuide } from '@/hooks/useVoiceGuide';
 import { isVoiceOn } from '@/lib/voice';
+import { getGuideCopy, PortalId } from '@/lib/guideNarration';
 
 export interface GuideStep {
   /** Unique key, e.g. 'photo' | 'signature' | 'passbook' */
@@ -40,17 +41,6 @@ export interface DocBridgeGuideProps {
 const ACCENT = '#F59E0B';
 const NAVY = '#0A2540';
 
-/**
- * DocBridge Guide — the "interference layer".
- *
- * Sequencing matters: the user first sees the portal's own upload screen
- * untouched (1.1s), the spotlight then fades in over the active "Choose File"
- * row (600ms), and only after that does the guide modal rise into place.
- * The modal keeps a compact, balanced footprint (max-w-2xl, capped height)
- * so the page behind it stays visible. Detection is the step array + the DOM
- * ids of the portal's real file inputs — the same contract the Chrome
- * extension's content/detector.js fulfils on real gov.in pages.
- */
 export default function DocBridgeGuide({
   portalId,
   steps,
@@ -61,24 +51,29 @@ export default function DocBridgeGuide({
   onDeviceFileChange,
 }: DocBridgeGuideProps) {
   const { t, lang } = useLang();
-  // Phases: 'page' (portal alone) → 'spotlight' (area highlighted) → 'modal' (guide up)
-  // 'dismissed' = modal closed: NO dim/spotlight, just a small pill anchored
-  // above the upload area so the page returns to normal.
+  const guidePortalId = portalId as PortalId;
+  const guideCopy = useMemo(() => getGuideCopy(guidePortalId), [guidePortalId]);
+
   const [phase, setPhase] = useState<'page' | 'spotlight' | 'modal' | 'dismissed'>('page');
   const [spotlightOn, setSpotlightOn] = useState(true);
   const [narrating, setNarrating] = useState(true);
-  const setPlayWelcomeOnce = (v: boolean) => {};
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [modalRect, setModalRect] = useState<DOMRect | null>(null);
   const modalCardRef = useRef<HTMLDivElement | null>(null);
   const allDoneRef = useRef(false);
+  const widgetStateRef = useRef<string>('idle');
+  const sourceRef = useRef<string>('');
+  const [widgetPhase, setWidgetPhase] = useState<'idle' | 'parsing' | 'processing' | 'previewing' | 'success'>('idle');
+  const onWidgetPhase = (phase: string) => {
+    if (phase === widgetPhase) return;
+    setWidgetPhase(phase as any);
+  };
   const open = phase === 'modal';
 
   const current = useMemo(() => steps.find((s) => !done[s.id]) ?? null, [steps, done]);
   const completedCount = steps.filter((s) => done[s.id]).length;
   const total = steps.length;
 
-  // Let the upload screen breathe first, then spotlight the row, then open.
   useEffect(() => {
     if (!current) return;
     setPhase('page');
@@ -88,33 +83,8 @@ export default function DocBridgeGuide({
       clearTimeout(t1);
       clearTimeout(t2);
     };
-  }, [current?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [current?.id]);
 
-  // Keep tracking the upload row even while dismissed so the anchor pill can
-  // float just above it.
-  useEffect(() => {
-    if (phase !== 'dismissed' || !current) return;
-    const el = document.getElementById(current.deviceInputId);
-    if (!el) return;
-    const update = () => {
-      const r = el.getBoundingClientRect();
-      const rect = r.width === 0 || r.height === 0 ? el.parentElement?.getBoundingClientRect() ?? null : r;
-      setTargetRect(rect);
-    };
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    window.addEventListener('scroll', update, true);
-    window.addEventListener('resize', update);
-    return () => {
-      ro.disconnect();
-      window.removeEventListener('scroll', update, true);
-      window.removeEventListener('resize', update);
-    };
-  }, [phase, current]);
-
-  // Track the active slot's native "Choose File" row so the spotlight can
-  // cut a hole around the real portal UI behind the modal.
   useEffect(() => {
     if (!current || !spotlightOn || phase === 'page') {
       if (phase !== 'page') setTargetRect(null);
@@ -127,7 +97,6 @@ export default function DocBridgeGuide({
     }
     const update = () => {
       const r = el.getBoundingClientRect();
-      // Hidden inputs get zero rects — fall back to their closest visible container.
       if (r.width === 0 || r.height === 0) {
         const host = el.parentElement?.getBoundingClientRect();
         setTargetRect(host ?? null);
@@ -154,15 +123,12 @@ export default function DocBridgeGuide({
     }
   }, [completedCount, total, onAllDone]);
 
-  // Track the modal card's own rect so the dotted connector can reach from
-  // the modal edge to the spotlighted upload area.
   useEffect(() => {
     if (phase !== 'modal' || !current) {
       setModalRect(null);
       return;
     }
     const update = () => setModalRect(modalCardRef.current?.getBoundingClientRect() ?? null);
-    // One frame after render so the card has laid out.
     const raf = requestAnimationFrame(update);
     const ro = new ResizeObserver(update);
     if (modalCardRef.current) ro.observe(modalCardRef.current);
@@ -174,33 +140,60 @@ export default function DocBridgeGuide({
     };
   }, [phase, current]);
 
-  // Welcome line plays once when the modal opens (subtle, one sentence);
-  // step details only when the user taps the 🔈 toggle.
+  // Per-site welcome line plays once when the modal opens.
   useVoiceGuide(
     open && !!current,
-    t('guide.welcome'),
+    guideCopy.welcome,
     voiceLang(lang),
   );
-  useVoiceGuide(
-    narrating && !!current && open,
-    current ? `${t('guide.step')} ${completedCount + 1} ${t('guide.of')} ${total}: ${current.label}. ${current.assistantNote ?? current.requirements}` : '',
-    voiceLang(lang),
-  );
-  useEffect(() => {
-    if (!narrating) return;
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel();
-  }, [narrating]);
 
-  // Closing the modal (or leaving the upload step entirely) must silence any
-  // running narration — the user walked away, the guide stops talking.
+  // Step-level narration: live whenever the modal is open and the user hasn't
+  // muted it. The copy is per-site (EPFO / UPSC / Passport / …).
+  const stepNarration = useMemo(() => {
+    if (!current || !narrating) return '';
+    return guideCopy.stepIdle(current!, completedCount + 1, total);
+  }, [current, narrating, completedCount, total, guideCopy]);
+
+  useVoiceGuide(
+    !!(current && open && stepNarration),
+    stepNarration,
+    voiceLang(lang),
+  );
+
+  // When the widget picks a source (idle→processing or previewing), read the
+  // per-site 'source picked' line.
+  useVoiceGuide(
+    !!(current && open && widgetPhase !== 'idle' && widgetPhase !== 'success' && sourceRef.current),
+    guideCopy.sourcePicked(current!, sourceRef.current),
+    voiceLang(lang),
+  );
+
+  // After optimization finishes (widget enters previewing), narrate a delayed
+  // 'ready to upload' line so the optimizing readout is not cut short.
   useEffect(() => {
-    if (phase === 'modal') return;
-    setNarrating(false);
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.pause();
-      window.speechSynthesis.cancel();
-    }
-  }, [phase]);
+    if (!current || !open || widgetPhase !== 'previewing') return;
+    const delayed = setTimeout(() => {
+      useVoiceGuide(true, guideCopy.readyToUpload(current!), voiceLang(lang));
+    }, 900);
+    return () => clearTimeout(delayed);
+  }, [current, open, widgetPhase, guideCopy, lang]);
+
+  useEffect(() => {
+    if (!current || !open) return;
+    const stop = () => {
+      setNarrating(false);
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.pause();
+        setTimeout(() => window.speechSynthesis.cancel(), 0);
+      }
+    };
+    const unsub = () => stop();
+    window.addEventListener('beforeunload', unsub);
+    return () => {
+      unsub();
+      window.removeEventListener('beforeunload', unsub);
+    };
+  }, [open, current]);
 
   const spotlightStyle = useMemo(() => {
     if (!targetRect) return undefined;
@@ -213,21 +206,19 @@ export default function DocBridgeGuide({
     } as React.CSSProperties;
   }, [targetRect]);
 
-  // Fully complete and dismissed — nothing left to show.
   if (!current && phase === 'page') return null;
 
   const spotlightVisible = current && phase !== 'page' && spotlightOn && targetRect;
 
   return (
     <>
-      {/* Spotlight mask — fades in over the live upload row before the modal */}
       {spotlightVisible && (
         <div
           className="pointer-events-none fixed inset-0 z-[9990]"
           role="presentation"
           aria-hidden="true"
           style={{
-            opacity: phase === 'modal' ? 0.85 : 1,
+            opacity: phase === 'modal' ? 0.45 : 1,
             transition: 'opacity 600ms ease',
           }}
         >
@@ -251,17 +242,14 @@ export default function DocBridgeGuide({
             }}
           >
             📍 {t('guide.uploadHere')}
-          </span>
-        </div>
+          </span>            </div>
       )}
 
-      {/* Dotted connector — a subtle dotted line linking the modal to
-          the spotlighted upload row, so the eye travels modal → target. */}
       {phase === 'modal' && targetRect && modalRect && (() => {
         const startX = modalRect.left + modalRect.width / 2;
         const endX = targetRect.left + targetRect.width / 2;
         const endY = targetRect.top;
-        const goingDown = endY < modalRect.top; // target above modal
+        const goingDown = endY < modalRect.top;
         const p1 = goingDown ? { x: startX, y: modalRect.top } : { x: startX, y: modalRect.bottom };
         const p2 = goingDown ? { x: endX, y: endY + 14 } : { x: endX, y: endY - 6 };
         const ctrlX = (p1.x + p2.x) / 2 + (p2.x > p1.x ? 60 : -60);
@@ -281,7 +269,6 @@ export default function DocBridgeGuide({
               strokeDasharray="7 7"
               strokeLinecap="round"
             />
-            {/* Arrowhead at the target end */}
             <polygon
               points={
                 goingDown
@@ -294,7 +281,6 @@ export default function DocBridgeGuide({
         );
       })()}
 
-      {/* Centered guide modal — compact, balanced footprint */}
       {phase === 'modal' && (
         <div
           className="fixed inset-0 z-[9995] flex items-center justify-center overflow-y-auto p-4"
@@ -307,29 +293,16 @@ export default function DocBridgeGuide({
             ref={modalCardRef}
             className="relative flex max-h-[min(86vh,780px)] w-full max-w-2xl flex-col animate-[modalIn_560ms_cubic-bezier(0.16,1,0.3,1)] overflow-hidden rounded-2xl border border-white/50 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.3)]"
           >
-            {/* Header */}
             <div className="flex shrink-0 items-center gap-2.5 px-5 py-3" style={{ backgroundColor: NAVY }}>
               <span className="flex h-7 w-7 items-center justify-center rounded-full text-[13px]" style={{ backgroundColor: ACCENT }}>
                 🌉
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-[13px] font-bold leading-tight text-white">DocBridge {t('guide.companion')}</p>
+                <p className="text-[13px] font-bold leading-tight text-white">DocBridge Assist</p>
                 <p className="text-[11px] leading-tight text-white/70">
                   {current ? `${t('guide.step')} ${completedCount + 1} ${t('guide.of')} ${total}` : t('guide.allDone')}
                 </p>
               </div>
-              {current && (
-                <button
-                  type="button"
-                  onClick={() => setSpotlightOn((v) => !v)}
-                  title={t('guide.spotlight')}
-                  aria-label={t('guide.spotlight')}
-                  aria-pressed={spotlightOn}
-                  className="rounded-md px-1.5 py-1 text-[13px] text-white/80 transition hover:bg-white/10"
-                >
-                  {spotlightOn ? '👁' : '🚫'}
-                </button>
-              )}
               {current && (
                 <button
                   type="button"
@@ -344,19 +317,18 @@ export default function DocBridgeGuide({
               )}
               <button
                 type="button"
-                onClick={() => setSpotlightOn((v) => !v)}
-                title={t('guide.toggleHighlight')}
-                aria-label={t('guide.toggleHighlight')}
-                aria-pressed={spotlightOn}
+                onClick={() => {
+                  setPhase('dismissed');
+                  setSpotlightOn(false);
+                }}
+                aria-label={t('guide.collapse')}
                 className="rounded-md px-1.5 py-1 text-[13px] text-white/80 transition hover:bg-white/10"
               >
-                {spotlightOn ? '👁' : '🚫'}
+                ✕
               </button>
             </div>
 
-            {/* Scrollable body — checklist as a horizontal strip, widget below */}
             <div className="min-h-0 flex-1 overflow-y-auto p-4">
-              {/* Compact checklist strip — horizontal on wide screens */}
               <ul className="mb-3 flex gap-2 overflow-x-auto sm:flex-nowrap">
                 {steps.map((s, i) => {
                   const isDone = !!done[s.id];
@@ -384,7 +356,6 @@ export default function DocBridgeGuide({
                 })}
               </ul>
 
-              {/* Active step — the DocBridge widget rendered inside the modal */}
               {current && (
                 <div className="rounded-xl border bg-white p-3.5" style={{ borderColor: '#E2E8F0' }}>
                   <p className="mb-1.5 text-[13px] font-bold" style={{ color: NAVY }}>
@@ -400,11 +371,13 @@ export default function DocBridgeGuide({
                     onDeviceFileChange={(f) => onDeviceFileChange?.(current.id, f)}
                     captureModes={current.captureModes ? [...current.captureModes] : undefined}
                     assistantNote={current.assistantNote}
+                    widgetStateRef={widgetStateRef}
+                    sourceRef={sourceRef}
+                    onWidgetPhase={onWidgetPhase}
                   />
                 </div>
               )}
 
-              {/* All-steps-complete state */}
               {!current && (
                 <div className="rounded-xl p-4" style={{ backgroundColor: '#ECFDF5' }}>
                   <p className="text-sm font-bold" style={{ color: '#065F46' }}>✓ {t('guide.allDoneMsg')}</p>
@@ -419,14 +392,10 @@ export default function DocBridgeGuide({
                   </button>
                 </div>
               )}
-
-              {/* PrivacyBadge: the DocBridgeWidget idle state already renders one,
-                  so no second badge here — it was duplicating. */}
             </div>
-          </div>
-        </div>
-      )}      {/* Dismissed anchor — label above says "DocBridge Assist", sits top-right
-          of the upload area so it's clearly guiding/clickable on the page. */}
+          </div>            </div>
+      )}
+
       {phase === 'dismissed' && current && targetRect && (
         <button
           type="button"
@@ -452,6 +421,7 @@ export default function DocBridgeGuide({
             {completedCount + 1}
           </span>
         </button>
-      )}</>
+      )}
+    </>
   );
 }

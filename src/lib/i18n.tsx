@@ -764,6 +764,7 @@ const dict: Record<string, { en: string; hi: string }> = {
   'nsp.updated': { en: 'Last update: June 2026', hi: 'अंतिम अद्यतन: जून 2026' },
   // DocBridge Guide overlay — the interference layer that walks upload screens
   'guide.companion': { en: 'Upload Guide', hi: 'अपलोड गाइड' },
+  'guide.stepIdle': { en: 'Step {n} of {total}: {label}. {note}', hi: 'चरण {total} में से {n}: {label}. {note}' },
   'guide.step': { en: 'Step', hi: 'चरण' },
   'guide.of': { en: 'of', hi: '/' },
   'guide.now': { en: 'Now', hi: 'अब' },
@@ -775,6 +776,8 @@ const dict: Record<string, { en: string; hi: string }> = {
   'guide.narrate': { en: 'Read this step aloud', hi: 'यह चरण बोलकर सुनाएँ' },
   'guide.toggleHighlight': { en: 'Toggle upload highlight', hi: 'अपलोड हाइलाइट टॉगल करें' },
   'guide.welcome': { en: 'DocBridge helps you upload your documents securely, with privacy guaranteed.', hi: 'DocBridge आपके दस्तावेज़ सुरक्षित रूप से अपलोड करने में मदद करता है, निजता की गारंटी के साथ।' },
+  'guide.sourcePicked': { en: 'You chose {source}. DocBridge is now preparing your {label}. Your documents stay private.', hi: 'आपने {source} चुना। DocBridge अब आपका {label} तैयार कर रहा है। आपके दस्तावेज़ निजी रहते हैं।' },
+  'guide.readyToUpload': { en: 'Your {label} is ready to upload. You may verify it looks correct, then tap upload. DocBridge has taken care of the rest.', hi: 'आपका {label} अपलोड हेतु तैयार है। आप जाँच सकते हैं कि यह सही लग रहा है, फिर अपलोड दबाएँ। DocBridge ने बाकी सब सँभाल लिया।' },
   'w.grew': { en: 'larger', hi: 'बड़ा' },
   'w.grewWhy': { en: 'The portal requires exactly {toW}×{toH}px — larger than your {fromW}×{fromH}px photo, so the file grew to fill the required canvas. It stays within the portal\'s allowed range ✓', hi: 'पोर्टल को ठीक {toW}×{toH}px चाहिए — आपकी {fromW}×{fromH}px फोटो से बड़ा, इसलिए फ़ाइल ज़रूरी कैनवस को भरने के लिए बढ़ी। यह पोर्टल की सीमा में है ✓' },
   'guide.resume': { en: 'Resume guide', hi: 'गाइड जारी रखें' },
