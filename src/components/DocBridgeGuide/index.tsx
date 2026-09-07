@@ -134,8 +134,9 @@ export default function DocBridgeGuide({
       setSpotlightOn(false);
       return;
     }
-    // Assistive: slow-burn spotlight + modal so viewers register the
-    // auto-nudge before the modal takes over.
+    // Assistive: slow-burn spotlight, then auto-open modal. Recording flow
+    // covers the audio unlock with a click; narration is serialized behind
+    // the welcome so nothing collides.
     setPhase('page');
     const t1 = setTimeout(() => setPhase('spotlight'), 2000);
     const t2 = setTimeout(() => setPhase('modal'), 3200);
@@ -218,11 +219,15 @@ export default function DocBridgeGuide({
   const [stepVoiceReady, setStepVoiceReady] = useState(false);
   useEffect(() => {
     if (!open || !current) return;
+    // One-shot per modal-open/step: the step line waits behind a pending
+    // welcome. welcomeFired is deliberately NOT a dep — flipping it true on
+    // open must not reset this timer to 900ms and cut the welcome short.
     setStepVoiceReady(false);
     const delay = welcomeFired ? 900 : estimateSpeechMs(guideCopy.welcome) + 700;
     const timer = setTimeout(() => setStepVoiceReady(true), delay);
     return () => clearTimeout(timer);
-  }, [open, current, guideCopy, welcomeFired]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, current, guideCopy, voiceOn, userInteracted]);
 
   useVoiceGuide(
     !!(voiceOn && userInteracted && open && current && stepVoiceReady && stepNarration && stepNarration !== stepIdlePrev.current),
@@ -266,9 +271,14 @@ export default function DocBridgeGuide({
     if (voiceOn && userInteracted && open && stepVoiceReady) stepIdlePrev.current = stepNarration;
   }, [stepNarration, voiceOn, userInteracted, open, stepVoiceReady]);
 
+  // Latch welcomeFired only after the welcome finishes: flipping it in the
+  // same commit re-renders, disables the welcome hook, and its cleanup
+  // cancels the utterance it just started (the self-cancel bug).
   useEffect(() => {
-    if (open && !!current && voiceOn && userInteracted) setWelcomeFired(true);
-  }, [open, current, voiceOn, userInteracted]);
+    if (!open || !current || !voiceOn || !userInteracted || welcomeFired) return;
+    const timer = setTimeout(() => setWelcomeFired(true), estimateSpeechMs(guideCopy.welcome) + 500);
+    return () => clearTimeout(timer);
+  }, [open, current, voiceOn, userInteracted, welcomeFired, guideCopy]);
 
   // Voice opt-in is persisted under the same key the widget/overlay check, so
   // the guide and the widget share one switch. The modal header exposes this
@@ -294,7 +304,15 @@ export default function DocBridgeGuide({
   // the citizen taps/clicks anywhere on the page.
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const onInteract = () => setUserInteracted(true);
+    const onInteract = () => {
+      setUserInteracted(true);
+      // Chrome parks pre-gesture utterances as paused — resume the queue.
+      try {
+        if ('speechSynthesis' in window && window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+      } catch {}
+    };
     window.addEventListener('click', onInteract);
     window.addEventListener('touchstart', onInteract);
     window.addEventListener('keydown', onInteract);
@@ -494,7 +512,7 @@ export default function DocBridgeGuide({
           </div>            </div>
       )}
 
-      {phase === 'dismissed' && current && targetRect && (
+      {(phase === 'dismissed' || phase === 'spotlight') && current && targetRect && (
         <PillButton
           pillAlign={pillAlign}
           pillTargetId={pillTargetId}

@@ -20,7 +20,7 @@ export interface PortalGuideCopy {
 
 const SITE: Record<PortalId, PortalGuideCopy> = {
   epfo: {
-    welcome: 'DocBridge Assist for EPFO. Here is how to upload your passbook. Select an option of your choice — DigiLocker to securely access your documents, or upload from your device. DocBridge will take care of the rest.',
+    welcome: 'DocBridge Assist for EPFO. Choose DigiLocker or your device for the passbook.',
     stepIdle: (step, idx, total) =>
       `Step ${idx} of ${total}. ${step.label}. Choose where it comes from — DigiLocker or upload from your device. DocBridge will guide you through the next steps.`,
     sourcePicked: (step, source) =>
@@ -35,7 +35,7 @@ const SITE: Record<PortalId, PortalGuideCopy> = {
         : `Passbook uploaded. DocBridge Assist is done.`,
   },
   upsc: {
-    welcome: 'DocBridge Assist for UPSC. Here are the steps to upload your photo and signature. Select an option of your choice — DigiLocker to securely access your documents, or upload from your device. DocBridge will take care of the rest.',
+    welcome: 'DocBridge Assist for UPSC. Choose DigiLocker or your device for photo and signature.',
     stepIdle: (step, idx, total) =>
       `Step ${idx} of ${total}. ${step.label}. Choose where it comes from — DigiLocker or upload from your device. DocBridge will guide you through the next steps.`,
     sourcePicked: (step, source) =>
@@ -50,7 +50,7 @@ const SITE: Record<PortalId, PortalGuideCopy> = {
         : `${step.label} uploaded. DocBridge Assist is done.`,
   },
   vahan: {
-    welcome: 'DocBridge Assist for Sarathi. Here are the steps to upload your photograph and signature. Select an option of your choice — DigiLocker to securely access your documents, or upload from your device. DocBridge will take care of the rest.',
+    welcome: 'DocBridge Assist for Sarathi. Choose DigiLocker or your device for photo and signature.',
     stepIdle: (step, idx, total) =>
       `Step ${idx} of ${total}. ${step.label}. Choose where it comes from — DigiLocker or upload from your device. DocBridge will guide you through the next steps.`,
     sourcePicked: (step, source) =>
@@ -65,7 +65,7 @@ const SITE: Record<PortalId, PortalGuideCopy> = {
         : `${step.label} uploaded. DocBridge Assist is done.`,
   },
   passport: {
-    welcome: 'DocBridge Assist for Passport Seva. Here are the steps to upload your photo and signature. Select an option of your choice — DigiLocker to securely access your documents, or upload from your device. DocBridge will take care of the rest.',
+    welcome: 'DocBridge Assist for Passport Seva. Choose DigiLocker or your device for photo and signature.',
     stepIdle: (step, idx, total) =>
       `Step ${idx} of ${total}. ${step.label}. Choose where it comes from — DigiLocker, take a live photo, or upload from your device. DocBridge will guide you through the next steps.`,
     sourcePicked: (step, source) =>
@@ -82,7 +82,7 @@ const SITE: Record<PortalId, PortalGuideCopy> = {
         : `${step.label} uploaded. DocBridge Assist is done.`,
   },
   ssc: {
-    welcome: 'DocBridge Assist for SSC. Here are the steps to upload your photo and signature. Select an option of your choice — DigiLocker to securely access your documents, or upload from your device. DocBridge will take care of the rest.',
+    welcome: 'DocBridge Assist for SSC. Choose DigiLocker or your device for photo and signature.',
     stepIdle: (step, idx, total) =>
       `Step ${idx} of ${total}. ${step.label}. Choose where it comes from — DigiLocker or upload from your device. DocBridge will guide you through the next steps.`,
     sourcePicked: (step, source) =>
@@ -97,7 +97,7 @@ const SITE: Record<PortalId, PortalGuideCopy> = {
         : `${step.label} uploaded. DocBridge Assist is done.`,
   },
   nsp: {
-    welcome: 'DocBridge Assist for NSP. Here are the steps to upload your photo and income certificate. Select an option of your choice — DigiLocker to securely access your documents, or upload from your device. DocBridge will take care of the rest.',
+    welcome: 'DocBridge Assist for NSP. Choose DigiLocker or your device for photo and certificate.',
     stepIdle: (step, idx, total) =>
       `Step ${idx} of ${total}. ${step.label}. Choose where it comes from — DigiLocker or upload from your device. DocBridge will guide you through the next steps.`,
     sourcePicked: (step, source) =>
@@ -114,12 +114,12 @@ const SITE: Record<PortalId, PortalGuideCopy> = {
 };
 
 const HI_WELCOME: Record<PortalId, string> = {
-  epfo: 'EPFO हेतु DocBridge Assist। पासबुक अपलोड करने का तरीका यहाँ है। अपनी पसंद का विकल्प चुनें — दस्तावेज़ों हेतु DigiLocker से सुरक्षित पहुँच, या अपने डिवाइस से अपलोड। बाकी DocBridge सँभाल लेगा।',
-  upsc: 'UPSC हेतु DocBridge Assist। फोटो व हस्ताक्षर अपलोड करने के चरण यहाँ हैं। अपनी पसंद का विकल्प चुनें — दस्तावेज़ों हेतु DigiLocker से सुरक्षित पहुँच, या अपने डिवाइस से अपलोड। बाकी DocBridge सँभाल लेगा।',
-  vahan: 'Sarathi हेतु DocBridge Assist। फोटो व हस्ताक्षर अपलोड करने के चरण यहाँ हैं। अपनी पसंद का विकल्प चुनें — दस्तावेज़ों हेतु DigiLocker से सुरक्षित पहुँच, या अपने डिवाइस से अपलोड। बाकी DocBridge सँभाल लेगा।',
-  passport: 'Passport Seva हेतु DocBridge Assist। फोटो व हस्ताक्षर अपलोड करने के चरण यहाँ हैं। अपनी पसंद का विकल्प चुनें — दस्तावेज़ों हेतु DigiLocker से सुरक्षित पहुँच, या अपने डिवाइस से अपलोड। बाकी DocBridge सँभाल लेगा।',
-  ssc: 'SSC हेतु DocBridge Assist। फोटो व हस्ताक्षर अपलोड करने के चरण यहाँ हैं। अपनी पसंद का विकल्प चुनें — दस्तावेज़ों हेतु DigiLocker से सुरक्षित पहुँच, या अपने डिवाइस से अपलोड। बाकी DocBridge सँभाल लेगा।',
-  nsp: 'NSP हेतु DocBridge Assist। फोटो व आय प्रमाणपत्र अपलोड करने के चरण यहाँ हैं। अपनी पसंद का विकल्प चुनें — दस्तावेज़ों हेतु DigiLocker से सुरक्षित पहुँच, या अपने डिवाइस से अपलोड। बाकी DocBridge सँभाल लेगा।',
+  epfo: 'EPFO हेतु DocBridge Assist। पासबुक के लिए DigiLocker या अपना डिवाइस चुनें।',
+  upsc: 'UPSC हेतु DocBridge Assist। फोटो व हस्ताक्षर के लिए DigiLocker या अपना डिवाइस चुनें।',
+  vahan: 'Sarathi हेतु DocBridge Assist। फोटो व हस्ताक्षर के लिए DigiLocker या अपना डिवाइस चुनें।',
+  passport: 'Passport Seva हेतु DocBridge Assist। फोटो व हस्ताक्षर के लिए DigiLocker या अपना डिवाइस चुनें।',
+  ssc: 'SSC हेतु DocBridge Assist। फोटो व हस्ताक्षर के लिए DigiLocker या अपना डिवाइस चुनें।',
+  nsp: 'NSP हेतु DocBridge Assist। फोटो व प्रमाणपत्र के लिए DigiLocker या अपना डिवाइस चुनें।',
 };
 
 const HI_DONE_SINGLE: Record<PortalId, string> = {
