@@ -205,7 +205,89 @@ class DigiLockerClient {
     }
 
     // Draw a realistic-looking document/photo
-    if (asset.name.includes('passbook')) {
+    if (asset.name.includes('PassportPhoto') || asset.name.includes('Passport_Photo')) {
+      // Passport avatar mock (flat-vector portrait on white): deliberately
+      // oversized + film grain so the raw JPEG weighs 4MB+ — the "before"
+      // half of the Before/After compression story.
+      canvas.width = 2400;
+      canvas.height = 3200;
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      const cx = 1200;
+      // Shoulders / navy blazer
+      ctx.fillStyle = '#1f3a7a';
+      ctx.beginPath();
+      ctx.moveTo(cx - 800, 3200);
+      ctx.bezierCurveTo(cx - 780, 2350, cx - 550, 2150, cx - 260, 2080);
+      ctx.lineTo(cx - 180, 2350);
+      ctx.lineTo(cx - 120, 3200);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(cx + 800, 3200);
+      ctx.bezierCurveTo(cx + 780, 2350, cx + 550, 2150, cx + 260, 2080);
+      ctx.lineTo(cx + 180, 2350);
+      ctx.lineTo(cx + 120, 3200);
+      ctx.closePath();
+      ctx.fill();
+      // Lapels
+      ctx.fillStyle = '#172c5e';
+      ctx.beginPath();
+      ctx.moveTo(cx - 260, 2080);
+      ctx.lineTo(cx - 40, 2500);
+      ctx.lineTo(cx - 180, 2350);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(cx + 260, 2080);
+      ctx.lineTo(cx + 40, 2500);
+      ctx.lineTo(cx + 180, 2350);
+      ctx.closePath();
+      ctx.fill();
+      // White shirt V
+      ctx.fillStyle = '#F5F5F5';
+      ctx.beginPath();
+      ctx.moveTo(cx - 180, 2350);
+      ctx.lineTo(cx, 2800);
+      ctx.lineTo(cx + 180, 2350);
+      ctx.lineTo(cx + 40, 2500);
+      ctx.lineTo(cx, 2440);
+      ctx.lineTo(cx - 40, 2500);
+      ctx.closePath();
+      ctx.fill();
+      // Neck
+      ctx.fillStyle = '#f2b88a';
+      ctx.fillRect(cx - 130, 1780, 260, 380);
+      // Ears
+      ctx.fillStyle = '#f7c194';
+      ctx.beginPath();
+      ctx.ellipse(cx - 430, 1150, 70, 130, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(cx + 430, 1150, 70, 130, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Face
+      ctx.beginPath();
+      ctx.ellipse(cx, 1050, 430, 560, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Hair cap
+      ctx.fillStyle = '#5a2d16';
+      ctx.beginPath();
+      ctx.ellipse(cx, 680, 450, 330, 0, Math.PI, 0);
+      ctx.fill();
+      ctx.fillRect(cx - 450, 660, 90, 320);
+      ctx.fillRect(cx + 360, 660, 90, 320);
+      // Film grain — flat vector compresses too well; noise guarantees 4MB+.
+      const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const px = img.data;
+      for (let i = 0; i < px.length; i += 4) {
+        const n = (Math.random() - 0.5) * 24;
+        px[i] += n;
+        px[i + 1] += n;
+        px[i + 2] += n;
+      }
+      ctx.putImageData(img, 0, 0);
+    } else if (asset.name.includes('passbook')) {
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
@@ -310,11 +392,13 @@ class DigiLockerClient {
       ctx.fillText('ID: ABC123456', 100, 500);
     }
 
-    // Convert canvas to blob
+    // Convert canvas to blob — passport avatar mocks keep full quality so
+    // the raw file genuinely weighs megabytes (the compression demo).
+    const quality = asset.name.includes('PassportPhoto') || asset.name.includes('Passport_Photo') ? 1.0 : 0.95;
     return new Promise((resolve) => {
       canvas.toBlob((blob) => {
         resolve(blob || new Blob());
-      }, asset.type, 0.95);
+      }, asset.type, quality);
     });
   }
 }

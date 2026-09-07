@@ -29,8 +29,10 @@ export interface DocBridgeGuideProps {
   steps: GuideStep[];
   /** Completion flags per step id; the guide auto-advances past done steps. */
   done: Record<string, boolean>;
-  /** Fired when a step's optimized document is accepted by the legacy endpoint. */
-  onStepDone: (id: string) => void;
+  /** Fired when a step's optimized document is accepted by the legacy endpoint.
+      Carries the processing result so portals can reuse the optimized copy
+      (e.g. stamping it into a printable application form). */
+  onStepDone: (id: string, result?: any) => void;
   /** Fired when every step is complete — portal shows its submitted receipt. */
   onAllDone?: () => void;
   /** Files chosen through each slot's hidden native input (keyed by step id). */
@@ -48,6 +50,23 @@ export interface DocBridgeGuideProps {
    * only segment flags like { isElderly: true } so DocBridge can adapt.
    */
   userSegment?: { isElderly?: boolean; needsAssistance?: boolean; firstTime?: boolean };
+  /**
+   * DigiLocker identity (first name) the widget signs in as. Defaults to the
+   * portal persona — override for multi-persona demos sharing one portal.
+   */
+  vaultUser?: string;
+  /**
+   * Where the collapsed assist pill parks: 'below' the target (default) or
+   * 'topRight' inside it — for dropzone cards where the pill should read as
+   * the upload entry point.
+   */
+  pillAlign?: 'below' | 'topRight';
+  /**
+   * Optional element id the collapsed pill anchors to (e.g. a slot inside a
+   * dropzone card). Spotlight keeps following the upload target; only the
+   * pill parks against this anchor, centered beneath it.
+   */
+  pillTargetId?: string;
 }
 
 const ACCENT = '#F59E0B';
@@ -63,10 +82,13 @@ export default function DocBridgeGuide({
   onDeviceFileChange,
   assistMode = 'auto',
   userSegment,
+  vaultUser,
+  pillAlign = 'below',
+  pillTargetId,
 }: DocBridgeGuideProps) {
   const { t, lang } = useLang();
   const guidePortalId = portalId as PortalId;
-  const guideCopy = useMemo(() => getGuideCopy(guidePortalId), [guidePortalId]);
+  const guideCopy = useMemo(() => getGuideCopy(guidePortalId, lang), [guidePortalId, lang]);
 
   // Resolve passive vs assistive. Explicit prop wins; 'auto' adapts to the
   // portal's non-PII segment; no segment = legacy auto-launch (intact).
@@ -83,10 +105,8 @@ export default function DocBridgeGuide({
     assistMode === 'passive' ? 'dismissed' : 'page',
   );
   const [spotlightOn, setSpotlightOn] = useState(true);
-  const [narrating, setNarrating] = useState(true);
+  const narrating = true;
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
-  const [modalRect, setModalRect] = useState<DOMRect | null>(null);
-  const modalCardRef = useRef<HTMLDivElement | null>(null);
   const allDoneRef = useRef(false);
   const widgetStateRef = useRef<string>('idle');
   const sourceRef = useRef<string>('');
@@ -114,10 +134,11 @@ export default function DocBridgeGuide({
       setSpotlightOn(false);
       return;
     }
-    // Assistive: auto spotlight + auto modal; gentle scroll handled below.
+    // Assistive: slow-burn spotlight + modal so viewers register the
+    // auto-nudge before the modal takes over.
     setPhase('page');
-    const t1 = setTimeout(() => setPhase('spotlight'), 1100);
-    const t2 = setTimeout(() => setPhase('modal'), 1900);
+    const t1 = setTimeout(() => setPhase('spotlight'), 2000);
+    const t2 = setTimeout(() => setPhase('modal'), 3200);
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
@@ -171,23 +192,6 @@ export default function DocBridgeGuide({
     }
   }, [completedCount, total, onAllDone]);
 
-  useEffect(() => {
-    if (phase !== 'modal' || !current) {
-      setModalRect(null);
-      return;
-    }
-    const update = () => setModalRect(modalCardRef.current?.getBoundingClientRect() ?? null);
-    const raf = requestAnimationFrame(update);
-    const ro = new ResizeObserver(update);
-    if (modalCardRef.current) ro.observe(modalCardRef.current);
-    window.addEventListener('resize', update);
-    return () => {
-      cancelAnimationFrame(raf);
-      ro.disconnect();
-      window.removeEventListener('resize', update);
-    };
-  }, [phase, current]);
-
   // Per-site welcome line plays once when the modal opens — only after the
   // citizen has interacted with the page, because browsers block
   // speechSynthesis autoplay before any user gesture. Only when voice is
@@ -216,9 +220,12 @@ export default function DocBridgeGuide({
 
   // Early ack only (authenticating/parsing) — the overlay owns the
   // processing/submitting readouts, so speaking here too would cut them.
+  // Text is guarded: after the final step current is null for one render
+  // before unmount, and the unguarded call crashed there.
+  const sourcePickedText = !current || !sourceRef.current ? '' : guideCopy.sourcePicked(current, sourceRef.current);
   useVoiceGuide(
     !!(voiceOn && userInteracted && current && open && (widgetPhase === 'parsing' || (widgetPhase as string) === 'authenticating') && sourceRef.current),
-    guideCopy.sourcePicked(current!, sourceRef.current),
+    sourcePickedText,
     voiceLang(lang),
   );
 
@@ -240,15 +247,16 @@ export default function DocBridgeGuide({
     voiceLang(lang),
   );
 
-  // Keep stepIdlePrev in sync so the step idle hook only re-fires on real
-  // content changes (and never on the initial modal-open render).
+  // Keep stepIdlePrev in sync only when narration could actually play — so a
+  // blocked first attempt (no user gesture yet) retries after the first click
+  // instead of going silent for the whole modal.
   useEffect(() => {
-    stepIdlePrev.current = stepNarration;
-  }, [stepNarration]);
+    if (voiceOn && userInteracted && open) stepIdlePrev.current = stepNarration;
+  }, [stepNarration, voiceOn, userInteracted, open]);
 
   useEffect(() => {
-    if (open && !!current) setWelcomeFired(true);
-  }, [open, current]);
+    if (open && !!current && voiceOn && userInteracted) setWelcomeFired(true);
+  }, [open, current, voiceOn, userInteracted]);
 
   // Voice opt-in is persisted under the same key the widget/overlay check, so
   // the guide and the widget share one switch. The modal header exposes this
@@ -288,7 +296,6 @@ export default function DocBridgeGuide({
   useEffect(() => {
     if (!current || !open) return;
     const stop = () => {
-      setNarrating(false);
       if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
         window.speechSynthesis.pause();
         setTimeout(() => window.speechSynthesis.cancel(), 0);
@@ -348,45 +355,12 @@ export default function DocBridgeGuide({
               transition: 'opacity 400ms ease 300ms',
             }}
           >
-            📍 {t('guide.uploadHere')}
+            🌉 DocBridge Assist
           </span>            </div>
       )}
 
-      {phase === 'modal' && targetRect && modalRect && (() => {
-        const startX = modalRect.left + modalRect.width / 2;
-        const endX = targetRect.left + targetRect.width / 2;
-        const endY = targetRect.top;
-        const goingDown = endY < modalRect.top;
-        const p1 = goingDown ? { x: startX, y: modalRect.top } : { x: startX, y: modalRect.bottom };
-        const p2 = goingDown ? { x: endX, y: endY + 14 } : { x: endX, y: endY - 6 };
-        const ctrlX = (p1.x + p2.x) / 2 + (p2.x > p1.x ? 60 : -60);
-        const ctrlY = (p1.y + p2.y) / 2;
-        return (
-          <svg
-            className="pointer-events-none fixed inset-0 z-[9992]"
-            width="100%"
-            height="100%"
-            aria-hidden="true"
-          >
-            <path
-              d={`M ${p1.x} ${p1.y} Q ${ctrlX} ${ctrlY} ${p2.x} ${p2.y}`}
-              fill="none"
-              stroke={ACCENT}
-              strokeWidth={2.5}
-              strokeDasharray="7 7"
-              strokeLinecap="round"
-            />
-            <polygon
-              points={
-                goingDown
-                  ? `${p2.x - 7},${p2.y - 12} ${p2.x + 7},${p2.y - 12} ${p2.x},${p2.y + 2}`
-                  : `${p2.x - 7},${p2.y + 12} ${p2.x + 7},${p2.y + 12} ${p2.x},${p2.y - 2}`
-              }
-              fill={ACCENT}
-            />
-          </svg>
-        );
-      })()}
+      {/* Dotted connector between modal and upload target — removed: it
+          lingered distractingly on minimize/dismiss. Spotlight remains. */}
 
       {phase === 'modal' && (
         <div
@@ -403,7 +377,6 @@ export default function DocBridgeGuide({
           }}
         >
           <div
-            ref={modalCardRef}
             className="relative flex max-h-[min(86vh,780px)] w-full max-w-2xl flex-col animate-[modalIn_560ms_cubic-bezier(0.16,1,0.3,1)] overflow-hidden rounded-2xl border border-white/50 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.3)]"
           >
             <div className="flex shrink-0 items-center gap-2.5 px-5 py-3" style={{ backgroundColor: NAVY }}>
@@ -416,30 +389,17 @@ export default function DocBridgeGuide({
                   {current ? `${t('guide.step')} ${completedCount + 1} ${t('guide.of')} ${total}` : t('guide.allDone')}
                 </p>
               </div>
-              {current && (
-                <button
-                  type="button"
-                  onClick={() => setNarrating((v) => !v)}
-                  title={t('guide.narrate')}
-                  aria-label={t('guide.narrate')}
-                  aria-pressed={narrating}
-                  className="rounded-md px-1.5 py-1 text-[13px] text-white/80 transition hover:bg-white/10"
-                >
-                  {narrating ? '🔊' : '🔈'}
-                </button>
-              )}
-              {assistive && (
-                <button
-                  type="button"
-                  onClick={() => setVoiceOn((v) => !v)}
-                  title={voiceOn ? t('ov.voiceOn') : t('ov.voiceOff')}
-                  aria-pressed={voiceOn}
-                  className="rounded-md px-1.5 py-1 text-[13px] transition hover:bg-white/10"
-                  style={{ color: voiceOn ? '#ffd9a0' : 'rgba(255,255,255,0.7)' }}
-                >
-                  {voiceOn ? '🔊' : '🔈'}
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => setVoiceOn((v) => !v)}
+                title={voiceOn ? t('ov.voiceOn') : t('ov.voiceOff')}
+                aria-label={voiceOn ? t('ov.voiceOn') : t('ov.voiceOff')}
+                aria-pressed={voiceOn}
+                className="rounded-md px-1.5 py-1 text-[13px] transition hover:bg-white/10"
+                style={{ color: voiceOn ? '#ffd9a0' : 'rgba(255,255,255,0.7)' }}
+              >
+                {voiceOn ? '🔊' : '🔈'}
+              </button>
               <button
                 type="button"
                 onClick={() => {
@@ -486,12 +446,13 @@ export default function DocBridgeGuide({
                   <p className="mb-1.5 text-[13px] font-bold" style={{ color: NAVY }}>
                     {t('guide.doNow').replace('{label}', current.label)}
                   </p>
-                  <p className="mb-3 text-xs leading-5 text-slate-500">{current.assistantNote ?? current.requirements}</p>
+                  <p className="mb-3 text-xs leading-5 text-slate-500">{current.assistantNote ?? `${t('guide.rules')}: ${current.requirements}`}</p>
                   <DocBridgeWidget
                     portalId={portalId}
                     docType={current.id}
                     requirements={current.requirements}
-                    onSuccess={() => onStepDone(current.id)}
+                    onSuccess={(res: any) => onStepDone(current.id, res?.result)}
+                    digiLockerUser={vaultUser}
                     deviceFile={deviceFiles[current.id] ?? null}
                     onDeviceFileChange={(f) => onDeviceFileChange?.(current.id, f)}
                     captureModes={current.captureModes ? [...current.captureModes] : undefined}
@@ -522,30 +483,61 @@ export default function DocBridgeGuide({
       )}
 
       {phase === 'dismissed' && current && targetRect && (
-        <button
-          type="button"
-          onClick={() => {
+        <PillButton
+          pillAlign={pillAlign}
+          pillTargetId={pillTargetId}
+          targetRect={targetRect}
+          onOpen={() => {
             setSpotlightOn(true);
             setPhase('modal');
           }}
-          aria-label={`Reopen DocBridgeAssist for ${current.label}`}
-          className="fixed z-[9995] flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-left text-[11px] font-bold text-white shadow-md"
-          style={{
-            left: Math.min(Math.max(targetRect.left, 16), Math.max(16, window.innerWidth - 172)),
-            top: Math.min(Math.max(targetRect.bottom + 4, 12), window.innerHeight - 34),
-            backgroundColor: NAVY,
-            borderColor: `${ACCENT}33`,
-          }}
-        >
-          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px]" style={{ backgroundColor: ACCENT }}>
-            🌉
-          </span>
-          <span className="min-w-0">
-            <span className="block leading-tight text-white">DocBridgeAssist</span>
-            <span className="block text-[9px] leading-tight text-white/60">{current.label}</span>
-          </span>
-        </button>
+        />
       )}
     </>
+  );
+}
+
+function PillButton({ pillAlign, pillTargetId, targetRect, onOpen }: {
+  pillAlign: 'below' | 'topRight';
+  pillTargetId?: string;
+  targetRect: DOMRect;
+  onOpen: () => void;
+}) {
+  // Optional in-card anchor (measured at render): the pill parks centered
+  // beneath it. Falls back to the upload target rect when absent.
+  const anchor = pillTargetId && typeof document !== 'undefined'
+    ? document.getElementById(pillTargetId)?.getBoundingClientRect() ?? null
+    : null;
+  const rect = anchor ?? targetRect;
+  const left = anchor
+    ? rect.left + rect.width / 2 - 86
+    : pillAlign === 'topRight'
+      ? rect.left + rect.width / 2 - 86
+      : rect.left;
+  const top = anchor
+    ? rect.top
+    : pillAlign === 'topRight'
+      ? rect.top - 17
+      : rect.bottom + 4;
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      aria-label="Open DocBridgeAssist"
+      className="fixed z-[9995] flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-left text-[11px] font-bold text-white shadow-md"
+      style={{
+        left: Math.min(Math.max(left, 16), Math.max(16, window.innerWidth - 172)),
+        top: Math.min(Math.max(top, 12), window.innerHeight - 34),
+        backgroundColor: NAVY,
+        borderColor: `${ACCENT}33`,
+      }}
+    >
+      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px]" style={{ backgroundColor: ACCENT }}>
+        🌉
+      </span>
+      <span className="min-w-0">
+        <span className="block whitespace-nowrap leading-tight text-white">DocBridgeAssist</span>
+      </span>
+    </button>
   );
 }

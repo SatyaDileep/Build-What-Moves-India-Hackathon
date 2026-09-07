@@ -32,6 +32,8 @@ interface SinglePreviewProps {
   isRecompressing?: boolean;
   onAdjust?: (choice: { targetKB: number; aggressive: boolean; targetWidth?: number; targetHeight?: number }) => void;
   onEnhance?: () => void;
+  onAiCleanup?: () => void;
+  aiCleaned?: boolean;
 }
 
 interface BatchPreviewProps {
@@ -66,6 +68,8 @@ function SinglePreview({
   isRecompressing = false,
   onAdjust,
   onEnhance,
+  onAiCleanup,
+  aiCleaned = false,
 }: SinglePreviewProps) {
   const { t } = useLang();
   const [saveToDigiLocker, setSaveToDigiLocker] = useState(true);
@@ -201,6 +205,36 @@ function SinglePreview({
             </div>
             {result.original.dimensions && result.processed.dimensions && result.original.dimensions.width < result.processed.dimensions.width * 0.7 && onEnhance && (
               <button type="button" onClick={onEnhance} className="mx-auto mt-2 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold text-white shadow-sm" style={{ backgroundColor: COLORS.warning }}>{t('w.enhance')}</button>
+            )}
+            {onAiCleanup && result.processed.blob.type.startsWith('image/') && !aiCleaned && (
+              <div className="mx-auto mt-2 max-w-sm rounded-xl border p-2.5 text-left" style={{ borderColor: COLORS.gray[200], backgroundColor: '#fafaff' }}>
+                <button
+                  type="button"
+                  onClick={onAiCleanup}
+                  className="flex w-full items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold text-white shadow-sm"
+                  style={{ background: 'linear-gradient(90deg,#1565d8,#6a5acd)' }}
+                >
+                  {t('w.aiCleanup')}
+                </button>
+                <p className="mt-1.5 text-[11px] leading-4" style={{ color: COLORS.gray[500] }}>{t('w.aiCleanupSub')}</p>
+              </div>
+            )}
+            {aiCleaned && (
+              <div
+                className="mx-auto mt-2 max-w-sm animate-[modalIn_560ms_cubic-bezier(0.16,1,0.3,1)] rounded-xl border p-3 text-center"
+                style={{ borderColor: COLORS.success, backgroundColor: COLORS.successLight }}
+              >
+                <span
+                  className="mx-auto flex h-10 w-10 animate-[modalIn_900ms_cubic-bezier(0.16,1,0.3,1)] items-center justify-center rounded-full text-lg font-bold text-white"
+                  style={{ backgroundColor: COLORS.success }}
+                >
+                  ✓
+                </span>
+                <p className="mt-1.5 text-sm font-bold" style={{ color: COLORS.success }}>{t('w.aiDone')}</p>
+                <p className="mt-0.5 text-xs" style={{ color: COLORS.gray[600] }}>
+                  {source === 'device' && !isSaveAuthed ? t('w.aiNextSave') : t('w.aiNextSubmit')}
+                </p>
+              </div>
             )}
           </div>
         </div>

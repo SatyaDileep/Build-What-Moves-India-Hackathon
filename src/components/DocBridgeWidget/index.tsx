@@ -97,6 +97,10 @@ interface DocBridgeWidgetProps {
   // Optional callback the parent guide uses to react to widget phase changes
   // (e.g. delayed 'ready to upload' narration after optimization).
   onWidgetPhase?: (phase: string) => void;
+  // DigiLocker identity to sign in as (first name). Defaults to the portal's
+  // persona — override for multi-persona demos on one portal (e.g. Passport
+  // Kabir vs Ramesh get separate vaults).
+  digiLockerUser?: string;
 }
 
 export default function DocBridgeWidget({ 
@@ -115,6 +119,7 @@ export default function DocBridgeWidget({
   widgetStateRef,
   sourceRef,
   onWidgetPhase,
+  digiLockerUser,
 }: DocBridgeWidgetProps) {
   const { t, lang } = useLang();
   const [state, setState] = useState<WidgetState>('idle');
@@ -195,6 +200,7 @@ export default function DocBridgeWidget({
     try {
       setLastBlob(blob);
       setLastMeta(meta);
+      setAiCleaned(false);
       const portalName = portalDisplayName(portalId);
 
       setState('parsing');
@@ -239,6 +245,17 @@ export default function DocBridgeWidget({
     if (!lastBlob || !lastMeta) return;
     setError(null);
     await runProcessing(lastBlob, lastMeta, { enhance: true });
+  };
+  // Optional consent-gated AI pass (passport): background other than white?
+  // Narrates the AI removal over a 2s micro-animation, then lands on
+  // save-or-submit guidance — no reprocessing loop.
+  const [aiCleaned, setAiCleaned] = useState(false);
+  const handleAiCleanup = async () => {
+    if (!lastBlob || !lastMeta) return;
+    setError(null);
+    setAiCleaned(false);
+    await dwellForSpeech(t('w.aiWorking'), 2000);
+    setAiCleaned(true);
   };
 
   const handleAssetSelected = async (asset: DigiLockerAsset) => {
@@ -424,10 +441,20 @@ export default function DocBridgeWidget({
         formData.append('doc', slotUsed);
       }
 
-      const response = await fetch(endpointFor(), {
-        method: 'POST',
-        body: formData,
-      });
+      // Never spin forever: a hung dev-server/legacy endpoint aborts into
+      // a retriable error instead of a permanent submitting overlay.
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 20000);
+      let response: Response;
+      try {
+        response = await fetch(endpointFor(), {
+          method: 'POST',
+          body: formData,
+          signal: ctrl.signal,
+        });
+      } finally {
+        clearTimeout(timer);
+      }
 
       const data = await response.json();
       return data.success ? { success: true } : { success: false, error: data.error || 'Submission failed' };
@@ -445,7 +472,7 @@ export default function DocBridgeWidget({
       setLastSaved(saveToDigiLocker);
       setState('success');
       notifyPhase('success');
-      onSuccess?.(out);
+      onSuccess?.({ ...out, result: processingResult });
     } else {
       setError(out.error || 'Submission failed');
       setState('previewing');
@@ -486,6 +513,7 @@ export default function DocBridgeWidget({
   const handleReset = () => {
     setState('idle');
     setError(null);
+    setAiCleaned(false);
     setProcessingResult(null);
     setSelectedAsset(null);
     setBatchItems([]);
@@ -495,6 +523,18 @@ export default function DocBridgeWidget({
     setShowSaveAuthModal(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
+
+  // Guided multi-step flows reuse one widget across slots (photo → signature).
+  // When the slot changes, reset to the source chooser instead of lingering
+  // on the previous slot's success/preview screen.
+  const slotKeyRef = useRef(docType ?? portalId);
+  useEffect(() => {
+    if (slotKeyRef.current !== (docType ?? portalId)) {
+      slotKeyRef.current = docType ?? portalId;
+      handleReset();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  });
 
   const handleExternalDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -566,6 +606,7 @@ export default function DocBridgeWidget({
                   {captureModes.includes('digilocker') && (
                     <SourceOption
                       title={t('w.fromDigi')}
+                      badge="Recommended"
                       description={t('w.fromDigiSub')}
                       icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>}
                       onClick={startDigiLocker}
@@ -647,6 +688,8 @@ export default function DocBridgeWidget({
           isRecompressing={isRecompressing}
           onAdjust={handleAdjust}
           onEnhance={handleEnhance}
+          onAiCleanup={portalId === 'passport' ? handleAiCleanup : undefined}
+          aiCleaned={aiCleaned}
           onSubmit={handleSubmit}
           onCancel={handleReset}
         />
@@ -730,7 +773,7 @@ export default function DocBridgeWidget({
       {showModal && (
         <DigiLockerModal
           portalId={portalId}
-          signInName={PORTALS.find(p => p.id === portalId)?.persona?.name || 'the citizen'}
+          signInName={digiLockerUser ?? PORTALS.find(p => p.id === portalId)?.persona?.name ?? 'the citizen'}
           onClose={() => {
             setShowModal(false);
             setState('idle');
@@ -744,7 +787,7 @@ export default function DocBridgeWidget({
       {showSaveAuthModal && (
         <DigiLockerModal
           portalId={portalId}
-          signInName={PORTALS.find(p => p.id === portalId)?.persona?.name || 'the citizen'}
+          signInName={digiLockerUser ?? PORTALS.find(p => p.id === portalId)?.persona?.name ?? 'the citizen'}
           onClose={() => setShowSaveAuthModal(false)}
           onAssetSelected={() => {}}
           onAuthenticated={() => {
@@ -757,18 +800,26 @@ export default function DocBridgeWidget({
   );
 }
 
-function SourceOption({ title, description, icon, onClick, onDragOver, onDrop, dragHint }: { title: string; description: string; icon: React.ReactNode; onClick: () => void; onDragOver?: (e: React.DragEvent) => void; onDrop?: (e: React.DragEvent) => void; dragHint?: boolean }) {
+function SourceOption({ title, description, icon, badge, onClick, onDragOver, onDrop, dragHint }: { title: string; description: string; icon: React.ReactNode; badge?: string; onClick: () => void; onDragOver?: (e: React.DragEvent) => void; onDrop?: (e: React.DragEvent) => void; dragHint?: boolean }) {
   return (
     <button
       type="button"
       onClick={onClick}
       onDragOver={onDragOver}
       onDrop={onDrop}
-      className="group flex cursor-pointer flex-col items-start gap-1.5 rounded-lg border bg-white p-3.5 text-left transition-all duration-200 hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2"
+      className="group relative flex cursor-pointer flex-col items-start gap-1.5 rounded-lg border bg-white p-3.5 text-left transition-all duration-200 hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2"
       style={{ borderColor: COLORS.gray[300], ...(dragHint ? { borderStyle: 'dashed' } : {}) }}
       onMouseEnter={(e) => { e.currentTarget.style.borderColor = COLORS.primary; }}
       onMouseLeave={(e) => { e.currentTarget.style.borderColor = COLORS.gray[300]; }}
     >
+      {badge && (
+        <span
+          className="absolute right-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-bold"
+          style={{ backgroundColor: COLORS.successLight, color: COLORS.success }}
+        >
+          {badge}
+        </span>
+      )}
       <span className="flex w-full items-center gap-2.5">
         <span className="inline-flex h-8 w-8 items-center justify-center rounded-md" style={{ backgroundColor: COLORS.primaryLight, color: COLORS.primary }}>
           {icon}

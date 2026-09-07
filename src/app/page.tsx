@@ -333,13 +333,21 @@ export default function Home() {
               </button>
             </div>
 
-            <div className="mt-8 grid gap-5 md:grid-cols-3">
-              <ModalPortalCard step="01" accent="#138808"            eyebrow="EPFO · Members' Portal" title="EPFO portal" description="Member KYC, passbook, claims, transfer and e-nomination." href="/epfo" cta="Login to EPFO →" logo="/epfo.png" busy={portalNav === '/epfo'} onNavigateStart={() => setPortalNav('/epfo')} onNavigate={() => {}} />
-              <ModalPortalCard step="02" accent="#0b3c92"            eyebrow="Passport Seva · Ministry of External Affairs" title="Passport portal" description="Passport applications, document uploads and PSK appointment booking." href="/passport" cta="Login to Passport →" logo="/passport.png" busy={portalNav === '/passport'} onNavigateStart={() => setPortalNav('/passport')} onNavigate={() => {}} />
-              <ModalPortalCard step="03" accent="#1E3A8A" eyebrow="UPSC · Civil Services Examination" title="UPSC portal" description="Civil Services Examination applications and OTR-based candidate services." href="/upsc" cta="Login to UPSC →" logo="/upsc.png" busy={portalNav === '/upsc'} onNavigateStart={() => setPortalNav('/upsc')} onNavigate={() => {}} />
-              <ModalPortalCard step="04" accent="#0d6b07" eyebrow="NSP · National Scholarship Portal" title="NSP portal" description="Merit and welfare scholarships with one OTR across schemes." href="/nsp" cta="Login to NSP →" logo="/nsp.png" busy={portalNav === '/nsp'} onNavigateStart={() => setPortalNav('/nsp')} onNavigate={() => {}} />
-              <ModalPortalCard step="05" accent="#EA580C" eyebrow="Parivahan Sewa · Ministry of Road Transport & Highways" title="Parivahan Sewa portal" description="Driving licence, learner permits and vehicle services via Sarathi." href="/vahan" cta="Login to Parivahan Sewa →" logo="/parivahan.png" busy={portalNav === '/vahan'} onNavigateStart={() => setPortalNav('/vahan')} onNavigate={() => {}} />
+            <p className="mt-8 text-sm font-bold uppercase tracking-[0.18em] text-[#0b3c92]">Hackathon demo · Passport Seva — two personas</p>
+            <div className="mt-3 grid gap-5 md:grid-cols-2">
+              <ModalPortalCard step="01" accent="#0b3c92" eyebrow="Kabir · 34 · comfortable online" title="Standard applicant" description="Passport photo + signature upload with a quiet DocBridge pill — help only when asked." href="/passport" cta="Login as Kabir →" logo="/passport.png" busy={(portalNav ?? '').startsWith('/passport') && !(portalNav ?? '').includes('persona')} onNavigateStart={() => setPortalNav('/passport')} onNavigate={() => {}} />
+              <ModalPortalCard step="02" accent="#138808" eyebrow="Ramesh · 68 · needs guidance" title="Elderly applicant" description="Same portal, same uploads — DocBridge auto-opens guided voice assist for him." href="/passport?persona=elder" cta="Login as Ramesh →" logo="/passport.png" busy={(portalNav ?? '').includes('persona=elder')} onNavigateStart={() => setPortalNav('/passport?persona=elder')} onNavigate={() => {}} />
             </div>
+
+            <details className="mt-6 rounded-2xl bg-white/60 px-4 py-3 ring-1 ring-black/5">
+              <summary className="cursor-pointer text-sm font-bold text-[#1E3A8A]">Other supported portals — how DocBridge expands</summary>
+              <div className="mt-4 grid gap-5 md:grid-cols-2">
+                <ModalPortalCard step="03" accent="#138808" eyebrow="EPFO · Members' Portal" title="EPFO portal" description="Member KYC, passbook, claims, transfer and e-nomination." href="/epfo" cta="Login to EPFO →" logo="/epfo.png" busy={portalNav === '/epfo'} onNavigateStart={() => setPortalNav('/epfo')} onNavigate={() => {}} />
+                <ModalPortalCard step="04" accent="#1E3A8A" eyebrow="UPSC · Civil Services Examination" title="UPSC portal" description="Civil Services Examination applications and OTR-based candidate services." href="/upsc" cta="Login to UPSC →" logo="/upsc.png" busy={portalNav === '/upsc'} onNavigateStart={() => setPortalNav('/upsc')} onNavigate={() => {}} />
+                <ModalPortalCard step="05" accent="#0d6b07" eyebrow="NSP · National Scholarship Portal" title="NSP portal" description="Merit and welfare scholarships with one OTR across schemes." href="/nsp" cta="Login to NSP →" logo="/nsp.png" busy={portalNav === '/nsp'} onNavigateStart={() => setPortalNav('/nsp')} onNavigate={() => {}} />
+                <ModalPortalCard step="06" accent="#EA580C" eyebrow="Parivahan Sewa · Ministry of Road Transport & Highways" title="Parivahan Sewa portal" description="Driving licence, learner permits and vehicle services via Sarathi." href="/vahan" cta="Login to Parivahan Sewa →" logo="/parivahan.png" busy={portalNav === '/vahan'} onNavigateStart={() => setPortalNav('/vahan')} onNavigate={() => {}} />
+              </div>
+            </details>
 
             <p className="mt-6 rounded-2xl bg-white/60 px-4 py-3 text-xs leading-5 text-slate-500 ring-1 ring-black/5">
               All logins are pre-filled for demo. You&apos;ll land on the portal&apos;s home and a subtle nudge will guide you to the upload where DocBridge works.

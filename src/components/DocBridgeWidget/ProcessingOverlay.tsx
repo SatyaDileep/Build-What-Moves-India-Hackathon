@@ -100,9 +100,7 @@ export default function ProcessingOverlay({ state, source = 'digilocker', portal
           {t('ov.batchProgress').replace('I', String(Math.min(batchProgress.done + 1, batchProgress.total))).replace('N', String(batchProgress.total))}
         </p>
       )}
-      <div className="mx-auto mb-3 flex justify-center gap-2">
-        {voiceOn && <span className="flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700">🔊 {t('ov.voiceOn')}</span>}
-      </div>
+      {/* Voice pill removed — the guide header owns the single 🔊 toggle. */}
       <div className="mx-auto mb-4 h-1.5 max-w-sm overflow-hidden rounded-full" style={{ backgroundColor: COLORS.gray[200] }} aria-hidden="true">
         <div className="h-full rounded-full transition-all duration-700 ease-out" style={{ width: `${((active + 1) / 3) * 100}%`, background: `linear-gradient(90deg, ${COLORS.saffron}, ${COLORS.primary}, ${COLORS.success})` }} />
       </div>

@@ -17,7 +17,7 @@ export default function PrivacyBadge({ compact = false }: { compact?: boolean })
     <div
       // pointerEvents lets the tooltip exist without stealing mouse events that
       // would trigger leave on the parent badge prematurely.
-      className={`items-center gap-2 rounded-xl border px-3 py-2.5 ${compact ? 'text-xs' : 'text-xs'}`}
+      className={`relative flex items-center gap-2 rounded-xl border px-3 py-2.5 ${compact ? 'text-xs' : 'text-xs'}`}
       style={{ borderColor: COLORS.gray[200], backgroundColor: '#F8FAFC', pointerEvents: 'auto' }}
       role="note"
       aria-label="Privacy assurance"
@@ -31,7 +31,7 @@ export default function PrivacyBadge({ compact = false }: { compact?: boolean })
     >
       <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full"
         style={{ backgroundColor: COLORS.successLight, color: COLORS.success }}>🔒</span>
-      <div className="flex-1 leading-4 relative">
+      <div className="min-w-0 flex-1 whitespace-nowrap leading-4">
         <span className="font-bold" style={{ color: COLORS.gray[800] }}>{shortText}</span>
         <span className="ml-1 cursor-help text-xs" style={{ color: COLORS.primary }} title={fullText}>
           ⓘ
@@ -48,7 +48,8 @@ export default function PrivacyBadge({ compact = false }: { compact?: boolean })
             backgroundColor: COLORS.gray[800],
             color: COLORS.gray[50],
             border: `1px solid ${COLORS.gray[600]}`,
-            maxWidth: 'min(280px, 90vw)',
+            width: 'max-content',
+            maxWidth: 'min(280px, calc(100vw - 48px))',
             wordBreak: 'break-word',
             whiteSpace: 'normal',
             left: 0,

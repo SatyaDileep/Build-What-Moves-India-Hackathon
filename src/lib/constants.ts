@@ -124,6 +124,8 @@ export const DIGILOCKER_ASSETS: DigiLockerAsset[] = [
   { id: 'asset-6', name: 'Kabir_Signature.jpg', type: 'image/jpeg', size_mb: 2.4, url: '/assets/kabir_signature_raw.jpg', owner: 'kabir' },
   { id: 'asset-7', name: 'Meera_Student_Photo.jpg', type: 'image/jpeg', size_mb: 3.8, url: '/assets/meera_photo_raw.jpg', owner: 'meera' },
   { id: 'asset-8', name: 'Meera_IncomeCert_Scan.jpg', type: 'image/jpeg', size_mb: 4.6, url: '/assets/meera_incomecert_raw.jpg', owner: 'meera' },
+  { id: 'asset-9', name: 'Ramesh_PassportPhoto.jpg', type: 'image/jpeg', size_mb: 5.4, url: '/assets/ramesh_photo_raw.jpg', owner: 'ramesh' },
+  { id: 'asset-10', name: 'Ramesh_Signature.jpg', type: 'image/jpeg', size_mb: 2.1, url: '/assets/ramesh_signature_raw.jpg', owner: 'ramesh' },
 ];
 
 export const USER_PROFILES: UserProfile[] = [
