@@ -44,15 +44,18 @@ export function useVoiceGuide(enabled: boolean, text: string, lang: string = 'en
     };
 
     speak();
-    // Voices load asynchronously; re-pick once they arrive so Hindi gets a Hindi voice.
-    window.speechSynthesis.addEventListener('voiceschanged', speak);
+    // Voices load asynchronously; only re-speak if nothing is playing yet
+    // so a late voiceschanged can't restart — and cut — an active readout.
+    const onVoices = () => {
+      if (cancelled) return;
+      if (window.speechSynthesis.speaking) return;
+      speak();
+    };
+    window.speechSynthesis.addEventListener('voiceschanged', onVoices);
     return () => {
       cancelled = true;
-      window.speechSynthesis.removeEventListener('voiceschanged', speak);
-      // Chrome quirk: a bare cancel() can leave a just-started utterance
-      // running — pause first, then cancel, on the next tick.
-      window.speechSynthesis.pause();
-      setTimeout(() => window.speechSynthesis.cancel(), 0);
+      window.speechSynthesis.removeEventListener('voiceschanged', onVoices);
+      window.speechSynthesis.cancel();
     };
   }, [enabled, text, lang]);
 

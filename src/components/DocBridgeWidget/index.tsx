@@ -132,10 +132,12 @@ export default function DocBridgeWidget({
   const [showCamera, setShowCamera] = useState(false);
   const [showPad, setShowPad] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  // Congratulatory narration on completion — only when voice is opted in.
-  useVoiceGuide(isVoiceOn() && state === 'success', t('w.congrats'), voiceLang(lang));
-  // After optimizing: explain what happened and what the user can do next.
-  useVoiceGuide(isVoiceOn() && state === 'previewing', t('w.optimizedReady'), voiceLang(lang));
+  // Inside the Guide the companion owns preview/success narration (per-site
+  // copy, delayed so the optimizing readout finishes) — speaking here too
+  // would cancel the overlay mid-sentence. Standalone slots keep their own.
+  const guided = !!onWidgetPhase;
+  useVoiceGuide(isVoiceOn() && !guided && state === 'success', t('w.congrats'), voiceLang(lang));
+  useVoiceGuide(isVoiceOn() && !guided && state === 'previewing', t('w.optimizedReady'), voiceLang(lang));
   // Gently guide through errors — only when voice is opted in.
   useVoiceGuide(isVoiceOn() && !!error, error ?? '', voiceLang(lang));
 
@@ -203,7 +205,7 @@ export default function DocBridgeWidget({
       notifyPhase('processing');
       await dwellForSpeech(`${t('ov.optimizingFor')} ${portalName}`, 400);
       const result = await processDocument(blob, constraint, meta, opts);
-      await dwellForSpeech('', 1400);
+      await dwellForSpeech('', 2000);
 
       setProcessingResult(result);
       setState('previewing');

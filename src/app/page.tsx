@@ -390,17 +390,17 @@ function PortalCard({
       onClick={() => onNavigateStart?.()}
       className={`group relative flex flex-col overflow-hidden rounded-3xl border border-stone-200/60 bg-white/80 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 ease-in-out hover:-translate-y-1 hover:border-blue-300 hover:shadow-[0_16px_40px_rgba(30,58,138,0.14)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1E3A8A] ${busy ? 'pointer-events-none' : ''}`}
     >
-      <div className="flex items-start justify-between">
+      <div className="flex items-center gap-3">
         {logo ? (
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-[0_4px_14px_rgba(0,0,0,0.08)] ring-1 ring-black/5">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white shadow-[0_4px_14px_rgba(0,0,0,0.08)] ring-1 ring-black/5">
             <img src={logo} alt="" aria-hidden="true" className="max-h-10 max-w-10 object-contain" />
           </span>
         ) : (
-          <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-bold text-white" style={{ backgroundColor: accent }}>
+          <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-sm font-bold text-white" style={{ backgroundColor: accent }}>
             {step}
           </span>
         )}
-        <span className="rounded-full border border-stone-200/60 bg-white px-3 py-1 text-xs font-semibold" style={{ color: accent }}>
+        <span className="ml-auto rounded-full border border-stone-200/60 bg-white px-3 py-1 text-center text-xs font-semibold leading-4" style={{ color: accent }}>
           {eyebrow}
         </span>
       </div>
@@ -459,17 +459,17 @@ function ModalPortalCard({
       }}
       className={`group relative flex flex-col overflow-hidden rounded-3xl border border-white/50 bg-white/80 p-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] backdrop-blur transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-white hover:shadow-[0_16px_40px_rgba(30,58,138,0.16)] ${busy ? 'pointer-events-none' : ''}`}
     >
-      <div className="flex items-start justify-between">
+      <div className="flex items-center gap-3">
         {logo ? (
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-[0_4px_14px_rgba(0,0,0,0.08)] ring-1 ring-black/5">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white shadow-[0_4px_14px_rgba(0,0,0,0.08)] ring-1 ring-black/5">
             <img src={logo} alt="" aria-hidden="true" className="max-h-10 max-w-10 object-contain" />
           </span>
         ) : (
-          <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-bold text-white" style={{ backgroundColor: accent }}>
+          <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-sm font-bold text-white" style={{ backgroundColor: accent }}>
             {step}
           </span>
         )}
-        <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold ring-1 ring-black/5" style={{ color: accent }}>
+        <span className="ml-auto rounded-full bg-white px-3 py-1 text-center text-xs font-semibold leading-4 ring-1 ring-black/5" style={{ color: accent }}>
           {eyebrow}
         </span>
       </div>

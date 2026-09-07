@@ -158,12 +158,12 @@ export default function PassportPortal() {
                   <Field label={t('epfo.password')} value="••••••••••" />
                   <div>
                     <label className="mb-1 block font-bold" style={{ fontSize: '12px', color: '#222' }}>{t('epfo.captcha')}</label>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-nowrap items-center gap-1.5">
                       <span
-                        className="inline-block select-none px-3 py-1 font-mono font-bold italic"
+                        className="inline-block shrink-0 select-none px-2 py-1 font-mono font-bold italic"
                         style={{
-                          fontSize: '16px',
-                          letterSpacing: '0.3em',
+                          fontSize: '15px',
+                          letterSpacing: '0.22em',
                           color: '#1a1a7a',
                           background: 'repeating-linear-gradient(0deg, #e8e8f5 0 2px, #f7f7fb 2px 4px)',
                           border: '1px solid #999',
@@ -177,7 +177,7 @@ export default function PassportPortal() {
                         title="Refresh captcha"
                         aria-label="Refresh captcha"
                         onClick={() => setCaptcha(randomCaptcha())}
-                        className="border px-1.5 py-1 leading-none"
+                        className="shrink-0 border px-1.5 py-1 leading-none"
                         style={{ borderColor: '#999', backgroundColor: '#f0f0f0', fontSize: '14px', color: '#333' }}
                       >
                         ⟳
@@ -185,23 +185,26 @@ export default function PassportPortal() {
                       <input
                         readOnly
                         value={captcha.replace(/ /g, '')}
-                        className="w-20 border px-2 py-1"
+                        aria-label={t('epfo.captcha')}
+                        className="min-w-0 flex-1 border px-2 py-1"
                         style={{ borderColor: '#999', fontSize: '12px' }}
                       />
                     </div>
                     <p className="mt-1" style={{ fontSize: '11px', color: '#666' }}>{t('auth.demoPrefill')}</p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setStep('dashboard')}
-                    className="border px-6 py-1 font-bold text-white"
-                    style={{ backgroundColor: NAVY, borderColor: NAVY_DARK, fontSize: '13px' }}
-                  >
-                    {t('auth.login')}
-                  </button>
-                  <div className="flex justify-between pt-1" style={{ fontSize: '11px' }}>
-                    <a href="#" style={{ color: LINK_BLUE }}>{t('pp.newUser')}</a>
-                    <a href="#" style={{ color: LINK_BLUE }}>{t('auth.forgotLogin')}</a>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setStep('dashboard')}
+                      className="shrink-0 border px-6 py-1 font-bold text-white"
+                      style={{ backgroundColor: NAVY, borderColor: NAVY_DARK, fontSize: '13px' }}
+                    >
+                      {t('auth.login')}
+                    </button>
+                    <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-0.5" style={{ fontSize: '11px' }}>
+                      <a href="#" className="whitespace-nowrap" style={{ color: LINK_BLUE }}>{t('pp.newUser')}</a>
+                      <a href="#" className="whitespace-nowrap" style={{ color: LINK_BLUE }}>{t('auth.forgotLogin')}</a>
+                    </span>
                   </div>
                 </div>
               </div>

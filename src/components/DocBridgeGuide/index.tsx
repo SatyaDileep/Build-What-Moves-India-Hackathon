@@ -214,10 +214,10 @@ export default function DocBridgeGuide({
     voiceLang(lang),
   );
 
-  // When the widget picks a source (idle→processing or previewing), read the
-  // per-site 'source picked' line.
+  // Early ack only (authenticating/parsing) — the overlay owns the
+  // processing/submitting readouts, so speaking here too would cut them.
   useVoiceGuide(
-    !!(voiceOn && userInteracted && current && open && widgetPhase !== 'idle' && widgetPhase !== 'success' && sourceRef.current),
+    !!(voiceOn && userInteracted && current && open && (widgetPhase === 'parsing' || (widgetPhase as string) === 'authenticating') && sourceRef.current),
     guideCopy.sourcePicked(current!, sourceRef.current),
     voiceLang(lang),
   );
@@ -226,8 +226,11 @@ export default function DocBridgeGuide({
   // 'ready to upload' line so the optimizing readout is not cut short.
   // The hook itself stays at component top-level; only the timing is deferred.
   useEffect(() => {
-    if (!current || !open || widgetPhase !== 'previewing') return;
-    const delayed = setTimeout(() => setReadyText(guideCopy.readyToUpload(current!)), 900);
+    if (!current || !open || widgetPhase !== 'previewing') {
+      if (widgetPhase === 'success' || widgetPhase === 'idle') setReadyText(null);
+      return;
+    }
+    const delayed = setTimeout(() => setReadyText(guideCopy.readyToUpload(current!)), 2600);
     return () => clearTimeout(delayed);
   }, [current, open, widgetPhase, guideCopy]);
 
@@ -393,6 +396,7 @@ export default function DocBridgeGuide({
           aria-label="DocBridge guide"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
+              if (widgetPhase !== 'idle' && (widgetPhase as string) !== 'success') return;
               setPhase('dismissed');
               setSpotlightOn(false);
             }
