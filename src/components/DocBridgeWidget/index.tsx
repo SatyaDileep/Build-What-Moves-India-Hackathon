@@ -136,6 +136,8 @@ export default function DocBridgeWidget({
   useVoiceGuide(isVoiceOn() && state === 'success', t('w.congrats'), voiceLang(lang));
   // After optimizing: explain what happened and what the user can do next.
   useVoiceGuide(isVoiceOn() && state === 'previewing', t('w.optimizedReady'), voiceLang(lang));
+  // Gently guide through errors — only when voice is opted in.
+  useVoiceGuide(isVoiceOn() && !!error, error ?? '', voiceLang(lang));
 
   const startDigiLocker = () => {
     setError(null);

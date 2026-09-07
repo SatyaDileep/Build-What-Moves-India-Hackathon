@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import DocBridgeWidget from '@/components/DocBridgeWidget';
 import GovernmentHeader from '@/components/ui/GovernmentHeader';
 import PortalNudge from '@/components/ui/PortalNudge';
+import VoiceToggle from '@/components/ui/VoiceToggle';
 import HowItWorksModal, { HowItWorksTrigger } from '@/components/ui/HowItWorksModal';
 import { COLORS } from '@/lib/constants';
 import { useLang } from '@/lib/i18n';
@@ -249,7 +250,10 @@ export default function NSPPortal() {
                   <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#0D0D0D' }}>{t('nsp.uploadTitle')}</h2>
                   <p className="mt-1" style={{ fontSize: '14px', color: '#717171' }}>{t('nsp.uploadSub')}</p>
                 </div>
-                <span className="border px-3 py-1 font-medium" style={{ fontSize: '13px', color: '#484848', background: '#EDEDED', borderColor: '#ccc' }}>{t('nsp.uploadDocs')}</span>
+                <span className="flex items-center gap-2">
+                  <span className="border px-3 py-1 font-medium" style={{ fontSize: '13px', color: '#484848', background: '#EDEDED', borderColor: '#ccc' }}>{t('nsp.uploadDocs')}</span>
+                  <VoiceToggle />
+                </span>
               </div>
             </div>
             <div style={{ height: '8px', background: COLORS.nspGradient }} />

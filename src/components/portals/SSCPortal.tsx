@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import DocBridgeWidget from '@/components/DocBridgeWidget';
 import GovernmentHeader from '@/components/ui/GovernmentHeader';
 import PortalNudge from '@/components/ui/PortalNudge';
+import VoiceToggle from '@/components/ui/VoiceToggle';
 import { COLORS } from '@/lib/constants';
 import { useLang } from '@/lib/i18n';
 
@@ -193,7 +194,10 @@ export default function SSCPortal() {
                   <h2 className="text-lg font-bold text-[#0b1f4d]">{t('ssc.uploadTitle')}</h2>
                   <p className="mt-1 text-sm text-slate-500">{t('ssc.uploadSub')}</p>
                 </div>
-                <span className="rounded-full bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">{t('ssc.step24')}</span>
+                <span className="flex items-center gap-2">
+                  <span className="rounded-full bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">{t('ssc.step24')}</span>
+                  <VoiceToggle />
+                </span>
               </div>
             </div>
 

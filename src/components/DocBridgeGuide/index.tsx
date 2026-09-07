@@ -94,7 +94,7 @@ export default function DocBridgeGuide({
   const [userInteracted, setUserInteracted] = useState(false);
   const [welcomeFired, setWelcomeFired] = useState(false);
   const [readyText, setReadyText] = useState<string | null>(null);
-  const [voiceOn, setVoiceOn] = useState(false);
+  const [voiceOn, setVoiceOn] = useState<boolean>(() => assistive);
   const [widgetPhase, setWidgetPhase] = useState<'idle' | 'parsing' | 'processing' | 'previewing' | 'success'>('idle');
   const onWidgetPhase = (phase: string) => {
     if (phase === widgetPhase) return;
@@ -253,8 +253,13 @@ export default function DocBridgeGuide({
   // in-screen way to enable narration before the modal opens.
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    try { setVoiceOn(localStorage.getItem('docbridge-voice') === '1'); } catch {}
-  }, []);
+    try {
+      const v = localStorage.getItem('docbridge-voice');
+      if (v === '1') setVoiceOn(true);
+      else if (v === '0') setVoiceOn(false);
+      else setVoiceOn(assistive);
+    } catch { setVoiceOn(assistive); }
+  }, [assistive]);
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try { localStorage.setItem('docbridge-voice', voiceOn ? '1' : '0'); } catch {}
