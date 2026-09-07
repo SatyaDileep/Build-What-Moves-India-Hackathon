@@ -36,6 +36,18 @@ export interface DocBridgeGuideProps {
   /** Files chosen through each slot's hidden native input (keyed by step id). */
   deviceFiles?: Record<string, File | null>;
   onDeviceFileChange?: (id: string, file: File | null) => void;
+  /**
+   * Interaction mode.
+   * 'passive' = anchored pill near upload only, no auto-scroll/launch (pros).
+   * 'assistive' = auto spotlight + auto modal + gentle scroll (elderly / needy).
+   * 'auto' resolves via userSegment; no segment = legacy auto-launch so untouched portals stay intact.
+   */
+  assistMode?: 'passive' | 'assistive' | 'auto';
+  /**
+   * Coarse non-PII demographics hint sent by the portal. Never name/phone/DOB —
+   * only segment flags like { isElderly: true } so DocBridge can adapt.
+   */
+  userSegment?: { isElderly?: boolean; needsAssistance?: boolean; firstTime?: boolean };
 }
 
 const ACCENT = '#F59E0B';
@@ -49,12 +61,27 @@ export default function DocBridgeGuide({
   onAllDone,
   deviceFiles = {},
   onDeviceFileChange,
+  assistMode = 'auto',
+  userSegment,
 }: DocBridgeGuideProps) {
   const { t, lang } = useLang();
   const guidePortalId = portalId as PortalId;
   const guideCopy = useMemo(() => getGuideCopy(guidePortalId), [guidePortalId]);
 
-  const [phase, setPhase] = useState<'page' | 'spotlight' | 'modal' | 'dismissed'>('page');
+  // Resolve passive vs assistive. Explicit prop wins; 'auto' adapts to the
+  // portal's non-PII segment; no segment = legacy auto-launch (intact).
+  const assistive =
+    assistMode === 'assistive'
+      ? true
+      : assistMode === 'passive'
+        ? false
+        : userSegment
+          ? !!(userSegment.isElderly || userSegment.needsAssistance || userSegment.firstTime)
+          : true;
+
+  const [phase, setPhase] = useState<'page' | 'spotlight' | 'modal' | 'dismissed'>(() =>
+    assistMode === 'passive' ? 'dismissed' : 'page',
+  );
   const [spotlightOn, setSpotlightOn] = useState(true);
   const [narrating, setNarrating] = useState(true);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
@@ -76,6 +103,13 @@ export default function DocBridgeGuide({
 
   useEffect(() => {
     if (!current) return;
+    // Passive: anchored pill near upload, no auto-scroll/launch. Active only on click.
+    if (!assistive) {
+      setPhase('dismissed');
+      setSpotlightOn(false);
+      return;
+    }
+    // Assistive: auto spotlight + auto modal; gentle scroll handled below.
     setPhase('page');
     const t1 = setTimeout(() => setPhase('spotlight'), 1100);
     const t2 = setTimeout(() => setPhase('modal'), 1900);
@@ -83,7 +117,7 @@ export default function DocBridgeGuide({
       clearTimeout(t1);
       clearTimeout(t2);
     };
-  }, [current?.id]);
+  }, [current?.id, assistive]);
 
   useEffect(() => {
     if (!current || phase === 'page') {
@@ -116,6 +150,14 @@ export default function DocBridgeGuide({
       window.removeEventListener('resize', update);
     };
   }, [current, phase]);
+
+  // Assistive only: gentle auto-scroll to the upload row on spotlight/modal.
+  // Passive never scrolls — the pill waits near the upload instead.
+  useEffect(() => {
+    if (!assistive || !current || (phase !== 'spotlight' && phase !== 'modal')) return;
+    const el = document.getElementById(current.deviceInputId);
+    (el?.parentElement ?? el)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [phase, current?.id, assistive]);
 
   useEffect(() => {
     if (completedCount === total && total > 0 && !allDoneRef.current) {

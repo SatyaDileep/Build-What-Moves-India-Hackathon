@@ -6,7 +6,7 @@ import DocBridgeGuide from '@/components/DocBridgeGuide';
 import TricolorBar from '@/components/ui/TricolorBar';
 import VoiceToggle from '@/components/ui/VoiceToggle';
 import { LanguageToggle, useLang } from '@/lib/i18n';
-import HowItWorksModal, { HowItWorksTrigger } from '@/components/ui/HowItWorksModal';
+import HowItWorksModal, { HowItWorksIcon, HowItWorksTrigger } from '@/components/ui/HowItWorksModal';
 
 type JourneyStep = 'login' | 'dashboard' | 'upload' | 'submitted';
 
@@ -292,7 +292,7 @@ export default function PassportPortal() {
           {step === 'upload' && (
             <section className="space-y-3">
               <div className="border bg-white p-2" style={{ borderColor: BORDER }}>
-                <h2 className="font-bold" style={{ fontSize: '14px', color: NAVY }}>{t('pp.uploadTitle')}</h2>
+                <h2 className="font-bold" style={{ fontSize: '14px', color: NAVY }}>{t('pp.uploadTitle')}<HowItWorksIcon onClick={() => setShowHowModal(true)} /></h2>
                 <p style={{ fontSize: '11px', color: '#666' }}>ARN BNGO40217846125 · {t('pp.attemptsRem')} <strong>photo + signature</strong> · {t('pp.stage34')}</p>
               </div>
 
@@ -360,6 +360,7 @@ export default function PassportPortal() {
                 </div>
               </div>
 
+              {/* Mock normal user (non-PII): passive pill near upload, no auto-launch — experience stays optional */}
               <DocBridgeGuide
                 portalId="passport"
                 steps={guideSteps}
@@ -367,6 +368,7 @@ export default function PassportPortal() {
                 onStepDone={(id) => setDone((d) => ({ ...d, [id]: true }))}
                 deviceFiles={{ photo: photoFile, signature: signatureFile }}
                 onDeviceFileChange={handleGuideDeviceFile}
+                assistMode="passive"
               />
             </section>
           )}

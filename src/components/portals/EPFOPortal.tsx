@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import DocBridgeGuide from '@/components/DocBridgeGuide';
 import PortalNudge from '@/components/ui/PortalNudge';
-import HowItWorksModal, { HowItWorksTrigger } from '@/components/ui/HowItWorksModal';
+import HowItWorksModal, { HowItWorksIcon, HowItWorksTrigger } from '@/components/ui/HowItWorksModal';
 import TricolorBar from '@/components/ui/TricolorBar';
 import { COLORS } from '@/lib/constants';
 import { useLang, voiceLang, LanguageToggle } from '@/lib/i18n';
@@ -301,7 +301,7 @@ export default function EPFOPortal() {
               <div className="rounded-lg border bg-white" style={{ borderColor: COLORS.legacyBorder }}>
                 <div className="border-b px-6 py-4" style={{ borderColor: COLORS.legacyBorder }}>
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{t('epfo.breadcrumb')}</p>
-                  <h2 className="mt-2 text-xl font-bold text-[#0b1f4d]">{t('epfo.uploadTitle')}</h2>
+                  <h2 className="mt-2 text-xl font-bold text-[#0b1f4d]">{t('epfo.uploadTitle')}<HowItWorksIcon onClick={() => setShowHowModal(true)} /></h2>
                   <p className="mt-1 text-sm text-slate-500">{t('epfo.portalRule')}</p>
                 </div>
 
@@ -337,11 +337,14 @@ export default function EPFOPortal() {
                   </div>
 
                   {/* DocBridge Guide overlay — interference layer over the native dropzone */}
+                  {/* Mock elderly segment (non-PII): portal hints low digital comfort → auto scroll + launch + audio guide */}
                   <DocBridgeGuide
                     portalId="epfo"
                     steps={guideSteps}
                     done={{ passbook: false }}
                     onStepDone={() => setStep('submitted')}
+                    assistMode="assistive"
+                    userSegment={{ isElderly: true, needsAssistance: true }}
                   />
                 </div>
               </div>

@@ -282,6 +282,24 @@ export default function HowItWorksModal({ open, onClose }: { open: boolean; onCl
   );
 }
 
+// Subtle icon trigger for tight upload headers — native tooltip, click opens
+// the modal (which narrates itself when voice is available).
+export function HowItWorksIcon({ onClick }: { onClick: () => void }) {
+  const { t } = useLang();
+  const label = t('how.trigger');
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+      className="ml-2 inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border border-slate-300 bg-white align-middle text-[12px] font-bold text-slate-500 transition hover:border-[#1E3A8A] hover:text-[#1E3A8A]"
+    >
+      <span aria-hidden="true">?</span>
+    </button>
+  );
+}
+
 // Reusable pill trigger — placed next to nudge CTAs.
 export function HowItWorksTrigger({ onClick, tone = 'link' }: { onClick: () => void; tone?: 'link' | 'chip' }) {
   const { t } = useLang();

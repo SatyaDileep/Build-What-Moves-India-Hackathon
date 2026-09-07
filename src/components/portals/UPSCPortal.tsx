@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import DocBridgeGuide from '@/components/DocBridgeGuide';
 import PortalNudge from '@/components/ui/PortalNudge';
-import HowItWorksModal, { HowItWorksTrigger } from '@/components/ui/HowItWorksModal';
+import HowItWorksModal, { HowItWorksIcon, HowItWorksTrigger } from '@/components/ui/HowItWorksModal';
 import { COLORS } from '@/lib/constants';
 import { useLang, LanguageToggle } from '@/lib/i18n';
 
@@ -313,6 +313,7 @@ export default function UPSCPortal() {
                 <span className="font-bold text-[#1a3a6b]">{t('upload.pending')}:</span>
                 <SlotChip label="Photo" done={done.photo} />
                 <SlotChip label="Signature" done={done.signature} />
+                <span className="ml-auto"><HowItWorksIcon onClick={() => setShowHowModal(true)} /></span>
               </div>
               {/* Update Passport Size Photo — upsconline OTR replica */}
               <div className="overflow-hidden rounded-sm border bg-white shadow-sm" style={{ borderColor: '#c9d2dc' }}>
