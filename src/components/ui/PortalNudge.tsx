@@ -2,7 +2,6 @@
 
 import { COLORS } from '@/lib/constants';
 import VoiceToggle from '@/components/ui/VoiceToggle';
-import { useLang } from '@/lib/i18n';
 
 interface PortalNudgeProps {
   eyebrow?: string;
@@ -30,7 +29,6 @@ export default function PortalNudge({
   showVoice = true,
   secondaryAction,
 }: PortalNudgeProps) {
-  const { t } = useLang();
   const palette =
     tone === 'blue'
       ? { bg: '#EFF6FF', border: '#BFDBFE', accent: COLORS.primary, text: '#1E3A8A' }
@@ -68,12 +66,7 @@ export default function PortalNudge({
               <span aria-hidden="true">→</span>
             </button>
             {secondaryAction}
-            {showVoice && (
-              <div className="inline-flex items-center gap-2">
-                <span className="text-[11.5px] leading-4 text-slate-500">{t('nudge.voiceHint')}</span>
-                <VoiceToggle className="shrink-0" />
-              </div>
-            )}
+            {showVoice && <VoiceToggle className="shrink-0 whitespace-nowrap" />}
           </div>
         </div>
         {dismissible && onDismiss && (

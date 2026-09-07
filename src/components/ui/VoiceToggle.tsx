@@ -37,7 +37,7 @@ export default function VoiceToggle({ withHint = false, className = '' }: VoiceT
       aria-checked={voiceOn}
       aria-label={t('nudge.voiceHint')}
       onClick={toggle}
-      className={`inline-flex items-center gap-1.5 rounded-full border bg-white px-2.5 py-1 text-[11.5px] font-bold shadow-sm transition-colors hover:-translate-y-0.5 ${className}`}
+      className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border bg-white px-2.5 py-1 text-[11.5px] font-bold shadow-sm transition-colors hover:-translate-y-0.5 ${className}`}
       style={{ borderColor: voiceOn ? '#059669' : COLORS.gray[300], color: voiceOn ? '#065F46' : COLORS.gray[600] }}
     >
       <span aria-hidden="true">{voiceOn ? '🔊' : '🔈'}</span>

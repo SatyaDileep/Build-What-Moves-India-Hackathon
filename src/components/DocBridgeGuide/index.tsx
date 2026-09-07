@@ -86,8 +86,8 @@ export default function DocBridgeGuide({
   }, [current?.id]);
 
   useEffect(() => {
-    if (!current || !spotlightOn || phase === 'page') {
-      if (phase !== 'page') setTargetRect(null);
+    if (!current || phase === 'page') {
+      if (phase === 'page') setTargetRect(null);
       return;
     }
     const el = document.getElementById(current.deviceInputId);
@@ -107,6 +107,7 @@ export default function DocBridgeGuide({
     update();
     const ro = new ResizeObserver(update);
     ro.observe(el);
+    if (el.parentElement) ro.observe(el.parentElement);
     window.addEventListener('scroll', update, true);
     window.addEventListener('resize', update);
     return () => {
@@ -114,7 +115,7 @@ export default function DocBridgeGuide({
       window.removeEventListener('scroll', update, true);
       window.removeEventListener('resize', update);
     };
-  }, [current, spotlightOn, phase]);
+  }, [current, phase]);
 
   useEffect(() => {
     if (completedCount === total && total > 0 && !allDoneRef.current) {
@@ -208,7 +209,7 @@ export default function DocBridgeGuide({
 
   if (!current && phase === 'page') return null;
 
-  const spotlightVisible = current && phase !== 'page' && spotlightOn && targetRect;
+  const spotlightVisible = current && (phase === 'spotlight' || phase === 'modal') && spotlightOn && targetRect;
 
   return (
     <>
@@ -287,7 +288,12 @@ export default function DocBridgeGuide({
           role="dialog"
           aria-modal="true"
           aria-label="DocBridge guide"
-          onClick={(e) => e.target === e.currentTarget && setPhase('dismissed')}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setPhase('dismissed');
+              setSpotlightOn(false);
+            }
+          }}
         >
           <div
             ref={modalCardRef}
@@ -399,12 +405,17 @@ export default function DocBridgeGuide({
       {phase === 'dismissed' && current && targetRect && (
         <button
           type="button"
-          onClick={() => setPhase('modal')}
-          className="fixed z-[9995] flex items-center gap-2 rounded-xl border px-4 py-2 text-[13px] font-bold text-white shadow-xl"
+          onClick={() => {
+            setSpotlightOn(true);
+            setPhase('modal');
+          }}
+          aria-label={`Reopen DocBridge Assist for ${current.label}`}
+          className="fixed z-[9995] flex max-w-[300px] items-center gap-2 rounded-xl border px-4 py-2 text-left text-[13px] font-bold text-white shadow-xl"
           style={{
-            right: targetRect.right - (window.innerWidth - targetRect.right) > 60 ? 16 : targetRect.right,
-            top: Math.min(targetRect.top, window.innerHeight - 72),
+            left: Math.min(Math.max(targetRect.left, 16), Math.max(16, window.innerWidth - 316)),
+            top: Math.min(Math.max(targetRect.top - 64, 16), window.innerHeight - 72),
             backgroundColor: NAVY,
+            borderColor: `${ACCENT}66`,
           }}
         >
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px]" style={{ backgroundColor: ACCENT }}>
