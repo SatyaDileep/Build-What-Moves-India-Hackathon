@@ -90,6 +90,11 @@ export default function DocBridgeGuide({
   const allDoneRef = useRef(false);
   const widgetStateRef = useRef<string>('idle');
   const sourceRef = useRef<string>('');
+  const stepIdlePrev = useRef<string>('');
+  const [userInteracted, setUserInteracted] = useState(false);
+  const [welcomeFired, setWelcomeFired] = useState(false);
+  const [readyText, setReadyText] = useState<string | null>(null);
+  const [voiceOn, setVoiceOn] = useState(false);
   const [widgetPhase, setWidgetPhase] = useState<'idle' | 'parsing' | 'processing' | 'previewing' | 'success'>('idle');
   const onWidgetPhase = (phase: string) => {
     if (phase === widgetPhase) return;
@@ -183,22 +188,28 @@ export default function DocBridgeGuide({
     };
   }, [phase, current]);
 
-  // Per-site welcome line plays once when the modal opens.
+  // Per-site welcome line plays once when the modal opens — only after the
+  // citizen has interacted with the page, because browsers block
+  // speechSynthesis autoplay before any user gesture. Only when voice is
+  // opted in (shared switch with the widget).
   useVoiceGuide(
-    open && !!current,
+    voiceOn && userInteracted && open && !!current && !welcomeFired,
     guideCopy.welcome,
     voiceLang(lang),
   );
 
   // Step-level narration: live whenever the modal is open and the user hasn't
   // muted it. The copy is per-site (EPFO / UPSC / Passport / …).
+  // Keep this separate from the welcome line so the welcome is not immediately
+  // cut off: only re-speak when the idle line actually changes (new step,
+  // mute toggle), not on every modal-open render.
   const stepNarration = useMemo(() => {
     if (!current || !narrating) return '';
     return guideCopy.stepIdle(current!, completedCount + 1, total);
   }, [current, narrating, completedCount, total, guideCopy]);
 
   useVoiceGuide(
-    !!(current && open && stepNarration),
+    !!(voiceOn && userInteracted && open && current && stepNarration && stepNarration !== stepIdlePrev.current),
     stepNarration,
     voiceLang(lang),
   );
@@ -206,20 +217,65 @@ export default function DocBridgeGuide({
   // When the widget picks a source (idle→processing or previewing), read the
   // per-site 'source picked' line.
   useVoiceGuide(
-    !!(current && open && widgetPhase !== 'idle' && widgetPhase !== 'success' && sourceRef.current),
+    !!(voiceOn && userInteracted && current && open && widgetPhase !== 'idle' && widgetPhase !== 'success' && sourceRef.current),
     guideCopy.sourcePicked(current!, sourceRef.current),
     voiceLang(lang),
   );
 
   // After optimization finishes (widget enters previewing), narrate a delayed
   // 'ready to upload' line so the optimizing readout is not cut short.
+  // The hook itself stays at component top-level; only the timing is deferred.
   useEffect(() => {
     if (!current || !open || widgetPhase !== 'previewing') return;
-    const delayed = setTimeout(() => {
-      useVoiceGuide(true, guideCopy.readyToUpload(current!), voiceLang(lang));
-    }, 900);
+    const delayed = setTimeout(() => setReadyText(guideCopy.readyToUpload(current!)), 900);
     return () => clearTimeout(delayed);
-  }, [current, open, widgetPhase, guideCopy, lang]);
+  }, [current, open, widgetPhase, guideCopy]);
+
+  useVoiceGuide(
+    !!(voiceOn && userInteracted && readyText),
+    readyText ?? '',
+    voiceLang(lang),
+  );
+
+  // Keep stepIdlePrev in sync so the step idle hook only re-fires on real
+  // content changes (and never on the initial modal-open render).
+  useEffect(() => {
+    stepIdlePrev.current = stepNarration;
+  }, [stepNarration]);
+
+  useEffect(() => {
+    if (open && !!current) setWelcomeFired(true);
+  }, [open, current]);
+
+  // Voice opt-in is persisted under the same key the widget/overlay check, so
+  // the guide and the widget share one switch. The modal header exposes this
+  // for assistive launches (e.g. EPFO KYC) where the citizen otherwise has no
+  // in-screen way to enable narration before the modal opens.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try { setVoiceOn(localStorage.getItem('docbridge-voice') === '1'); } catch {}
+  }, []);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try { localStorage.setItem('docbridge-voice', voiceOn ? '1' : '0'); } catch {}
+    if (!voiceOn && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+  }, [voiceOn]);
+
+  // Gate voice on the first real user gesture so browsers that block
+  // autoplay (no-user-gesture synthesis) still let the guide speak once
+  // the citizen taps/clicks anywhere on the page.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onInteract = () => setUserInteracted(true);
+    window.addEventListener('click', onInteract);
+    window.addEventListener('touchstart', onInteract);
+    window.addEventListener('keydown', onInteract);
+    return () => {
+      window.removeEventListener('click', onInteract);
+      window.removeEventListener('touchstart', onInteract);
+      window.removeEventListener('keydown', onInteract);
+    };
+  }, []);
 
   useEffect(() => {
     if (!current || !open) return;
@@ -363,6 +419,18 @@ export default function DocBridgeGuide({
                   {narrating ? '🔊' : '🔈'}
                 </button>
               )}
+              {assistive && (
+                <button
+                  type="button"
+                  onClick={() => setVoiceOn((v) => !v)}
+                  title={voiceOn ? t('ov.voiceOn') : t('ov.voiceOff')}
+                  aria-pressed={voiceOn}
+                  className="rounded-md px-1.5 py-1 text-[13px] transition hover:bg-white/10"
+                  style={{ color: voiceOn ? '#ffd9a0' : 'rgba(255,255,255,0.7)' }}
+                >
+                  {voiceOn ? '🔊' : '🔈'}
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => {
@@ -451,27 +519,21 @@ export default function DocBridgeGuide({
             setSpotlightOn(true);
             setPhase('modal');
           }}
-          aria-label={`Reopen DocBridge Assist for ${current.label}`}
-          className="fixed z-[9995] flex max-w-[300px] items-center gap-2 rounded-xl border px-4 py-2 text-left text-[13px] font-bold text-white shadow-xl"
+          aria-label={`Reopen DocBridgeAssist for ${current.label}`}
+          className="fixed z-[9995] flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-left text-[11px] font-bold text-white shadow-md"
           style={{
-            left: Math.min(Math.max(targetRect.left, 16), Math.max(16, window.innerWidth - 316)),
-            top: Math.min(Math.max(targetRect.top - 64, 16), window.innerHeight - 72),
+            left: Math.min(Math.max(targetRect.left, 16), Math.max(16, window.innerWidth - 172)),
+            top: Math.min(Math.max(targetRect.bottom + 4, 12), window.innerHeight - 34),
             backgroundColor: NAVY,
-            borderColor: `${ACCENT}66`,
+            borderColor: `${ACCENT}33`,
           }}
         >
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px]" style={{ backgroundColor: ACCENT }}>
+          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px]" style={{ backgroundColor: ACCENT }}>
             🌉
           </span>
           <span className="min-w-0">
-            <span className="block leading-tight text-white">DocBridge Assist — {completedCount}/{total}</span>
-            <span className="block text-[10px] leading-tight text-white/70">{current.label}</span>
-          </span>
-          <span
-            className="ml-1 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold"
-            style={{ backgroundColor: ACCENT, color: '#1a1a1a' }}
-          >
-            {completedCount + 1}
+            <span className="block leading-tight text-white">DocBridgeAssist</span>
+            <span className="block text-[9px] leading-tight text-white/60">{current.label}</span>
           </span>
         </button>
       )}
