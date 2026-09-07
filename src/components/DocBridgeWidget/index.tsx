@@ -688,7 +688,7 @@ export default function DocBridgeWidget({
           isRecompressing={isRecompressing}
           onAdjust={handleAdjust}
           onEnhance={handleEnhance}
-          onAiCleanup={portalId === 'passport' ? handleAiCleanup : undefined}
+          onAiCleanup={portalId === 'passport' && (docType ?? '') === 'photo' ? handleAiCleanup : undefined}
           aiCleaned={aiCleaned}
           onSubmit={handleSubmit}
           onCancel={handleReset}

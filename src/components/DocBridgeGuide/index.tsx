@@ -5,7 +5,7 @@ import DocBridgeWidget from '@/components/DocBridgeWidget';
 import { COLORS } from '@/lib/constants';
 import { useLang, voiceLang } from '@/lib/i18n';
 import { useVoiceGuide } from '@/hooks/useVoiceGuide';
-import { isVoiceOn } from '@/lib/voice';
+import { estimateSpeechMs, isVoiceOn } from '@/lib/voice';
 import { getGuideCopy, PortalId } from '@/lib/guideNarration';
 
 export interface GuideStep {
@@ -212,8 +212,20 @@ export default function DocBridgeGuide({
     return guideCopy.stepIdle(current!, completedCount + 1, total);
   }, [current, narrating, completedCount, total, guideCopy]);
 
+  // Serialize welcome → step: both hooks firing in the same tick makes
+  // Chrome drop the pair. The step line waits until the welcome has had
+  // time to finish (short beat on later steps where welcome doesn't replay).
+  const [stepVoiceReady, setStepVoiceReady] = useState(false);
+  useEffect(() => {
+    if (!open || !current) return;
+    setStepVoiceReady(false);
+    const delay = welcomeFired ? 900 : estimateSpeechMs(guideCopy.welcome) + 700;
+    const timer = setTimeout(() => setStepVoiceReady(true), delay);
+    return () => clearTimeout(timer);
+  }, [open, current, guideCopy, welcomeFired]);
+
   useVoiceGuide(
-    !!(voiceOn && userInteracted && open && current && stepNarration && stepNarration !== stepIdlePrev.current),
+    !!(voiceOn && userInteracted && open && current && stepVoiceReady && stepNarration && stepNarration !== stepIdlePrev.current),
     stepNarration,
     voiceLang(lang),
   );
@@ -251,8 +263,8 @@ export default function DocBridgeGuide({
   // blocked first attempt (no user gesture yet) retries after the first click
   // instead of going silent for the whole modal.
   useEffect(() => {
-    if (voiceOn && userInteracted && open) stepIdlePrev.current = stepNarration;
-  }, [stepNarration, voiceOn, userInteracted, open]);
+    if (voiceOn && userInteracted && open && stepVoiceReady) stepIdlePrev.current = stepNarration;
+  }, [stepNarration, voiceOn, userInteracted, open, stepVoiceReady]);
 
   useEffect(() => {
     if (open && !!current && voiceOn && userInteracted) setWelcomeFired(true);

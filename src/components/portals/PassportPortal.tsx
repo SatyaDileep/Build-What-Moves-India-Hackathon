@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import DocBridgeGuide from '@/components/DocBridgeGuide';
 import TricolorBar from '@/components/ui/TricolorBar';
+import { supabase } from '@/lib/supabase';
 import { LanguageToggle, useLang } from '@/lib/i18n';
 import HowItWorksModal, { HowItWorksIcon, HowItWorksTrigger } from '@/components/ui/HowItWorksModal';
 import SpecsModal from '@/components/ui/SpecsModal';
@@ -39,9 +40,14 @@ export default function PassportPortal() {
 
   // Two demo personas on the same portal: default Kabir (standard, quiet
   // pill) vs ?persona=elder Ramesh (68, assistive auto-launch + voice).
+  // ?fresh=1 wipes saved optimized copies for a clean recording take.
   const [isElder, setIsElder] = useState(false);
   useEffect(() => {
-    try { setIsElder(new URLSearchParams(window.location.search).get('persona') === 'elder'); } catch {}
+    try {
+      const q = new URLSearchParams(window.location.search);
+      setIsElder(q.get('persona') === 'elder');
+      if (q.get('fresh') === '1') supabase.resetSavedVault();
+    } catch {}
   }, []);
   const applicantName = isElder ? 'RAMESH SINGH' : 'KABIR MEHTA';
   const applicantLogin = isElder ? 'ramesh.singh68' : 'kabir.mehta34';
@@ -320,7 +326,7 @@ export default function PassportPortal() {
             <PspShell active="upload" onNav={(s) => { if (s === 'home') setStep('dashboard'); }}>
               <div className="flex items-start justify-between gap-3 px-4 pt-3">
                 <h2 className="font-medium" style={{ fontSize: '17px', color: '#222' }}>
-                  Upload Recent Photograph/Signature (Optional)
+                  {t('psp.uploadTitle')}
                 </h2>
                 <span className="flex items-center gap-2">
                   <HowItWorksIcon onClick={() => setShowHowModal(true)} />
@@ -369,7 +375,7 @@ export default function PassportPortal() {
                     <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-slate-300 bg-white text-xl text-slate-400">
                       <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.5-4.5L12 15l3.5-3.5L20 16M4 20h16M4 4h16v12H4z" /><circle cx="9" cy="8.5" r="1.5" /></svg>
                     </span>
-                    <p className="mt-2" style={{ fontSize: '13px', color: '#0a4a90' }}>Upload Photo/Signature</p>
+                    <p className="mt-2" style={{ fontSize: '13px', color: '#0a4a90' }}>{t('psp.dropTitle')}</p>
                     <p className="mt-2 flex items-center justify-center gap-2" style={{ fontSize: '12px' }}>
                       <button
                         type="button"
@@ -378,24 +384,24 @@ export default function PassportPortal() {
                         className="cursor-not-allowed border bg-slate-100 px-2 py-0.5 text-slate-400"
                         style={{ borderColor: '#ccc' }}
                       >
-                        Choose File
+                        {t('psp.chooseFile')}
                       </button>
-                      <span className="max-w-[180px] truncate text-slate-500">No file chosen</span>
+                      <span className="max-w-[180px] truncate text-slate-500">{t('psp.noFile')}</span>
                     </p>
                     {/* Assist-pill parking slot: uploads happen via DocBridge. */}
                     <div id="docbridge-assist-anchor" className="mx-auto mt-2 h-8 max-w-[220px]" />
                   </div>
                   <div className="mt-2" style={{ fontSize: '12px', color: '#333', lineHeight: '20px' }}>
-                    <p>File supported: JPG/JPEG</p>
-                    <p>Maximum size: 250 KB for Photograph, 100 KB for Signature</p>
-                    <p style={{ color: '#1a7a1a' }}>Photograph Dimensions : 630*810 Pixels</p>
+                    <p>{t('psp.fileSupported')}</p>
+                    <p>{t('psp.maxSize')}</p>
+                    <p style={{ color: '#1a7a1a' }}>{t('psp.dims')}</p>
                     <button
                       type="button"
                       onClick={() => setShowSpecs(true)}
                       className="mt-0.5 underline"
                       style={{ color: LINK_BLUE }}
                     >
-                      View full specifications
+                      {t('psp.viewSpecs')}
                     </button>
                   </div>
                   {(done.photo || done.signature) && (
