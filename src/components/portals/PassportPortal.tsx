@@ -388,19 +388,11 @@ export default function PassportPortal() {
                       </button>
                       <span className="max-w-[180px] truncate text-slate-500">{t('psp.noFile')}</span>
                     </p>
-                    {/* Assist-pill parking slot: uploads happen via DocBridge. */}
-                    <div id="docbridge-assist-anchor" className="relative mx-auto mt-1.5 h-7 max-w-[200px]">
-                      <button
-                        type="button"
-                        onClick={() => setShowHowModal(true)}
-                        title={t('how.trigger')}
-                        aria-label={t('how.trigger')}
-                        className="absolute right-1 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full border bg-white text-xs font-bold shadow-sm"
-                        style={{ borderColor: '#999', color: '#0a4a90' }}
-                      >
-                        ?
-                      </button>
-                    </div>
+                    {/* Assist-pill parking slot: uploads happen via DocBridge.
+                        The "?" How-It-Works trigger renders attached to the
+                        DocBridgeAssist pill itself (guide onHowItWorks), so it
+                        always appears alongside the pill — never duplicated. */}
+                    <div id="docbridge-assist-anchor" className="relative mx-auto mt-1.5 h-7 max-w-[200px]" />
                   </div>
                   <div className="mt-2" style={{ fontSize: '12px', color: '#333', lineHeight: '20px' }}>
                     <p>{t('psp.fileSupported')}</p>
@@ -480,6 +472,7 @@ export default function PassportPortal() {
                 pillAlign="topRight"
                 pillTargetId="docbridge-assist-anchor"
                 suspended={showHowModal || showSpecs}
+                onHowItWorks={() => setShowHowModal(true)}
               />
             </PspShell>
           )}

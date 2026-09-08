@@ -131,18 +131,10 @@ class DigiLockerClient {
     const asset = this.assets.find(a => a.id === assetId) || savedVault.find(a => a.id === assetId);
     if (!asset) throw new Error('Asset not found');
 
-    // Pre-converted drop-in (demo mock): if the operator places a ready-made
-    // file at public/ramesh-passport-ready.jpg, Ramesh's DigiLocker photo
-    // serves that journey directly. Absent → falls through to elder.JPG.
-    if (asset.id === 'asset-9') {
-      try {
-        const res = await fetch('/ramesh-passport-ready.jpg');
-        const blob = await res.blob();
-        if (res.ok && blob.type.startsWith('image/')) return blob;
-      } catch {
-        // fall through
-      }
-    }
+    // Ramesh's Passport photo (asset-9) always serves the raw 4.4MB mb file.
+    // The white-bg result lives only in the vault after an AI Cleanup + Save;
+    // if one exists it is fetched as an optimized copy above. Nothing here
+    // special-cases a public/* drop-in anymore.
 
     // Real uploaded mock photos (public/) are fetched as-is; everything else
     // falls back to the synthesized document/photo.

@@ -72,6 +72,14 @@ export interface DocBridgeGuideProps {
    * (e.g. How It Works) so the floating companion never leaks above it.
    */
   suspended?: boolean;
+  /**
+   * Optional hook the portal wires to its own "How It Works" trigger. When
+   * present, a "?" affordance is rendered alongside DocBridge Assist (next to
+   * the collapsed pill and in the modal header) so the citizen can open the
+   * portal's help overlay without leaving the companion. No-op for portals
+   * that don't have one.
+   */
+  onHowItWorks?: () => void;
 }
 
 const ACCENT = '#F59E0B';
@@ -91,6 +99,7 @@ export default function DocBridgeGuide({
   pillAlign = 'below',
   pillTargetId,
   suspended = false,
+  onHowItWorks,
 }: DocBridgeGuideProps) {
   const { t, lang } = useLang();
   const guidePortalId = portalId as PortalId;
@@ -401,7 +410,7 @@ export default function DocBridgeGuide({
 
       {phase === 'modal' && (
         <div
-          className="fixed inset-0 z-[9995] flex items-center justify-center overflow-y-auto p-4"
+          className="fixed inset-0 z-[9995] flex items-center justify-center overflow-y-auto bg-slate-900/40 p-4 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
           aria-label="DocBridge guide"
@@ -529,17 +538,19 @@ export default function DocBridgeGuide({
             setSpotlightOn(true);
             setPhase('modal');
           }}
+          onHowItWorks={onHowItWorks}
         />
       )}
     </>
   );
 }
 
-function PillButton({ pillAlign, pillTargetId, targetRect, onOpen }: {
+function PillButton({ pillAlign, pillTargetId, targetRect, onOpen, onHowItWorks }: {
   pillAlign: 'below' | 'topRight';
   pillTargetId?: string;
   targetRect: DOMRect;
   onOpen: () => void;
+  onHowItWorks?: () => void;
 }) {
   // Optional in-card anchor (measured at render): the pill parks centered
   // beneath it. Falls back to the upload target rect when absent.
@@ -558,24 +569,41 @@ function PillButton({ pillAlign, pillTargetId, targetRect, onOpen }: {
       ? rect.top - 17
       : rect.bottom + 4;
   return (
-    <button
-      type="button"
-      onClick={onOpen}
-      aria-label="Open DocBridgeAssist"
-      className="fixed z-[9995] flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-left text-[11px] font-bold text-white shadow-md"
+    <span
+      className="fixed z-[9995] flex items-center gap-1.5"
       style={{
         left: Math.min(Math.max(left, 16), Math.max(16, window.innerWidth - 172)),
         top: Math.min(Math.max(top, 12), window.innerHeight - 34),
-        backgroundColor: NAVY,
-        borderColor: `${ACCENT}33`,
       }}
     >
-      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px]" style={{ backgroundColor: ACCENT }}>
-        🌉
-      </span>
-      <span className="min-w-0">
-        <span className="block whitespace-nowrap leading-tight text-white">DocBridgeAssist</span>
-      </span>
-    </button>
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label="Open DocBridgeAssist"
+        className="flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-left text-[11px] font-bold text-white shadow-md"
+        style={{
+          backgroundColor: NAVY,
+          borderColor: `${ACCENT}33`,
+        }}
+      >
+        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px]" style={{ backgroundColor: ACCENT }}>
+          🌉
+        </span>
+        <span className="min-w-0">
+          <span className="block whitespace-nowrap leading-tight text-white">DocBridgeAssist</span>
+        </span>
+      </button>
+      {onHowItWorks && (          <button
+            type="button"
+            onClick={onHowItWorks}
+            title="How it works"
+            aria-label="How it works"
+            className="flex h-6 w-6 items-center justify-center rounded-full border bg-white text-xs font-bold shadow-md"
+            style={{ borderColor: '#999', color: '#0a4a90' }}
+          >
+            ?
+          </button>
+      )}
+    </span>
   );
 }

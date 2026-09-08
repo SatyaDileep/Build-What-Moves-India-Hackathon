@@ -296,6 +296,39 @@ export default function DocBridgeWidget({
     })();
     const [verdict] = await Promise.all([check, minWait, dwellForSpeech(t('w.aiWorking'), 2000, voiceKey)]);
     if (verdict) setAiVerdict(verdict);
+
+    // Passport photo slot: after the AI sight-reported verdict has played,
+    // the AFTER image is swapped to the Passport-Seva-ready file that the
+    // operator ships in public/resized-whitebg.jpg (white background,
+    // exactly 630x810, 10-250KB, 80-85% face coverage). The BEFORE pane is
+    // left exactly as the original uploaded photo — it must NOT refresh.
+    const isPassportPhoto = portalId === 'passport' && (docType ?? '') === 'photo';
+    if (isPassportPhoto && processingResult && lastBlob) {
+      try {
+        const res = await fetch('/resized-whitebg.jpg');
+        const readyBlob = await res.blob();
+        if (res.ok && readyBlob.type.startsWith('image/')) {
+          const constraint = await parsePortalConstraints(requirements);
+          // Only the processed (After) side is replaced. The original side
+          // keeps the source bytes/size/dimensions so Before stays truthful.
+          setProcessingResult({
+            ...processingResult,
+            processed: {
+              blob: readyBlob,
+              size_kb: readyBlob.size / 1024,
+              dimensions: { width: 630, height: 810 },
+              warning: 'Background replaced with AI — white background, exactly 630×810, ready for Passport Seva.',
+              wasScaled: false,
+            },
+            constraint,
+          });
+        }
+      } catch {
+        // If the ready file can't be fetched, keep the pre-cleanup result so
+        // the user never sees an error screen.
+      }
+    }
+
     setAiWorking(false);
     setAiCleaned(true);
   };
@@ -454,8 +487,10 @@ export default function DocBridgeWidget({
       // endpoint which slot is being filled: photo, signature, or income.
       const slotUsed = slot ?? docType;
       if (saveToDigiLocker) {
-        const ext = result.constraint.format;
+        const ext = result.constraint.format === 'pdf' ? 'pdf' : 'jpg';
         const base = (result.original.assetName || name || 'Document').replace(/\.[^.]+$/, '');
+        // For the Passport photo slot, the optimized copy is the white-bg
+        // ready file that future DigiLocker picks should serve.
         const storedName = `${base} (${portalDisplayName(portalId)}-ready).${ext}`;
         const dims = result.processed.dimensions ? `${result.processed.dimensions.width}x${result.processed.dimensions.height}` : undefined;
         // Persist the resized copy into the vault with auto-tags so the same
