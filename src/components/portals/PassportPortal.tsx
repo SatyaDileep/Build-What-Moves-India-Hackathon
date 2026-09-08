@@ -40,13 +40,14 @@ export default function PassportPortal() {
 
   // Two demo personas on the same portal: default Kabir (standard, quiet
   // pill) vs ?persona=elder Ramesh (68, assistive auto-launch + voice).
-  // ?fresh=1 wipes saved optimized copies for a clean recording take.
+  // Every load wipes saved optimized copies so both Kabir and Ramesh starts
+  // recording from a clean "no optimized copies in DigiLocker yet" state.
   const [isElder, setIsElder] = useState(false);
   useEffect(() => {
     try {
       const q = new URLSearchParams(window.location.search);
       setIsElder(q.get('persona') === 'elder');
-      if (q.get('fresh') === '1') supabase.resetSavedVault();
+      supabase.resetSavedVault();
     } catch {}
   }, []);
   const applicantName = isElder ? 'RAMESH SINGH' : 'KABIR MEHTA';
