@@ -79,6 +79,8 @@ chrome-extension/
 ## v2 Roadmap
 
 - [ ] PDF processing (limited compression)
+- [x] AI background cleanup — "Replace background with AI" re-composes the photo on a verified white background at the portal's exact pixel box (parity with the web app)
+- [x] Elderly assistive mode — toggle in the popup; when on, DocBridge auto-opens its panel on detected gov portals with voice guidance, mirroring the web app's elder persona
 - [ ] AI constraint analysis for unknown portals
 - [ ] Auto-fill into portal upload inputs
 - [ ] DigiLocker integration

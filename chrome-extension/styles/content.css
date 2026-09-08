@@ -93,3 +93,16 @@
 .db-feedback-label select,.db-feedback-label textarea{padding:8px 10px;border:1px solid var(--db-border);border-radius:8px;font-size:12px}
 .db-feedback-meta{font-size:11px;color:var(--db-muted);background:var(--db-slate);border:1px solid var(--db-border);border-radius:6px;padding:6px 8px;margin-bottom:10px;word-break:break-all}
 .db-feedback-actions{display:flex;gap:8px;justify-content:flex-end}
+
+/* AI background cleanup (v2 parity with web app) */
+.db-ai-cleanup{margin-top:12px;padding:10px 12px;border:1px solid #DBEAFE;background:#f5f8ff;border-radius:10px;text-align:center}
+.db-btn-ai{width:100%;padding:10px 14px;border:none;border-radius:999px;background:linear-gradient(90deg,#1565d8,#6a5acd);color:#fff;font-weight:700;font-size:13px;cursor:pointer;transition:opacity .15s ease}
+.db-btn-ai:disabled{opacity:.65;cursor:wait}
+.db-btn-ai:hover:not(:disabled){opacity:.92}
+.db-ai-note{margin-top:6px;font-size:11px;color:var(--db-muted);line-height:1.5}
+
+/* Assistive (elderly) auto-nudge — slightly larger, high-contrast */
+.db-nudge.db-assistive .db-nudge-inner{max-width:440px;border-left:5px solid #F59E0B}
+.db-nudge.db-assistive .db-nudge-title{font-size:15px}
+.db-nudge.db-assistive .db-nudge-hint{font-size:13px}
+.db-nudge.db-assistive .db-btn-primary{padding:10px 18px;font-size:14px}

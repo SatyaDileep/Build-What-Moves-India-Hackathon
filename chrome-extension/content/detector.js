@@ -7,12 +7,17 @@
 
   // Check if user has dismissed this site
   var dismissedKey = "docbridge_dismissed_" + hostname;
-  chrome.storage.local.get(dismissedKey, function(data) {
+  chrome.storage.local.get([dismissedKey, "docbridge_nudge_enabled", "docbridge_assist_mode"], function(data) {
     if (data[dismissedKey]) return;
 
     // Check nudge-enabled setting
-    chrome.storage.local.get("docbridge_nudge_enabled", function(settings) {
-      if (settings.docbridge_nudge_enabled === false) return;
+    var settings = { "docbridge_nudge_enabled": data.docbridge_nudge_enabled, "docbridge_assist_mode": data.docbridge_assist_mode };
+    if (settings.docbridge_nudge_enabled === false) return;
+
+    // Assistive mode (elderly / needs-guidance): skip the passive banner and
+    // auto-launch the DocBridge panel shortly after the page settles, the
+    // same auto-nudge behavior the web app gives the elder persona.
+    var assistive = settings.docbridge_assist_mode === "assistive" || settings.docbridge_assist_mode === true;
 
       var matchedPortal = null;
       var matchedUpload = null;
@@ -68,10 +73,16 @@
           });
         } catch(e) { /* ignore - background might not be ready */ }
 
-        // Inject the nudge
-        injectNudge(matchedPortal, matchedUpload);
+        if (assistive) {
+          // Elderly assistive auto-nudge: open the panel automatically after
+          // a short settle delay, mirroring the web app's assistive persona.
+          setTimeout(function() {
+            injectNudge(matchedPortal, matchedUpload, true);
+          }, 1200);
+        } else {
+          injectNudge(matchedPortal, matchedUpload);
+        }
       }
-    });
   });
 
   function scanPageForUploads() {
@@ -150,7 +161,7 @@
     };
   }
 
-  function injectNudge(portal, upload) {
+  function injectNudge(portal, upload, autoOpen) {
     // Don't double-inject
     if (document.getElementById("docbridge-nudge")) return;
 
@@ -161,7 +172,7 @@
       this.remove();
       // Dispatch event to trigger nudge initialization
       window.dispatchEvent(new CustomEvent("docbridge-nudge-init", {
-        detail: { portal: portal, upload: upload }
+        detail: { portal: portal, upload: upload, autoOpen: !!autoOpen }
       }));
     };
     (document.head || document.documentElement).appendChild(script);

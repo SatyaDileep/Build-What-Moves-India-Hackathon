@@ -19,9 +19,10 @@ const DOCBRIDGE_PORTALS = [
     uploads: [
       {
         type: 'photo',
-        hint: 'JPEG · 630×810px · <250KB · White background',
+        hint: 'JPEG · 630×810px · 10–250KB · White background',
         constraint: {
           format: 'jpeg',
+          min_kb: 10,
           max_kb: 250,
           width_px: 630,
           height_px: 810,

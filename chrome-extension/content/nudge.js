@@ -3,14 +3,15 @@
   "use strict";
 
   window.addEventListener("docbridge-nudge-init", function(e) {
-    showNudge(e.detail.portal, e.detail.upload);
+    showNudge(e.detail.portal, e.detail.upload, e.detail.autoOpen);
   });
 
-  function showNudge(portal, upload) {
+  function showNudge(portal, upload, autoOpen) {
     if (document.getElementById("docbridge-nudge")) return;
 
     var nudge = document.createElement("div");
     nudge.id = "docbridge-nudge";
+    if (autoOpen) nudge.className = "db-assistive";
 
     // Build inner HTML carefully to avoid quoting issues
     var inner = document.createElement("div");
@@ -76,6 +77,27 @@
       chrome.storage.local.set(obj);
       nudge.remove();
     };
+
+    // Assistive (elderly) mode: narrate the nudge and auto-open the panel so
+    // the citizen never has to find or click the banner themselves.
+    if (autoOpen) {
+      speak("DocBridge Assist for " + portal.name + ". Opening photo preparation for you. Choose DigiLocker or upload from your device, and DocBridge will do the rest.");
+      setTimeout(function() { openPanel(portal, upload); }, 1800);
+    }
+  }
+
+  // Best-effort voice narration (opt-in per site via assistive mode). Never
+  // throws — speechSynthesis may be unavailable or blocked.
+  function speak(text) {
+    try {
+      if (!("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(text);
+      u.rate = 0.95;
+      u.pitch = 1;
+      u.lang = "en-IN";
+      window.speechSynthesis.speak(u);
+    } catch (e) { /* voice is optional */ }
   }
 
   function openPanel(portal, upload) {

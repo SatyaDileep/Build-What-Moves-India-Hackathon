@@ -401,6 +401,44 @@
     actions.appendChild(againBtn);
     resultContainer.appendChild(actions);
 
+    // AI background cleanup — only for photo slots on white-background
+    // portals, mirroring the web app's "Replace background with AI" action.
+    // Replaces the After card with a white-bg, spec-compliant re-composition.
+    var isPhoto = (constraint.type || 'photo') === 'photo' && !opt.aiCleaned;
+    if (isPhoto && constraint.bg_color === 'white' && constraint.width_px && constraint.height_px) {
+      var aiWrap = document.createElement("div");
+      aiWrap.className = "db-ai-cleanup";
+      var aiBtn = document.createElement("button");
+      aiBtn.id = "db-result-ai";
+      aiBtn.className = "db-btn-ai";
+      aiBtn.textContent = "✨ Replace background with AI";
+      var aiNote = document.createElement("div");
+      aiNote.className = "db-ai-note";
+      aiNote.textContent = "Background is not plain white? DocBridge re-composes the photo on a verified white background at " + constraint.width_px + "×" + constraint.height_px + ".";
+      aiWrap.appendChild(aiBtn);
+      aiWrap.appendChild(aiNote);
+      resultContainer.appendChild(aiWrap);
+      aiBtn.onclick = function() {
+        aiBtn.disabled = true;
+        aiBtn.textContent = "✨ Removing background…";
+        var procDiv2 = document.createElement("div");
+        procDiv2.className = "db-processing";
+        procDiv2.textContent = "AI cleanup in progress — white background, exact size…";
+        resultContainer.insertBefore(procDiv2, aiWrap);
+        DocBridgeProcessor.aiCleanup(result.original.blob, effConstraint).then(function(cleaned) {
+          procDiv2.remove();
+          aiWrap.remove();
+          // Re-render the whole result with the cleaned output; the After
+          // card now shows the white-bg ready copy.
+          showResult(cleaned, filename);
+        }).catch(function() {
+          procDiv2.remove();
+          aiBtn.disabled = false;
+          aiBtn.textContent = "✨ Replace background with AI";
+        });
+      };
+    }
+
     resultDiv.appendChild(resultContainer);
 
     // Draw previews + enable zoom

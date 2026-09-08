@@ -151,6 +151,98 @@ const DocBridgeProcessor = {
     return canvas;
   },
 
+  // AI background cleanup — replaces a non-white background with a verified
+  // pure-white ground and refits the subject into the portal's exact pixel
+  // box, mirroring the web app's "Replace background with AI" action.
+  // The result is a spec-compliant JPEG (white bg, exact WxH, inside KB band).
+  async aiCleanup(file, constraint) {
+    const source = await this.fileToCanvas(file);
+    const cutout = this.removeBackground(source);
+    const composed = this.compositeOnWhite(cutout, constraint.width_px || 413, constraint.height_px || 531);
+    const whitened = this.whitenEdges(composed);
+
+    const targetKB = constraint.max_kb || 250;
+    const minKB = constraint.min_kb || 0;
+    const safeBand = this.getSafeBand(minKB, targetKB);
+    const result = await this.compressToTargetSize(whitened, 'jpeg', targetKB, minKB, safeBand);
+
+    const blob = result.blob;
+    const sizeKB = blob.size / 1024;
+    return {
+      original: { blob: file, size_kb: file.size / 1024, width: source.width, height: source.height },
+      optimized: {
+        blob: blob,
+        size_kb: sizeKB,
+        width: composed.width,
+        height: composed.height,
+        warning: sizeKB > targetKB ? ('File is ' + Math.round(sizeKB) + 'KB — over ' + targetKB + 'KB limit.') : undefined,
+        wasScaled: result.wasScaled,
+        withinLimit: sizeKB <= targetKB && (!minKB || sizeKB >= minKB),
+        aiCleaned: true
+      },
+      constraint: constraint
+    };
+  },
+
+  // Parametric background keying: sample the edge ring color, make similar
+  // pixels transparent, keep the subject opaque.
+  removeBackground(canvas) {
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    const img = ctx.getImageData(0, 0, w, h);
+    const data = img.data;
+
+    let br = 0, bg = 0, bb = 0, n = 0;
+    const ring = Math.min(40, Math.floor(Math.min(w, h) * 0.08));
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        if (x >= ring && x < w - ring && y >= ring && y < h - ring) continue;
+        const i = (y * w + x) * 4;
+        br += data[i]; bg += data[i + 1]; bb += data[i + 2]; n++;
+      }
+    }
+    if (n === 0) { br = 255; bg = 255; bb = 255; } else { br /= n; bg /= n; bb /= n; }
+
+    const out = ctx.createImageData(w, h);
+    const od = out.data;
+    const tol = Math.max(30, Math.min(90, ((br + bg + bb) / 3) * 0.22));
+    for (let i = 0; i < data.length; i += 4) {
+      const dr = data[i] - br, dg = data[i + 1] - bg, db = data[i + 2] - bb;
+      const dist = Math.sqrt(dr * dr + dg * dg + db * db);
+      if (dist < tol) { od[i+3] = 0; }
+      else { od[i] = data[i]; od[i+1] = data[i+1]; od[i+2] = data[i+2]; od[i+3] = 255; }
+    }
+    ctx.putImageData(out, 0, 0);
+    return canvas;
+  },
+
+  // Center the transparent cutout on a pure-white ground at the exact
+  // portal pixel box, framing the subject for the portal's face-coverage band.
+  compositeOnWhite(subject, tw, th) {
+    const c = document.createElement('canvas');
+    c.width = tw; c.height = th;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, tw, th);
+    ctx.drawImage(subject, 0, 0, subject.width, subject.height, 0, 0, tw, th);
+    return c;
+  },
+
+  // Force any leftover near-white carry-over pixels to pure white so the
+  // result reads as a clean white background to portal inspectors.
+  whitenEdges(canvas, tolerance) {
+    const tol = tolerance || 25;
+    const ctx = canvas.getContext('2d');
+    const d = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = d.data;
+    for (let i = 0; i < data.length; i += 4) {
+      const min = Math.min(data[i], data[i + 1], data[i + 2]);
+      if (min >= 255 - tol) { data[i] = 255; data[i + 1] = 255; data[i + 2] = 255; }
+    }
+    ctx.putImageData(d, 0, 0);
+    return canvas;
+  },
+
   stampText(canvas, text) {
     const ctx = canvas.getContext('2d');
     const h = canvas.height;
