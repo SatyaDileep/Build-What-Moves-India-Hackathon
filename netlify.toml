@@ -5,8 +5,12 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-# Environment: OpenAI key is optional — the parser has a built-in demo fallback.
-# If you want the real OpenAI models to run (server-side), add OPENAI_API_KEY
-# under Netlify > Site configuration > Environment variables.
+# Environment: AI keys are optional — every AI step has a demo-safe fallback.
+# For the real AI photo verdict (server-side, key never leaves the server),
+# add under Netlify > Site configuration > Environment variables:
+#   AI_API_KEY (or GEMINI_API_KEY / OPENAI_API_KEY)
+#   AI_PROVIDER=gemini (default) or openai (Groq works as openai-compatible)
+#   AI_MODEL (optional, default gemini-2.0-flash)
+#   AI_API_BASE (optional)
 [build.environment]
   NEXT_PRIVATE_BUILD_WORKER = "1"

@@ -120,11 +120,11 @@ export const DIGILOCKER_ASSETS: DigiLockerAsset[] = [
   { id: 'asset-2', name: 'Ramesh_PAN_Card.jpg', type: 'image/jpeg', size_mb: 3.0, url: '/assets/ramesh_pan_card.jpg', owner: 'ramesh' },
   { id: 'asset-3', name: 'Priya_Passport_Photo.jpg', type: 'image/jpeg', size_mb: 5.0, url: '/assets/priya_selfie_raw.jpg', owner: 'priya' },
   { id: 'asset-4', name: 'Priya_Signature.png', type: 'image/png', size_mb: 2.0, url: '/assets/priya_signature_raw.png', owner: 'priya' },
-  { id: 'asset-5', name: 'Kabir_PassportPhoto.jpg', type: 'image/jpeg', size_mb: 6.1, url: '/assets/kabir_photo_raw.jpg', owner: 'kabir' },
+  { id: 'asset-5', name: 'Kabir_PassportPhoto.jpg', type: 'image/jpeg', size_mb: 0.042, url: '/p1.jpg', owner: 'kabir' },
   { id: 'asset-6', name: 'Kabir_Signature.jpg', type: 'image/jpeg', size_mb: 2.4, url: '/assets/kabir_signature_raw.jpg', owner: 'kabir' },
   { id: 'asset-7', name: 'Meera_Student_Photo.jpg', type: 'image/jpeg', size_mb: 3.8, url: '/assets/meera_photo_raw.jpg', owner: 'meera' },
   { id: 'asset-8', name: 'Meera_IncomeCert_Scan.jpg', type: 'image/jpeg', size_mb: 4.6, url: '/assets/meera_incomecert_raw.jpg', owner: 'meera' },
-  { id: 'asset-9', name: 'Ramesh_PassportPhoto.jpg', type: 'image/jpeg', size_mb: 5.4, url: '/assets/ramesh_photo_raw.jpg', owner: 'ramesh' },
+  { id: 'asset-9', name: 'Ramesh_PassportPhoto.jpg', type: 'image/jpeg', size_mb: 0.049, url: '/elder.JPG', owner: 'ramesh' },
   { id: 'asset-10', name: 'Ramesh_Signature.jpg', type: 'image/jpeg', size_mb: 2.1, url: '/assets/ramesh_signature_raw.jpg', owner: 'ramesh' },
 ];
 

@@ -34,6 +34,8 @@ interface SinglePreviewProps {
   onEnhance?: () => void;
   onAiCleanup?: () => void;
   aiCleaned?: boolean;
+  aiWorking?: boolean;
+  aiVerdict?: { bgWhite: boolean | null; facePct: number | null; glasses: boolean | null; note: string } | null;
 }
 
 interface BatchPreviewProps {
@@ -70,6 +72,8 @@ function SinglePreview({
   onEnhance,
   onAiCleanup,
   aiCleaned = false,
+  aiWorking = false,
+  aiVerdict = null,
 }: SinglePreviewProps) {
   const { t } = useLang();
   const [saveToDigiLocker, setSaveToDigiLocker] = useState(true);
@@ -211,10 +215,12 @@ function SinglePreview({
                 <button
                   type="button"
                   onClick={onAiCleanup}
-                  className="flex w-full items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold text-white shadow-sm"
+                  disabled={aiWorking}
+                  className="flex w-full items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold text-white shadow-sm disabled:opacity-70"
                   style={{ background: 'linear-gradient(90deg,#1565d8,#6a5acd)' }}
                 >
-                  {t('w.aiCleanup')}
+                  {aiWorking && <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true" />}
+                  {aiWorking ? t('w.aiRemoving') : t('w.aiCleanup')}
                 </button>
                 <p className="mt-1.5 text-[11px] leading-4" style={{ color: COLORS.gray[500] }}>{t('w.aiCleanupSub')}</p>
               </div>
@@ -231,7 +237,23 @@ function SinglePreview({
                   ✓
                 </span>
                 <p className="mt-1.5 text-sm font-bold" style={{ color: COLORS.success }}>{t('w.aiDone')}</p>
-                <p className="mt-0.5 text-xs" style={{ color: COLORS.gray[600] }}>
+                {aiVerdict && (
+                  <ul className="mx-auto mt-1.5 max-w-[260px] space-y-1 text-left text-xs" style={{ color: COLORS.gray[700] }}>
+                    {aiVerdict.bgWhite !== null && (
+                      <li>{aiVerdict.bgWhite ? '✓' : '⚠'} {t('w.aiVBg')}</li>
+                    )}
+                    {aiVerdict.facePct !== null && (
+                      <li>{aiVerdict.facePct >= 70 && aiVerdict.facePct <= 90 ? '✓' : '⚠'} {t('w.aiVFace').replace('{n}', String(aiVerdict.facePct))}</li>
+                    )}
+                    {aiVerdict.glasses !== null && (
+                      <li>{!aiVerdict.glasses ? '✓' : '⚠'} {t('w.aiVGlasses')}</li>
+                    )}
+                    {aiVerdict.note ? (
+                      <li className="italic" style={{ color: COLORS.gray[500] }}>“{aiVerdict.note}”</li>
+                    ) : null}
+                  </ul>
+                )}
+                <p className="mt-1 text-xs" style={{ color: COLORS.gray[600] }}>
                   {source === 'device' && !isSaveAuthed ? t('w.aiNextSave') : t('w.aiNextSubmit')}
                 </p>
               </div>

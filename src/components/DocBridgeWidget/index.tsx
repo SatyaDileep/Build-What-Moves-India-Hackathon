@@ -101,6 +101,9 @@ interface DocBridgeWidgetProps {
   // persona — override for multi-persona demos on one portal (e.g. Passport
   // Kabir vs Ramesh get separate vaults).
   digiLockerUser?: string;
+  // Voice channel key (see lib/voice). Guided flows pass their mode channel
+  // so quiet personas stay silent; standalone slots use the default.
+  voiceKey?: string;
 }
 
 export default function DocBridgeWidget({ 
@@ -120,6 +123,7 @@ export default function DocBridgeWidget({
   sourceRef,
   onWidgetPhase,
   digiLockerUser,
+  voiceKey,
 }: DocBridgeWidgetProps) {
   const { t, lang } = useLang();
   const [state, setState] = useState<WidgetState>('idle');
@@ -141,10 +145,10 @@ export default function DocBridgeWidget({
   // copy, delayed so the optimizing readout finishes) — speaking here too
   // would cancel the overlay mid-sentence. Standalone slots keep their own.
   const guided = !!onWidgetPhase;
-  useVoiceGuide(isVoiceOn() && !guided && state === 'success', t('w.congrats'), voiceLang(lang));
-  useVoiceGuide(isVoiceOn() && !guided && state === 'previewing', t('w.optimizedReady'), voiceLang(lang));
+  useVoiceGuide(isVoiceOn(voiceKey) && !guided && state === 'success', t('w.congrats'), voiceLang(lang));
+  useVoiceGuide(isVoiceOn(voiceKey) && !guided && state === 'previewing', t('w.optimizedReady'), voiceLang(lang));
   // Gently guide through errors — only when voice is opted in.
-  useVoiceGuide(isVoiceOn() && !!error, error ?? '', voiceLang(lang));
+  useVoiceGuide(isVoiceOn(voiceKey) && !!error, error ?? '', voiceLang(lang));
 
   const startDigiLocker = () => {
     setError(null);
@@ -201,17 +205,18 @@ export default function DocBridgeWidget({
       setLastBlob(blob);
       setLastMeta(meta);
       setAiCleaned(false);
+      setAiVerdict(null);
       const portalName = portalDisplayName(portalId);
 
       setState('parsing');
       notifyPhase('parsing');
-      await dwellForSpeech(`${t('ov.reading')} ${portalName}`, 1600);
+      await dwellForSpeech(`${t('ov.reading')} ${portalName}`, 1600, voiceKey);
       const constraint = await parsePortalConstraints(requirements);
       setState('processing');
       notifyPhase('processing');
-      await dwellForSpeech(`${t('ov.optimizingFor')} ${portalName}`, 400);
+      await dwellForSpeech(`${t('ov.optimizingFor')} ${portalName}`, 400, voiceKey);
       const result = await processDocument(blob, constraint, meta, opts);
-      await dwellForSpeech('', 2000);
+      await dwellForSpeech('', 2000, voiceKey);
 
       setProcessingResult(result);
       setState('previewing');
@@ -250,11 +255,48 @@ export default function DocBridgeWidget({
   // Narrates the AI removal over a 2s micro-animation, then lands on
   // save-or-submit guidance — no reprocessing loop.
   const [aiCleaned, setAiCleaned] = useState(false);
+  const [aiWorking, setAiWorking] = useState(false);
+  const [aiVerdict, setAiVerdict] = useState<{ bgWhite: boolean | null; facePct: number | null; glasses: boolean | null; note: string } | null>(null);
   const handleAiCleanup = async () => {
-    if (!lastBlob || !lastMeta) return;
+    if (!lastBlob || !lastMeta || aiWorking) return;
     setError(null);
     setAiCleaned(false);
-    await dwellForSpeech(t('w.aiWorking'), 2000);
+    setAiVerdict(null);
+    setAiWorking(true);
+    // Consent-gated AI verdict runs alongside a minimum 2s beat so the
+    // demo keeps its rhythm even on a fast network. No key / any failure
+    // falls back to the local verified flow — never an error screen.
+    const minWait = new Promise<void>((res) => setTimeout(res, 2000));
+    const check = (async () => {
+      try {
+        if (!processingResult) return null;
+        const dataUrl: string = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(processingResult.processed.blob);
+        });
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 25000);
+        try {
+          const res = await fetch('/api/ai-verify', {
+            method: 'POST',
+            signal: ctrl.signal,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageDataUrl: dataUrl, slot: docType }),
+          });
+          const data = await res.json();
+          return data?.available && data?.verdict ? data.verdict : null;
+        } finally {
+          clearTimeout(timer);
+        }
+      } catch {
+        return null;
+      }
+    })();
+    const [verdict] = await Promise.all([check, minWait, dwellForSpeech(t('w.aiWorking'), 2000, voiceKey)]);
+    if (verdict) setAiVerdict(verdict);
+    setAiWorking(false);
     setAiCleaned(true);
   };
 
@@ -267,8 +309,8 @@ export default function DocBridgeWidget({
     const fileBlob = await supabase.fetchAsset(asset.id);
     await runProcessing(fileBlob, {
       name: asset.name,
-      type: asset.type,
-      size_mb: asset.size_mb,
+      type: asset.type === 'image/png' && fileBlob.type.startsWith('image/') ? fileBlob.type : asset.type,
+      size_mb: fileBlob.size / (1024 * 1024),
       optimizedFor: asset.source === 'optimized' ? asset.optimizedFor : undefined,
     });
   };
@@ -332,7 +374,7 @@ export default function DocBridgeWidget({
     setBatchProgress({ done: 0, total: items.length });
     setState('processing');
     // One full narration of the optimizing line up front; per-item waits stay short.
-    await dwellForSpeech(`${t('ov.optimizingFor')} ${portalDisplayName(portalId)}`, 300);
+    await dwellForSpeech(`${t('ov.optimizingFor')} ${portalDisplayName(portalId)}`, 300, voiceKey);
     const wait = (ms: number) => new Promise((res) => setTimeout(res, ms));
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
@@ -360,7 +402,7 @@ export default function DocBridgeWidget({
     reitem(id);
     setBatchProgress({ done: 0, total: 1 });
     setState('processing');
-    await dwellForSpeech(`${t('ov.optimizingFor')} ${portalDisplayName(portalId)}`, 300);
+    await dwellForSpeech(`${t('ov.optimizingFor')} ${portalDisplayName(portalId)}`, 300, voiceKey);
     try {
       const constraint = await parsePortalConstraints(requirementFor(item));
       const result = await processDocument(item.blob, constraint, { name: item.name, type: item.type, size_mb: item.size_mb, optimizedFor: item.optimizedFor }, opts);
@@ -466,7 +508,7 @@ export default function DocBridgeWidget({
   const handleSubmit = async (saveToDigiLocker: boolean = true) => {
     if (!processingResult) return;
     setState('submitting');
-    await dwellForSpeech(t('ov.submitting'), 800);
+    await dwellForSpeech(t('ov.submitting'), 800, voiceKey);
     const out = await submitOne({ result: processingResult, name: processingResult.original.assetName || 'Document', slot: docType as BatchItem['docType'], saveToDigiLocker });
     if (out.success) {
       setLastSaved(saveToDigiLocker);
@@ -488,7 +530,7 @@ export default function DocBridgeWidget({
     const toSubmit = batchItems.filter((it) => it.result && it.submitted !== true);
     if (toSubmit.length === 0) return;
     setState('submitting');
-    await dwellForSpeech(t('ov.submitting'), 800);
+    await dwellForSpeech(t('ov.submitting'), 800, voiceKey);
     let failedCount = 0;
     for (const item of toSubmit) {
       let out = await submitOne({ result: item.result!, name: item.name, slot: item.docType, saveToDigiLocker: true });
@@ -514,6 +556,8 @@ export default function DocBridgeWidget({
     setState('idle');
     setError(null);
     setAiCleaned(false);
+    setAiWorking(false);
+    setAiVerdict(null);
     setProcessingResult(null);
     setSelectedAsset(null);
     setBatchItems([]);
@@ -673,7 +717,7 @@ export default function DocBridgeWidget({
 
       {/* Loading States */}
       {['authenticating', 'parsing', 'processing', 'submitting'].includes(state) && (
-        <ProcessingOverlay state={state} source={source} portalId={portalId} batchProgress={batchProgress ?? undefined} />
+        <ProcessingOverlay state={state} source={source} portalId={portalId} batchProgress={batchProgress ?? undefined} voiceKey={voiceKey} />
       )}
 
       {/* Preview Panel — single file or batch grid */}
@@ -690,6 +734,8 @@ export default function DocBridgeWidget({
           onEnhance={handleEnhance}
           onAiCleanup={portalId === 'passport' && (docType ?? '') === 'photo' ? handleAiCleanup : undefined}
           aiCleaned={aiCleaned}
+          aiWorking={aiWorking}
+          aiVerdict={aiVerdict}
           onSubmit={handleSubmit}
           onCancel={handleReset}
         />

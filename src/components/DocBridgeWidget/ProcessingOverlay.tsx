@@ -11,6 +11,7 @@ interface ProcessingOverlayProps {
   state: WidgetState;
   source?: 'digilocker' | 'device';
   batchProgress?: { done: number; total: number };
+  voiceKey?: string;
 }
 
 // The three moments we narrate while a document is worked on.
@@ -45,13 +46,13 @@ function stepIcon(state: WidgetState): React.ReactNode {
   );
 }
 
-export default function ProcessingOverlay({ state, source = 'digilocker', portalId, batchProgress }: ProcessingOverlayProps & { portalId?: string }) {
+export default function ProcessingOverlay({ state, source = 'digilocker', portalId, batchProgress, voiceKey }: ProcessingOverlayProps & { portalId?: string }) {
   const { t, lang } = useLang();
   const active = currentStep(state);
   const portalLabel = portalId === 'epfo' ? 'EPFO' : portalId === 'vahan' ? 'Sarathi' : portalId === 'upsc' ? 'UPSC' : portalId === 'passport' ? 'Passport Seva' : portalId === 'ssc' ? 'SSC' : portalId === 'nsp' ? 'NSP' : 'portal';
   const voiceText = state === 'parsing' ? `${t('ov.reading')} ${portalLabel}` : state === 'processing' ? `${t('ov.optimizingFor')} ${portalLabel}` : state === 'submitting' ? t('ov.submitting') : '';
   // Voice is opted into from a portal nudge (VoiceToggle) — never from here.
-  const voiceOn = isVoiceOn();
+  const voiceOn = isVoiceOn(voiceKey);
   useVoiceGuide(voiceOn && !!voiceText, voiceText, voiceLang(lang));
   const portalHint = portalId === 'epfo' ? 'PDF ≤500KB' : portalId === 'vahan' ? 'JPEG 10–20KB' : portalId === 'upsc' ? 'JPEG 20–200KB' : portalId === 'passport' ? 'JPEG 630×810' : portalId === 'ssc' ? 'JPEG 200×230' : portalId === 'nsp' ? 'JPEG + PDF' : '';
 

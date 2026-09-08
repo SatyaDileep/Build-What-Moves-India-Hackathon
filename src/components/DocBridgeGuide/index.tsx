@@ -5,7 +5,7 @@ import DocBridgeWidget from '@/components/DocBridgeWidget';
 import { COLORS } from '@/lib/constants';
 import { useLang, voiceLang } from '@/lib/i18n';
 import { useVoiceGuide } from '@/hooks/useVoiceGuide';
-import { estimateSpeechMs, isVoiceOn } from '@/lib/voice';
+import { estimateSpeechMs, setVoiceStored, VOICE_KEY_AUTO, VOICE_KEY_QUIET } from '@/lib/voice';
 import { getGuideCopy, PortalId } from '@/lib/guideNarration';
 
 export interface GuideStep {
@@ -67,6 +67,11 @@ export interface DocBridgeGuideProps {
    * pill parks against this anchor, centered beneath it.
    */
   pillTargetId?: string;
+  /**
+   * Suspends the pill + spotlight while the portal shows its own overlay
+   * (e.g. How It Works) so the floating companion never leaks above it.
+   */
+  suspended?: boolean;
 }
 
 const ACCENT = '#F59E0B';
@@ -85,6 +90,7 @@ export default function DocBridgeGuide({
   vaultUser,
   pillAlign = 'below',
   pillTargetId,
+  suspended = false,
 }: DocBridgeGuideProps) {
   const { t, lang } = useLang();
   const guidePortalId = portalId as PortalId;
@@ -114,6 +120,9 @@ export default function DocBridgeGuide({
   const [userInteracted, setUserInteracted] = useState(false);
   const [welcomeFired, setWelcomeFired] = useState(false);
   const [readyText, setReadyText] = useState<string | null>(null);
+  // Per-mode voice channel: assistive (elder) narrates by default, quiet
+  // (standard) stays silent — separate keys so personas never leak.
+  const voiceKey = assistive ? VOICE_KEY_AUTO : VOICE_KEY_QUIET;
   const [voiceOn, setVoiceOn] = useState<boolean>(() => assistive);
   const [widgetPhase, setWidgetPhase] = useState<'idle' | 'parsing' | 'processing' | 'previewing' | 'success'>('idle');
   const onWidgetPhase = (phase: string) => {
@@ -280,24 +289,22 @@ export default function DocBridgeGuide({
     return () => clearTimeout(timer);
   }, [open, current, voiceOn, userInteracted, welcomeFired, guideCopy]);
 
-  // Voice opt-in is persisted under the same key the widget/overlay check, so
-  // the guide and the widget share one switch. The modal header exposes this
-  // for assistive launches (e.g. EPFO KYC) where the citizen otherwise has no
-  // in-screen way to enable narration before the modal opens.
+  // Voice persists per channel so the guide, widget and overlay share one
+  // switch per mode. The modal header exposes it; quiet mode simply starts OFF.
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
-      const v = localStorage.getItem('docbridge-voice');
+      const v = localStorage.getItem(voiceKey);
       if (v === '1') setVoiceOn(true);
       else if (v === '0') setVoiceOn(false);
       else setVoiceOn(assistive);
     } catch { setVoiceOn(assistive); }
-  }, [assistive]);
+  }, [assistive, voiceKey]);
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    try { localStorage.setItem('docbridge-voice', voiceOn ? '1' : '0'); } catch {}
+    setVoiceStored(voiceOn, voiceKey);
     if (!voiceOn && 'speechSynthesis' in window) window.speechSynthesis.cancel();
-  }, [voiceOn]);
+  }, [voiceOn, voiceKey]);
 
   // Gate voice on the first real user gesture so browsers that block
   // autoplay (no-user-gesture synthesis) still let the guide speak once
@@ -352,7 +359,7 @@ export default function DocBridgeGuide({
 
   if (!current && phase === 'page') return null;
 
-  const spotlightVisible = current && (phase === 'spotlight' || phase === 'modal') && spotlightOn && targetRect;
+  const spotlightVisible = current && (phase === 'spotlight' || phase === 'modal') && spotlightOn && targetRect && !suspended;
 
   return (
     <>
@@ -483,6 +490,7 @@ export default function DocBridgeGuide({
                     requirements={current.requirements}
                     onSuccess={(res: any) => onStepDone(current.id, res?.result)}
                     digiLockerUser={vaultUser}
+                    voiceKey={voiceKey}
                     deviceFile={deviceFiles[current.id] ?? null}
                     onDeviceFileChange={(f) => onDeviceFileChange?.(current.id, f)}
                     captureModes={current.captureModes ? [...current.captureModes] : undefined}
@@ -512,7 +520,7 @@ export default function DocBridgeGuide({
           </div>            </div>
       )}
 
-      {(phase === 'dismissed' || phase === 'spotlight') && current && targetRect && (
+      {(phase === 'dismissed' || phase === 'spotlight') && current && targetRect && !suspended && (
         <PillButton
           pillAlign={pillAlign}
           pillTargetId={pillTargetId}
