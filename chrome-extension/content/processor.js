@@ -116,24 +116,16 @@ const DocBridgeProcessor = {
       sh = canvas.width / targetRatio;
       sy = (canvas.height - sh) / 2;
     }
-    const cropped = this.createCanvas(targetWidth, targetHeight);
-    const tmp = cropped instanceof OffscreenCanvas ? (() => { const h=document.createElement('canvas'); h.width=targetWidth; h.height=targetHeight; h.getContext('2d').drawImage(canvas, sx, sy, sw, sh, 0, 0, targetWidth, targetHeight); return h; })() : (cropped.getContext('2d').drawImage(canvas, sx, sy, sw, sh, 0, 0, targetWidth, targetHeight), cropped);
-    if (tmp instanceof OffscreenCanvas) {
-      const html=document.createElement('canvas'); html.width=targetWidth; html.height=targetHeight; html.getContext('2d').drawImage(tmp,0,0); return html;
-    }
-    if (cropped instanceof OffscreenCanvas) {
-      const html=document.createElement('canvas'); html.width=targetWidth; html.height=targetHeight; html.getContext('2d').drawImage(cropped,0,0); return html;
-    }
-    return cropped;
+    // Plain HTML canvas: drawImage accepts any canvas source (incl. OffscreenCanvas).
+    const out = document.createElement('canvas');
+    out.width = targetWidth; out.height = targetHeight;
+    out.getContext('2d').drawImage(canvas, sx, sy, sw, sh, 0, 0, targetWidth, targetHeight);
+    return out;
   },
 
   scaleCanvas(source, targetW, targetH) {
-    const c = this.createCanvas(targetW, targetH);
-    if (c instanceof OffscreenCanvas) {
-      const html=document.createElement('canvas'); html.width=targetW; html.height=targetH;
-      html.getContext('2d').drawImage(source, 0, 0, source.width, source.height, 0, 0, targetW, targetH);
-      return html;
-    }
+    const c = document.createElement('canvas');
+    c.width = targetW; c.height = targetH;
     c.getContext('2d').drawImage(source, 0, 0, source.width, source.height, 0, 0, targetW, targetH);
     return c;
   },

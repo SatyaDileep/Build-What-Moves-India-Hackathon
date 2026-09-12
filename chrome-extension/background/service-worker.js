@@ -45,12 +45,14 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   }
 });
 
-// Clear badge when navigating away from gov sites
+// Clear badge when navigating away from supported sites
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo) {
   if (changeInfo.url) {
     var url = changeInfo.url;
-    if (url.indexOf('.gov.in') === -1 && url.indexOf('.nic.in') === -1) {
-      chrome.action.setBadgeText({ text: '', tabId: tabId });
+    var supported = url.indexOf('.gov.in') !== -1 || url.indexOf('.nic.in') !== -1 ||
+      url.indexOf('.ibps.in') !== -1 || url.indexOf('.sbi') !== -1 || url.indexOf('.nsdl.com') !== -1;
+    if (!supported) {
+      try { chrome.action.setBadgeText({ text: '', tabId: tabId }); } catch(e) {}
     }
   }
 });

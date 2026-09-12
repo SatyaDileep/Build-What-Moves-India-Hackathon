@@ -64,8 +64,8 @@
 .db-dop-input{flex:1;padding:7px 10px;border:1px solid var(--db-border);border-radius:6px;font-size:12px}
 .db-metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
 .db-metric{background:var(--db-slate);border:1px solid var(--db-border);border-radius:8px;padding:8px 10px;text-align:center}
-.db-metric span{display:block;font-size:10px;color:var(--db-muted);text-transform:uppercase;letter-spacing:.4px;font-weight:700}
-.db-metric strong{font-size:12px;color:var(--db-text)}
+.db-metric span{display:block;font-size:12px;color:var(--db-muted);text-transform:uppercase;letter-spacing:.4px;font-weight:700}
+.db-metric strong{font-size:13px;color:var(--db-text)}
 .db-tabs{display:flex;gap:6px;margin-bottom:10px;justify-content:center}
 .db-tab{padding:6px 14px;border-radius:999px;border:1px solid var(--db-border);background:#fff;font-size:12px;font-weight:700;color:var(--db-muted);cursor:pointer}
 .db-tab.active{background:var(--db-navy);color:#fff;border-color:var(--db-navy)}
@@ -96,10 +96,10 @@
 
 /* AI background cleanup (v2 parity with web app) */
 .db-ai-cleanup{margin-top:12px;padding:10px 12px;border:1px solid #DBEAFE;background:#f5f8ff;border-radius:10px;text-align:center}
-.db-btn-ai{width:100%;padding:10px 14px;border:none;border-radius:999px;background:linear-gradient(90deg,#1565d8,#6a5acd);color:#fff;font-weight:700;font-size:13px;cursor:pointer;transition:opacity .15s ease}
+.db-btn-ai{width:100%;padding:12px 14px;min-height:44px;border:none;border-radius:8px;background:var(--db-navy);color:#fff;font-weight:700;font-size:13px;cursor:pointer;transition:opacity .15s ease}
 .db-btn-ai:disabled{opacity:.65;cursor:wait}
-.db-btn-ai:hover:not(:disabled){opacity:.92}
-.db-ai-note{margin-top:6px;font-size:11px;color:var(--db-muted);line-height:1.5}
+.db-btn-ai:hover:not(:disabled){background:var(--db-navy-2)}
+.db-ai-note{margin-top:6px;font-size:12px;color:var(--db-muted);line-height:1.5}
 
 /* Assistive (elderly) auto-nudge — slightly larger, high-contrast */
 .db-nudge.db-assistive .db-nudge-inner{max-width:440px;border-left:5px solid #F59E0B}

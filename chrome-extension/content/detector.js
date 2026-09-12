@@ -4,6 +4,26 @@
 
   var hostname = window.location.hostname;
   var pathname = window.location.pathname;
+  var lastPortal = null;
+  var lastUploads = null;
+
+  // Popup primary CTA → open the panel on demand.
+  try {
+    chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
+      if (msg && msg.type === "DOCBRIDGE_OPEN_PANEL") {
+        try {
+          if (lastPortal && lastUploads) {
+            injectNudge(lastPortal, lastUploads, false);
+            // Nudge shows first; escalate to panel if user enabled assistive auto-open.
+            sendResponse({ ok: true });
+          } else {
+            sendResponse({ ok: false, reason: "no-portal" });
+          }
+        } catch(e) { try { sendResponse({ ok: false }); } catch(err) {} }
+        return true;
+      }
+    });
+  } catch(e) {}
 
   // Check if user has dismissed this site
   var dismissedKey = "docbridge_dismissed_" + hostname;
@@ -22,12 +42,15 @@
       var matchedPortal = null;
       var matchedUpload = null;
 
-      // 1. Try to match against known portals
+      // 1. Try to match against known portals. Domain match is authoritative;
+      // urlPatterns are hints only — a path mismatch must NOT downgrade a known
+      // gov domain to "Not Auto-Indexed" (e.g. EPFO /memberinterface/ claim pages).
       for (var i = 0; i < DOCBRIDGE_PORTALS.length; i++) {
         var portal = DOCBRIDGE_PORTALS[i];
-        if (matchDomain(hostname, portal.domains) && matchUrlPatterns(pathname, portal.urlPatterns)) {
+        if (matchDomain(hostname, portal.domains)) {
           matchedPortal = portal;
-          matchedUpload = portal.uploads[0];
+          // Pass all uploads; nudge/panel will let user pick which type to process
+          matchedUpload = portal.uploads;
           break;
         }
       }
@@ -59,11 +82,13 @@
               };
             })
           };
-          matchedUpload = matchedPortal.uploads[0];
+          matchedUpload = matchedPortal.uploads;
         }
       }
 
       if (matchedPortal && matchedUpload) {
+        lastPortal = matchedPortal;
+        lastUploads = matchedUpload;
         // Send detection result to background for badge update
         try {
           chrome.runtime.sendMessage({
@@ -72,6 +97,16 @@
             portalName: matchedPortal.name
           });
         } catch(e) { /* ignore - background might not be ready */ }
+
+        // No file input on this page (e.g. EPFO claim-status tracker)? Don't
+        // pop a banner — badge + popup still let the user pre-prepare a file.
+        // Arm the SPA observer so the nudge appears if an upload is added later.
+        var hasUpload = null;
+        try { hasUpload = document.querySelector('input[type="file"]'); } catch(e) {}
+        if (!hasUpload) {
+          try { armObserver(matchedPortal, matchedUpload, false); } catch(e) {}
+          return;
+        }
 
         if (assistive) {
           // Elderly assistive auto-nudge: open the panel automatically after
@@ -161,20 +196,38 @@
     };
   }
 
-  function injectNudge(portal, upload, autoOpen) {
-    // Don't double-inject
-    if (document.getElementById("docbridge-nudge")) return;
-
-    // Load nudge.js as a web-accessible resource
-    var script = document.createElement("script");
-    script.src = chrome.runtime.getURL("content/nudge.js");
-    script.onload = function() {
-      this.remove();
-      // Dispatch event to trigger nudge initialization
+  function injectNudge(portal, uploads, autoOpen) {
+    // Don't double-inject. All UI runs in the isolated content-script world
+    // so chrome.* APIs stay available (MV3 production-safe, no page-script injection).
+    if (document.getElementById("docbridge-nudge") || document.getElementById("docbridge-panel")) return;
+    try {
       window.dispatchEvent(new CustomEvent("docbridge-nudge-init", {
-        detail: { portal: portal, upload: upload, autoOpen: !!autoOpen }
+        detail: { portal: portal, uploads: uploads, upload: uploads, autoOpen: !!autoOpen }
       }));
-    };
-    (document.head || document.documentElement).appendChild(script);
+    } catch(e) {}
+  }
+
+  // SPA support: portals that inject file inputs after load. Debounced rescan
+  // re-triggers the nudge once, never duplicates.
+  var observed = false;
+  function armObserver(portal, uploads, autoOpen) {
+    if (observed) return;
+    observed = true;
+    var timer = null;
+    try {
+      var mo = new MutationObserver(function() {
+        if (document.getElementById("docbridge-nudge") || document.getElementById("docbridge-panel")) return;
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(function() {
+          var hints = [];
+          try { hints = scanPageForUploads(); } catch(e) {}
+          if (hints.length > 0 && !document.getElementById("docbridge-nudge")) {
+            injectNudge(portal, uploads, false);
+          }
+        }, 1200);
+      });
+      mo.observe(document.documentElement || document.body, { childList: true, subtree: true });
+      setTimeout(function() { try { mo.disconnect(); } catch(e) {} }, 120000);
+    } catch(e) {}
   }
 })();

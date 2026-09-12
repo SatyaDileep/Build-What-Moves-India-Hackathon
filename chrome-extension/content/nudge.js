@@ -6,8 +6,11 @@
     showNudge(e.detail.portal, e.detail.upload, e.detail.autoOpen);
   });
 
-  function showNudge(portal, upload, autoOpen) {
+  function showNudge(portal, uploads, autoOpen) {
     if (document.getElementById("docbridge-nudge")) return;
+
+    // Handle array of uploads (photo, signature, etc.) - show the first one in hint
+    var upload = Array.isArray(uploads) ? uploads[0] : uploads;
 
     var nudge = document.createElement("div");
     nudge.id = "docbridge-nudge";
@@ -24,7 +27,13 @@
     shield.textContent = "\u2724";
     var title = document.createElement("span");
     title.className = "db-nudge-title";
-    title.innerHTML = "DocBridge can prepare this photo for <strong>" + escapeHtml(portal.name) + "</strong>";
+    // If multiple upload types, show generic message
+    if (Array.isArray(uploads) && uploads.length > 1) {
+      var types = uploads.map(function(u) { return u.type; }).join(", ");
+      title.innerHTML = "DocBridge can prepare <strong>" + types + "</strong> for <strong>" + escapeHtml(portal.name) + "</strong>";
+    } else {
+      title.innerHTML = "DocBridge can prepare this " + upload.type + " for <strong>" + escapeHtml(portal.name) + "</strong>";
+    }
     top.appendChild(shield);
     top.appendChild(title);
 
@@ -63,26 +72,30 @@
 
     // Event handlers
     btnOpen.onclick = function() {
-      openPanel(portal, upload);
+      openPanel(portal, uploads);
     };
 
+    function stopVoice(){ try { if ("speechSynthesis" in window) window.speechSynthesis.cancel(); } catch(e) {} }
     btnDismiss.onclick = function() {
+      stopVoice();
       nudge.remove();
     };
 
     btnDontShow.onclick = function() {
+      stopVoice();
       var key = "docbridge_dismissed_" + window.location.hostname;
       var obj = {};
       obj[key] = true;
-      chrome.storage.local.set(obj);
+      try { chrome.storage.local.set(obj); } catch(e) {}
       nudge.remove();
     };
 
     // Assistive (elderly) mode: narrate the nudge and auto-open the panel so
     // the citizen never has to find or click the banner themselves.
     if (autoOpen) {
-      speak("DocBridge Assist for " + portal.name + ". Opening photo preparation for you. Choose DigiLocker or upload from your device, and DocBridge will do the rest.");
-      setTimeout(function() { openPanel(portal, upload); }, 1800);
+      var types = Array.isArray(uploads) ? uploads.map(function(u) { return u.type; }).join(" and ") : upload.type;
+      speak("DocBridge Assist for " + portal.name + ". Opening " + types + " preparation for you. Choose DigiLocker or upload from your device, and DocBridge will do the rest.");
+      setTimeout(function() { openPanel(portal, uploads); }, 1800);
     }
   }
 
@@ -100,20 +113,16 @@
     } catch (e) { /* voice is optional */ }
   }
 
-  function openPanel(portal, upload) {
+  function openPanel(portal, uploads) {
     var existing = document.getElementById("docbridge-nudge");
     if (existing) existing.remove();
-
-    // Load panel.js as a web-accessible resource
-    var script = document.createElement("script");
-    script.src = chrome.runtime.getURL("content/panel.js");
-    script.onload = function() {
-      this.remove();
+    if (document.getElementById("docbridge-panel")) return;
+    // panel.js is a bundled content-script (same isolated world) — direct dispatch keeps chrome.* APIs.
+    try {
       window.dispatchEvent(new CustomEvent("docbridge-panel-init", {
-        detail: { portal: portal, upload: upload }
+        detail: { portal: portal, uploads: uploads }
       }));
-    };
-    (document.head || document.documentElement).appendChild(script);
+    } catch(e) {}
   }
 
   function escapeHtml(str) {

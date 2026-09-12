@@ -2,15 +2,26 @@
 (function() {
   "use strict";
 
+  var activePortal = null;
+  var activeUploadType = "photo";
+  var activeConstraint = null;
+
   window.addEventListener("docbridge-panel-init", function(e) {
-    showPanel(e.detail.portal, e.detail.upload);
+    showPanel(e.detail.portal, e.detail.uploads || e.detail.upload);
   });
 
-  function showPanel(portal, upload) {
+  function showPanel(portal, uploads) {
     if (document.getElementById("docbridge-panel")) return;
 
+    // Handle array of uploads - default to first one
+    var upload = Array.isArray(uploads) ? uploads[0] : uploads;
     var constraint = upload.constraint;
     var constraintSummary = getConstraintSummary(constraint);
+    var uploadType = upload.type;
+    var activeUploadIndex = 0;
+    activePortal = portal;
+    activeUploadType = uploadType;
+    activeConstraint = constraint;
 
     // Build panel DOM programmatically to avoid HTML quoting issues
     var panel = document.createElement("div");
@@ -57,11 +68,87 @@
     reqBar.appendChild(reqLabel);
     reqBar.appendChild(reqValue);
 
+    // Upload type selector (when multiple types like photo + signature)
+    var typeSelector = null;
+    if (Array.isArray(uploads) && uploads.length > 1) {
+      typeSelector = document.createElement("div");
+      typeSelector.className = "db-type-selector";
+      typeSelector.style.padding = "0 20px";
+      typeSelector.style.marginBottom = "12px";
+      
+      var selectorLabel = document.createElement("div");
+      selectorLabel.className = "db-selector-label";
+      selectorLabel.textContent = "Document type:";
+      selectorLabel.style.fontSize = "11px";
+      selectorLabel.style.color = "var(--db-muted)";
+      selectorLabel.style.textTransform = "uppercase";
+      selectorLabel.style.letterSpacing = ".5px";
+      selectorLabel.style.fontWeight = "700";
+      selectorLabel.style.marginBottom = "8px";
+      typeSelector.appendChild(selectorLabel);
+      
+      var selectorButtons = document.createElement("div");
+      selectorButtons.className = "db-selector-buttons";
+      selectorButtons.style.display = "flex";
+      selectorButtons.style.gap = "8px";
+      
+      uploads.forEach(function(u, idx) {
+        var btn = document.createElement("button");
+        btn.className = "db-type-btn" + (idx === 0 ? " active" : "");
+        btn.style.padding = "8px 16px";
+        btn.style.borderRadius = "999px";
+        btn.style.border = "1px solid var(--db-border)";
+        btn.style.background = idx === 0 ? "var(--db-navy)" : "#fff";
+        btn.style.color = idx === 0 ? "#fff" : "var(--db-text)";
+        btn.style.fontSize = "12px";
+        btn.style.fontWeight = "700";
+        btn.style.cursor = "pointer";
+        btn.textContent = u.type.charAt(0).toUpperCase() + u.type.slice(1) + " (" + u.hint + ")";
+        btn.dataset.index = idx;
+        btn.onclick = function() {
+          activeUploadIndex = idx;
+          upload = u;
+          constraint = u.constraint;
+          constraintSummary = getConstraintSummary(constraint);
+          uploadType = u.type;
+          activeUploadType = u.type;
+          activeConstraint = u.constraint;
+          
+          // Update active button
+          selectorButtons.querySelectorAll(".db-type-btn").forEach(function(b) {
+            b.classList.remove("active");
+            b.style.background = "#fff";
+            b.style.color = "var(--db-text)";
+            b.style.borderColor = "var(--db-border)";
+          });
+          btn.classList.add("active");
+          btn.style.background = "var(--db-navy)";
+          btn.style.color = "#fff";
+          btn.style.borderColor = "var(--db-navy)";
+          
+          // Update requirements display
+          reqValue.textContent = constraintSummary;
+          
+          // Update dropzone text
+          dropText.textContent = "Drop your " + uploadType + " here";
+          
+          // Update DOP toggle visibility
+          var showDOP = /upsc|psc|ssc|rrb/i.test(portal.id) || /upsc|ssc/i.test(portal.name);
+          dopWrap.style.display = (showDOP && uploadType === 'photo') ? "block" : "none";
+          
+          // Update filename preview if result shown
+          // (will be handled in showResult)
+        };
+        selectorButtons.appendChild(btn);
+      });
+      typeSelector.appendChild(selectorButtons);
+    }
+
     // DOP Toggle (UPSC/PSC)
     var showDOP = /upsc|psc|ssc|rrb/i.test(portal.id) || /upsc|ssc/i.test(portal.name);
     var dopWrap = document.createElement("div");
     dopWrap.className = "db-dop-wrap";
-    dopWrap.style.display = showDOP ? "block" : "none";
+    dopWrap.style.display = (showDOP && uploadType === 'photo') ? "block" : "none";
     var dopLabel = document.createElement("label");
     dopLabel.className = "db-dop-toggle";
     var dopCheck = document.createElement("input");
@@ -94,7 +181,7 @@
     dropIcon.textContent = "\u2601";
     var dropText = document.createElement("div");
     dropText.className = "db-drop-text";
-    dropText.textContent = "Drop your photo here";
+    dropText.textContent = "Drop your " + uploadType + " here";
     var dropSub = document.createElement("div");
     dropSub.className = "db-drop-subtext";
     dropSub.textContent = "or";
@@ -133,17 +220,27 @@
     // Assemble panel
     panelBox.appendChild(header);
     panelBox.appendChild(reqBar);
+    if (typeSelector) panelBox.appendChild(typeSelector);
     panelBox.appendChild(dopWrap);
     panelBox.appendChild(dropzone);
     panelBox.appendChild(resultDiv);
     panelBox.appendChild(footer);
     overlay.appendChild(panelBox);
     panel.appendChild(overlay);
+    panelBox.setAttribute("role", "dialog");
+    panelBox.setAttribute("aria-modal", "true");
+    panelBox.setAttribute("aria-label", "DocBridge photo preparation for " + portal.name);
     document.body.appendChild(panel);
 
     // Event handlers
-    closeBtn.onclick = function() { panel.remove(); };
-    overlay.onclick = function(e) { if (e.target === overlay) panel.remove(); };
+    function closePanel(){ try { if ("speechSynthesis" in window) window.speechSynthesis.cancel(); } catch(e) {} try { panel.remove(); } catch(err) {} document.removeEventListener("keydown", escHandler); }
+    closeBtn.onclick = function() { closePanel(); };
+    overlay.onclick = function(e) { if (e.target === overlay) closePanel(); };
+    function escHandler(e) {
+      if (e.key === "Escape") { try { panel.remove(); } catch(err) {} document.removeEventListener("keydown", escHandler); }
+    }
+    document.addEventListener("keydown", escHandler);
+    try { closeBtn.focus(); } catch(e) {}
 
     dropzone.ondragover = function(e) {
       e.preventDefault();
@@ -156,12 +253,12 @@
       e.preventDefault();
       dropzone.classList.remove("db-dropzone-hover");
       if (e.dataTransfer.files.length > 0) {
-        handleFile(e.dataTransfer.files[0], constraint);
+        handleFile(e.dataTransfer.files[0], activeConstraint || constraint);
       }
     };
     fileInput.onchange = function() {
       if (this.files.length > 0) {
-        handleFile(this.files[0], constraint);
+        handleFile(this.files[0], activeConstraint || constraint);
       }
     };
   }
@@ -169,6 +266,7 @@
   function handleFile(file, constraint) {
     var dropzone = document.getElementById("db-panel-drop");
     var resultDiv = document.getElementById("db-panel-result");
+    var uploadType = (activeUploadType || "photo");
 
     // Reject non-image files
     if (!isImageFile(file)) {
@@ -181,7 +279,7 @@
       errIcon.className = "db-result-error-icon";
       errIcon.textContent = "\u26a0";
       var errText = document.createElement("div");
-      errText.textContent = "This portal requires a JPEG photo. PDF processing is coming in v2.";
+      errText.textContent = "This portal requires a JPEG " + uploadType + ". PDF processing is coming in v2.";
       var errHint = document.createElement("div");
       errHint.className = "db-result-error-hint";
       errHint.textContent = "Please select a JPEG or JPG file.";
@@ -214,7 +312,7 @@
     spinner.className = "db-processing-spinner";
     var procText = document.createElement("div");
     procText.className = "db-processing-text";
-    procText.textContent = "Processing your photo...";
+    procText.textContent = "Processing your " + uploadType + "...";
     procDiv.appendChild(spinner);
     procDiv.appendChild(procText);
     resultDiv.appendChild(procDiv);
@@ -231,7 +329,7 @@
 
     // Process
     DocBridgeProcessor.processImage(file, effConstraint).then(function(result) {
-      showResult(result, file.name);
+      showResult(result, file.name, uploadType);
     }).catch(function(err) {
       resultDiv.innerHTML = "";
       var errDiv = document.createElement("div");
@@ -240,7 +338,7 @@
       errIcon.className = "db-result-error-icon";
       errIcon.textContent = "\u26a0";
       var errText = document.createElement("div");
-      errText.textContent = "Could not process this image.";
+      errText.textContent = "Could not process this " + uploadType + ".";
       var errHint = document.createElement("div");
       errHint.className = "db-result-error-hint";
       errHint.textContent = err.message || "Unknown error";
@@ -262,7 +360,7 @@
     });
   }
 
-  function showResult(result, filename) {
+  function showResult(result, filename, uploadType) {
     var resultDiv = document.getElementById("db-panel-result");
     var orig = result.original;
     var opt = result.optimized;
@@ -349,8 +447,16 @@
     previewRow.appendChild(arrow);
     previewRow.appendChild(optCard);
 
-    tabBefore.onclick = function(){ tabBefore.classList.add("active"); tabAfter.classList.remove("active"); origCard.style.display="block"; optCard.style.display="block"; arrow.style.display="block"; };
-    tabAfter.onclick = function(){ tabAfter.classList.add("active"); tabBefore.classList.remove("active"); };
+    tabBefore.onclick = function(){ tabBefore.classList.add("active"); tabAfter.classList.remove("active"); origCard.style.display="block"; optCard.style.display="none"; arrow.style.display="none"; };
+    tabAfter.onclick = function(){ tabAfter.classList.add("active"); tabBefore.classList.remove("active"); origCard.style.display="none"; optCard.style.display="block"; arrow.style.display="none"; };
+    // Default view: side-by-side compare. Activate Before tab state visually.
+    tabBefore.classList.remove("active"); tabAfter.classList.remove("active");
+    var compareBtn = document.createElement("button");
+    compareBtn.className = "db-tab active"; compareBtn.textContent = "Compare";
+    tabs.insertBefore(compareBtn, tabBefore);
+    compareBtn.onclick = function(){ compareBtn.classList.add("active"); tabBefore.classList.remove("active"); tabAfter.classList.remove("active"); origCard.style.display="block"; optCard.style.display="block"; arrow.style.display="block"; };
+    tabBefore.onclick = function(){ compareBtn.classList.remove("active"); tabBefore.classList.add("active"); tabAfter.classList.remove("active"); origCard.style.display="block"; optCard.style.display="none"; arrow.style.display="none"; };
+    tabAfter.onclick = function(){ compareBtn.classList.remove("active"); tabAfter.classList.add("active"); tabBefore.classList.remove("active"); origCard.style.display="none"; optCard.style.display="block"; arrow.style.display="none"; };
 
     var reductionBadge = document.createElement("div");
     reductionBadge.className = "db-result-reduction";
@@ -390,7 +496,7 @@
     var downloadBtn = document.createElement("button");
     downloadBtn.id = "db-result-download";
     downloadBtn.className = "db-btn-primary";
-    downloadBtn.textContent = "Download Optimized Photo";
+    downloadBtn.textContent = "Download Optimized " + (uploadType.charAt(0).toUpperCase() + uploadType.slice(1));
 
     var againBtn = document.createElement("button");
     againBtn.id = "db-result-again";
@@ -404,7 +510,7 @@
     // AI background cleanup — only for photo slots on white-background
     // portals, mirroring the web app's "Replace background with AI" action.
     // Replaces the After card with a white-bg, spec-compliant re-composition.
-    var isPhoto = (constraint.type || 'photo') === 'photo' && !opt.aiCleaned;
+    var isPhoto = (uploadType || 'photo') === 'photo' && !opt.aiCleaned;
     if (isPhoto && constraint.bg_color === 'white' && constraint.width_px && constraint.height_px) {
       var aiWrap = document.createElement("div");
       aiWrap.className = "db-ai-cleanup";
@@ -425,12 +531,12 @@
         procDiv2.className = "db-processing";
         procDiv2.textContent = "AI cleanup in progress — white background, exact size…";
         resultContainer.insertBefore(procDiv2, aiWrap);
-        DocBridgeProcessor.aiCleanup(result.original.blob, effConstraint).then(function(cleaned) {
+        DocBridgeProcessor.aiCleanup(result.original.blob, result.constraint).then(function(cleaned) {
           procDiv2.remove();
           aiWrap.remove();
           // Re-render the whole result with the cleaned output; the After
           // card now shows the white-bg ready copy.
-          showResult(cleaned, filename);
+          showResult(cleaned, filename, uploadType);
         }).catch(function() {
           procDiv2.remove();
           aiBtn.disabled = false;
@@ -447,21 +553,24 @@
     enableZoom("db-preview-orig");
     enableZoom("db-preview-opt");
 
-    var filenameClean = getDeterministicFilename(portal, result.constraint, filename, opt);
+    var filenameClean = getDeterministicFilename(portal, result.constraint, filename, opt, uploadType);
 
     // Download handler
+    var downloadLabel = "Download Optimized " + (uploadType.charAt(0).toUpperCase() + uploadType.slice(1));
     downloadBtn.onclick = function() {
       downloadBtn.textContent = "Saving…";
       downloadBtn.disabled = true;
       triggerDownload(opt.blob, filenameClean, function(){
         downloadBtn.textContent = "✓ Saved";
         showHandoffGuide(filenameClean);
-        chrome.storage.local.get("docbridge_stats", function(d) {
-          var s = d.docbridge_stats || { processed: 0 };
-          s.processed = (s.processed || 0) + 1;
-          chrome.storage.local.set({ docbridge_stats: s });
-        });
-        setTimeout(function(){ downloadBtn.textContent = "Download Optimized Photo"; downloadBtn.disabled=false; }, 1800);
+        try {
+          chrome.storage.local.get("docbridge_stats", function(d) {
+            var s = (d && d.docbridge_stats) || { processed: 0 };
+            s.processed = (s.processed || 0) + 1;
+            try { chrome.storage.local.set({ docbridge_stats: s }); } catch(e) {}
+          });
+        } catch(e) {}
+        setTimeout(function(){ downloadBtn.textContent = downloadLabel; downloadBtn.disabled=false; }, 1800);
       });
     };
 
@@ -483,13 +592,17 @@
     var img = new Image();
     var url = URL.createObjectURL(blob);
     img.onload = function() {
-      var scale = Math.min(140 / img.width, 140 / img.height);
-      var w = img.width * scale;
-      var h = img.height * scale;
-      ctx.clearRect(0,0,140,140);
-      ctx.drawImage(img, (140 - w) / 2, (140 - h) / 2, w, h);
-      canvas._img = img; canvas._imgUrl = url;
+      try {
+        var scale = Math.min(140 / img.width, 140 / img.height);
+        var w = img.width * scale;
+        var h = img.height * scale;
+        ctx.clearRect(0,0,140,140);
+        ctx.drawImage(img, (140 - w) / 2, (140 - h) / 2, w, h);
+        canvas._img = img;
+      } catch(e) {}
+      try { URL.revokeObjectURL(url); } catch(e) {}
     };
+    img.onerror = function() { try { URL.revokeObjectURL(url); } catch(e) {} };
     img.src = url;
   }
 
@@ -514,10 +627,10 @@
     });
   }
 
-  function getDeterministicFilename(portal, constraint, originalName, opt){
+  function getDeterministicFilename(portal, constraint, originalName, opt, uploadType){
     var idMap = { 'passport-seva':'Passport', 'upsc':'UPSC', 'sarathi-vahan':'Sarathi', 'ssc':'SSC_CGL', 'ibps':'IBPS_PO', 'sbi-po':'SBI_PO', 'rrb':'RRB', 'epfo-uan':'EPFO', 'indian-visa':'IndianVisa', 'e-visa':'eVisa', 'jkbopee':'JKBOPEE', 'uidai-aadhaar':'Aadhaar', 'nsp':'NSP', 'e-shram':'eShram', 'income-tax':'IncomeTax', 'gst':'GST', 'csc-digital-seva':'CSC', 'custom-manual':'Custom' };
     var base = idMap[portal.id] || portal.id.replace(/[^a-z0-9]/gi,'_').toUpperCase();
-    var type = constraint && constraint.type ? constraint.type : 'photo';
+    var type = uploadType || (constraint && constraint.type ? constraint.type : 'photo');
     var t = type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
     if (t.toLowerCase()==='photo') t='Photo';
     if (t.toLowerCase()==='signature') t='Signature';
