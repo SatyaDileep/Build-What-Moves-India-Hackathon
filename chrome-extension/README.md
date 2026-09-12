@@ -43,6 +43,14 @@ A lightweight Chrome extension that detects when you're on an Indian government 
 4. Select the `chrome-extension/` folder
 5. Visit any `.gov.in` or `.nic.in` site to see DocBridge in action
 
+## How it looks on a portal (verified end-to-end via `npm run ext-flow`)
+
+| Nudge on upload page | Processing panel | Before/After result | Download + handoff |
+|---|---|---|---|
+| ![Nudge](../docs/extension/flow-01-nudge.png) | ![Panel](../docs/extension/flow-02-panel.png) | ![Result](../docs/extension/flow-03-result.png) | ![Handoff](../docs/extension/flow-04-handoff.png) |
+
+Standalone popup mode (no portal page needed): ![Standalone](../docs/extension/standalone-03-result.png)
+
 ## Key Features
 
 ### 🎯 AI Background Cleanup (v2 parity with web app)

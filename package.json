@@ -11,7 +11,8 @@
     "lint": "next lint",
     "screenshots": "node scripts/capture-screenshots.mjs",
     "journeys": "node scripts/capture-journeys.mjs",
-    "ext-test": "node scripts/capture-extension.mjs"
+    "ext-test": "node scripts/capture-extension.mjs",
+    "ext-flow": "node scripts/capture-extension-flow.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.3",

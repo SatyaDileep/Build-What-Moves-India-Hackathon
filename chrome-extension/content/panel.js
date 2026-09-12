@@ -553,7 +553,7 @@
     enableZoom("db-preview-orig");
     enableZoom("db-preview-opt");
 
-    var filenameClean = getDeterministicFilename(portal, result.constraint, filename, opt, uploadType);
+    var filenameClean = getDeterministicFilename(activePortal || {}, result.constraint, filename, opt, uploadType);
 
     // Download handler
     var downloadLabel = "Download Optimized " + (uploadType.charAt(0).toUpperCase() + uploadType.slice(1));
@@ -628,8 +628,9 @@
   }
 
   function getDeterministicFilename(portal, constraint, originalName, opt, uploadType){
-    var idMap = { 'passport-seva':'Passport', 'upsc':'UPSC', 'sarathi-vahan':'Sarathi', 'ssc':'SSC_CGL', 'ibps':'IBPS_PO', 'sbi-po':'SBI_PO', 'rrb':'RRB', 'epfo-uan':'EPFO', 'indian-visa':'IndianVisa', 'e-visa':'eVisa', 'jkbopee':'JKBOPEE', 'uidai-aadhaar':'Aadhaar', 'nsp':'NSP', 'e-shram':'eShram', 'income-tax':'IncomeTax', 'gst':'GST', 'csc-digital-seva':'CSC', 'custom-manual':'Custom' };
-    var base = idMap[portal.id] || portal.id.replace(/[^a-z0-9]/gi,'_').toUpperCase();
+    var idMap = { 'passport-seva':'Passport', 'upsc':'UPSC', 'sarathi-vahan':'Sarathi', 'ssc':'SSC_CGL', 'ibps':'IBPS_PO', 'sbi-po':'SBI_PO', 'rrb':'RRB', 'epfo-uan':'EPFO', 'indian-visa':'IndianVisa', 'e-visa':'eVisa', 'jkbopee':'JKBOPEE', 'uidai-aadhaar':'Aadhaar', 'nsp':'NSP', 'e-shram':'eShram', 'income-tax':'IncomeTax', 'gst':'GST', 'csc-digital-seva':'CSC', 'custom-manual':'Custom', 'mock-passport-seva':'Passport', 'unknown-gov-portal':'Portal' };
+    var pid = (portal && portal.id) || 'custom-manual';
+    var base = idMap[pid] || String(pid).replace(/[^a-z0-9]/gi,'_').toUpperCase();
     var type = uploadType || (constraint && constraint.type ? constraint.type : 'photo');
     var t = type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
     if (t.toLowerCase()==='photo') t='Photo';
