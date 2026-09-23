@@ -16,7 +16,7 @@ function formatDimensions(w, h) {
 
 function getConstraintSummary(constraint) {
   const parts = [];
-  if (constraint.format) parts.push(constraint.format.toUpperCase());
+  if (constraint.format) parts.push(formatLabel(constraint.format));
   if (constraint.width_px && constraint.height_px) {
     parts.push(formatDimensions(constraint.width_px, constraint.height_px));
   } else if (constraint.width_cm && constraint.height_cm) {
@@ -90,35 +90,53 @@ function isSupportedInput(file) {
   return f === 'pdf' || f === 'jpeg' || f === 'png' || f === 'webp' || f === 'gif' || f === 'bmp' || f === 'image';
 }
 
+// Normalize any format identifier — short name ('jpeg'), extension ('jpg')
+// or MIME ('image/jpeg') — to the canonical short name, or null.
+function shortFormat(f) {
+  if (!f) return null;
+  var s = String(f).toLowerCase().trim();
+  if (s.indexOf('/') >= 0) s = s.split('/')[1] || '';
+  if (s === 'jpg') s = 'jpeg';
+  if (s === 'tif' || s === 'tiff') return null;
+  return DOCBRIDGE_FORMATS[s] ? s : null;
+}
+
 function formatLabel(f) {
-  return (DOCBRIDGE_FORMATS[f] && DOCBRIDGE_FORMATS[f].label) || (f || '').toUpperCase();
+  var s = shortFormat(f);
+  return (s && DOCBRIDGE_FORMATS[s].label) || (f || '').toUpperCase();
 }
 
 function formatMime(f) {
-  return (DOCBRIDGE_FORMATS[f] && DOCBRIDGE_FORMATS[f].mime) || ('image/' + (f || 'jpeg'));
+  var s = shortFormat(f) || 'jpeg';
+  return DOCBRIDGE_FORMATS[s].mime;
 }
 
 function formatExt(f) {
-  return (DOCBRIDGE_FORMATS[f] && DOCBRIDGE_FORMATS[f].ext) || (f || 'jpg');
+  var s = shortFormat(f) || 'jpeg';
+  return DOCBRIDGE_FORMATS[s].ext;
 }
 
 // Which output formats a slot offers given our on-device engines. A portal may
-// pin outputs via constraint.output_formats (e.g. photo slots that only accept
-// JPEG). Default: every converter engine we ship (JPEG, PNG, PDF).
+// pin outputs via constraint.output_formats (short names or MIMEs). Default:
+// every converter engine we ship (JPEG, PNG, PDF).
 function outputFormatsFor(constraint) {
   if (constraint && Array.isArray(constraint.output_formats)) {
-    return constraint.output_formats.slice();
+    var out = [];
+    constraint.output_formats.forEach(function(f) {
+      var s = shortFormat(f);
+      if (s && (s === 'jpeg' || s === 'png' || s === 'pdf') && out.indexOf(s) < 0) out.push(s);
+    });
+    if (out.length) return out;
   }
-  var out = ['jpeg', 'png'];
-  if (constraint && constraint.format === 'pdf') out.push('pdf');
-  else out.push('pdf');
-  return out;
+  return ['jpeg', 'png', 'pdf'];
 }
 
 // Current document's final output format derived from constraint + overrides.
 function effectiveOutputFormat(constraint, override) {
-  if (override && DOCBRIDGE_FORMATS[override]) return override;
-  if (constraint && constraint.format && DOCBRIDGE_FORMATS[constraint.format]) return constraint.format;
+  var o = shortFormat(override);
+  if (o && DOCBRIDGE_FORMATS[o]) return o;
+  var c = constraint && shortFormat(constraint.format);
+  if (c && DOCBRIDGE_FORMATS[c]) return c;
   return 'jpeg';
 }
 

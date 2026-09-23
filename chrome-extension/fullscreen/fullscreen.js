@@ -36,16 +36,21 @@
   function renderSearch(q) {
     var dd = $("fs-preset-dropdown");
     var query = (q || "").toLowerCase().trim();
-    var filtered = query ? PRESET_OPTIONS.filter(function(o) { return o.label.toLowerCase().indexOf(query) >= 0; }) : PRESET_OPTIONS.slice(0, 12);
+    // Empty query lists the whole registry — every site is one click away.
+    var filtered = query ? PRESET_OPTIONS.filter(function(o) { return o.label.toLowerCase().indexOf(query) >= 0; }) : PRESET_OPTIONS.slice();
     dd.innerHTML = "";
     if (!filtered.length) {
       var e = document.createElement("div");
       e.className = "fs-dd-empty";
-      e.textContent = "No presets match.";
+      e.textContent = "No presets match. Try SSC, UPSC, Passport, NEET, IBPS…";
       dd.appendChild(e);
       return;
     }
-    filtered.slice(0, 40).forEach(function(o) {
+    var head = document.createElement("div");
+    head.className = "fs-dd-empty";
+    head.textContent = filtered.length + " preset" + (filtered.length === 1 ? "" : "s") + " — pick one:";
+    dd.appendChild(head);
+    filtered.slice(0, 120).forEach(function(o) {
       var row = document.createElement("button");
       row.type = "button";
       row.className = "fs-dd-row";
@@ -56,6 +61,34 @@
         dd.innerHTML = "";
       };
       dd.appendChild(row);
+    });
+  }
+
+  // One-tap shortcuts for the portals citizens open most.
+  var FS_POPULAR = ["passport-seva", "ssc", "upsc", "ibps", "neet-ug", "rrb-ntpc", "generic-doc"];
+  function renderPopular() {
+    var wrap = $("fs-popular");
+    if (!wrap) return;
+    wrap.innerHTML = "";
+    var label = document.createElement("span");
+    label.className = "fs-popular-label";
+    label.textContent = "Popular:";
+    wrap.appendChild(label);
+    FS_POPULAR.forEach(function(id) {
+      var p = (typeof DOCBRIDGE_PORTALS !== "undefined" ? DOCBRIDGE_PORTALS : []).filter(function(x) { return x.id === id; })[0];
+      if (!p) return;
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "fs-pop-btn" + (activePortal && activePortal.id === id ? " active" : "");
+      b.textContent = p.id === "generic-doc" ? "General" : p.name.replace(" (UG)", "").replace("Staff Selection Commission (SSC)", "SSC");
+      b.title = p.name;
+      b.onclick = function() {
+        selectUpload(p, 0);
+        $("fs-preset-search").value = "";
+        $("fs-preset-dropdown").innerHTML = "";
+        renderPopular();
+      };
+      wrap.appendChild(b);
     });
   }
 
@@ -120,6 +153,7 @@
     renderChips();
     renderReq();
     renderFormat();
+    renderPopular();
     var ctx = $("fs-context-label");
     ctx.textContent = "\u2724 " + portal.name;
   }
