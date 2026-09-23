@@ -411,17 +411,18 @@
         if ($("fs-ai-consent")) return;
         localBtn.disabled = true;
         cloudBtn.disabled = true;
-        DocBridgeAI.getKey().then(function(k) {
+        DocBridgeAI.getProvider().then(function(defProvider) {
           var card = DocBridgeAI.buildConsentCard({
-            hasKey: !!k,
+            provider: defProvider,
+            providerHasKey: function(p) { return DocBridgeAI.getKey(p).then(function(k) { return !!k; }); },
             onCancel: function() {
               card.remove();
               localBtn.disabled = false;
               cloudBtn.disabled = false;
             },
-            onConfirm: function(typedKey) {
+            onConfirm: function(provider, typedKey) {
               function run() {
-                DocBridgeAI.cleanupToSpec(orig.blob, constraint).then(function(cleaned) {
+                DocBridgeAI.cleanupToSpec(orig.blob, constraint, provider).then(function(cleaned) {
                   renderResult(cleaned, file, upload, portal);
                 }).catch(function(e) {
                   var st = card._status;
@@ -430,7 +431,9 @@
                 });
               }
               if (typedKey) {
-                DocBridgeAI.saveKey(typedKey).then(function() { run(); });
+                DocBridgeAI.saveKey(provider, typedKey).then(function() {
+                  DocBridgeAI.setProvider(provider).then(function() { run(); });
+                });
               } else {
                 run();
               }

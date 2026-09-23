@@ -85,8 +85,15 @@
       </label>
     </div>
     <div class="popup-setting popup-setting-col">
-      <span>OpenAI API key <em>— optional, stored only in this browser. Enables AI background removal; nothing is ever sent without your per-use confirmation.</em></span>
-      <input id="openai-key" type="password" placeholder="sk-…" autocomplete="off" aria-label="OpenAI API key">
+      <span>AI background removal <em>— optional, bring your own key. Nothing is ever sent without your per-use confirmation. Cloud AI has no zero-retention: each provider processes sent photos under its own data policy.</em></span>
+      <label class="popup-label" for="ai-provider">Provider</label>
+      <select id="ai-provider" aria-label="AI provider">
+        <option value="openai">OpenAI · gpt-image-1</option>
+        <option value="gemini">Google Gemini · Flash Image</option>
+        <option value="stability">Stability AI · SD3.5</option>
+      </select>
+      <input id="ai-key" type="password" placeholder="sk-…" autocomplete="off" aria-label="AI API key">
+      <div class="popup-hint"><a id="ai-key-link" href="#" rel="noopener">Get a key →</a></div>
       <div id="ai-status" class="popup-hint" aria-live="polite"></div>
     </div>
   </details>
@@ -98,6 +105,7 @@
 <script src="../shared/portals.js"></script>
 <script src="../shared/utils.js"></script>
 <script src="../content/processor.js"></script>
+<script src="../content/ai.js"></script>
 <script src="popup.js"></script>
 </body>
 </html>

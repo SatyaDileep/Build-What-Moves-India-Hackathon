@@ -5,7 +5,7 @@
   "description": "Resize, convert and compress photos, signatures and documents for SSC, UPSC, EPFO and Indian government portals. 100% private and on-device.",
   "minimum_chrome_version": "109",
   "permissions": ["activeTab", "downloads", "storage"],
-  "optional_host_permissions": ["https://api.openai.com/*"],
+  "optional_host_permissions": ["https://api.openai.com/*", "https://generativelanguage.googleapis.com/*", "https://api.stability.ai/*"],
   "host_permissions": ["*://*.gov.in/*", "*://*.nic.in/*", "*://*.ibps.in/*", "*://*.ibpsonline.ibps.in/*", "*://*.sbi.co.in/*", "*://*.bank.sbi/*", "*://*.nsdl.com/*"],
   "web_accessible_resources": [
     {

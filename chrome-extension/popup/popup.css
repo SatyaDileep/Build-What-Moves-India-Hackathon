@@ -38,6 +38,7 @@
 .popup-preview img{width:80px;height:80px;object-fit:contain;background:#fff;border:1px solid var(--border);border-radius:6px}
 .popup-setting-col{align-items:flex-start;flex-direction:column;gap:6px}
 .popup-setting-col input{width:100%;padding:10px 12px;min-height:44px;border:1px solid var(--border);border-radius:8px;font-size:13px}
+.popup-setting-col select{width:100%;padding:10px 12px;min-height:44px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:#fff}
 .popup-custom input.invalid{border-color:var(--danger);background:#FEF2F2}
 .popup-portal-list{display:flex;flex-wrap:wrap;gap:6px}
 .popup-portal-tag{background:var(--slate);border:1px solid var(--border);border-radius:999px;padding:8px 12px;min-height:36px;font-size:12px;color:#334155;font-weight:500;cursor:pointer}

@@ -559,17 +559,18 @@
         if (document.getElementById("db-ai-consent")) return;
         aiLocal.disabled = true;
         aiCloud.disabled = true;
-        DocBridgeAI.getKey().then(function(k) {
+        DocBridgeAI.getProvider().then(function(defProvider) {
           var card = DocBridgeAI.buildConsentCard({
-            hasKey: !!k,
+            provider: defProvider,
+            providerHasKey: function(p) { return DocBridgeAI.getKey(p).then(function(k) { return !!k; }); },
             onCancel: function() {
               card.remove();
               aiLocal.disabled = false;
               aiCloud.disabled = false;
             },
-            onConfirm: function(typedKey) {
+            onConfirm: function(provider, typedKey) {
               function run() {
-                DocBridgeAI.cleanupToSpec(result.original.blob, result.constraint).then(function(cleaned) {
+                DocBridgeAI.cleanupToSpec(result.original.blob, result.constraint, provider).then(function(cleaned) {
                   card.remove();
                   aiWrap.remove();
                   showResult(cleaned, filename, uploadType);
@@ -580,7 +581,9 @@
                 });
               }
               if (typedKey) {
-                DocBridgeAI.saveKey(typedKey).then(function() { run(); });
+                DocBridgeAI.saveKey(provider, typedKey).then(function() {
+                  DocBridgeAI.setProvider(provider).then(function() { run(); });
+                });
               } else {
                 run();
               }

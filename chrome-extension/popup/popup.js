@@ -299,31 +299,58 @@ function initStandalone(){
 }
 
 function initOpenAiKey(){
-  var el=document.getElementById('openai-key');
-  if(!el) return;
-  function paintStatus(){
+  var sel=document.getElementById('ai-provider');
+  var el=document.getElementById('ai-key');
+  var link=document.getElementById('ai-key-link');
+  if(!sel||!el||typeof DocBridgeAI==='undefined') return;
+  function current(){ return sel.value || 'openai'; }
+  function paint(){
+    var p=current();
+    var def=DocBridgeAI.providerDef(p);
+    el.placeholder=def.placeholder;
+    el.setAttribute('aria-label', def.label+' API key');
     var st=document.getElementById('ai-status');
-    if(!st) return;
-    var v=(el.value||'').trim();
-    if(!v){ st.textContent='AI background removal is off — add a key to enable it (per-use confirmation always).'; return; }
-    try{
-      if(chrome.permissions&&chrome.permissions.contains){
-        chrome.permissions.contains({origins:['https://api.openai.com/*']},function(granted){
-          st.textContent=granted
-            ?'✓ AI background removal ready — nothing is sent until you confirm, each time.'
-            :'Key saved — OpenAI access will be requested on first AI use.';
-        });
-      } else {
-        st.textContent='Key saved — AI background removal will ask before sending anything.';
-      }
-    }catch(e){ st.textContent='Key saved.'; }
+    DocBridgeAI.getKey(p).then(function(k){
+      if(!k){ if(st) st.textContent='No '+def.label+' key saved — on-device cleanup still works, no key needed.'; return; }
+      try{
+        if(chrome.permissions&&chrome.permissions.contains){
+          chrome.permissions.contains({origins:[def.origin]},function(granted){
+            if(st) st.textContent=granted
+              ? '✓ '+def.label+' ready — nothing is sent until you confirm, each time. Cloud AI has no zero-retention.'
+              : 'Key saved — access will be requested on first AI use.';
+          });
+        } else if(st){ st.textContent='Key saved.'; }
+      }catch(e){ if(st) st.textContent='Key saved.'; }
+    });
   }
-  try{ chrome.storage.local.get('docbridge_openai_key',function(d){ if(d&&d.docbridge_openai_key) el.value=d.docbridge_openai_key; paintStatus(); }); }catch(e){}
+  DocBridgeAI.getProvider().then(function(p){
+    sel.value=p;
+    DocBridgeAI.getKey(p).then(function(k){ if(k) el.value=k; paint(); });
+  });
+  sel.addEventListener('change',function(){
+    var p=current();
+    DocBridgeAI.setProvider(p).then(function(){
+      DocBridgeAI.getKey(p).then(function(k){ el.value=k||''; paint(); });
+    });
+  });
   el.addEventListener('change',function(){
+    var p=current();
     var v=(el.value||'').trim();
-    try{ chrome.storage.local.set({docbridge_openai_key:v}); }catch(e){}
-    if(v){ try{ if(chrome.permissions&&chrome.permissions.request) chrome.permissions.request({origins:['https://api.openai.com/*']},function(){ paintStatus(); }); else paintStatus(); }catch(e){ paintStatus(); } }
-    else paintStatus();
+    DocBridgeAI.saveKey(p,v).then(function(){
+      if(v){
+        try{
+          if(chrome.permissions&&chrome.permissions.request){
+            chrome.permissions.request({origins:[DocBridgeAI.providerDef(p).origin]},function(){ paint(); });
+          } else paint();
+        }catch(e){ paint(); }
+      }
+      else paint();
+    });
+  });
+  if(link) link.addEventListener('click',function(e){
+    e.preventDefault();
+    var url=DocBridgeAI.providerDef(current()).keyUrl;
+    try{ chrome.tabs.create({url:url, active:true}); }catch(err){ try{ window.open(url,'_blank'); }catch(e2){} }
   });
 }
 detectActiveTab();
