@@ -2,22 +2,26 @@ var activePortal=null;
 var activeUploadIndex=0;
 var activeSiteIsGov=false;
 
-// Launch the full-screen converter workspace. Used on non-sarkari sites and
-// for standalone mode — opens a maximized extension window instead of the
-// cramped popup, and instead of the old dead-end "reload the page" for pages
-// where DocBridge's content scripts never run.
+// Launch the full-screen converter workspace in a NEW TAB (not a separate
+// window). Used on non-sarkari sites and for standalone mode.
 function launchFullscreen(portal, type){
   var params=[];
   if(portal && portal.id) params.push('preset='+encodeURIComponent(portal.id));
   if(type) params.push('type='+encodeURIComponent(type));
   var url=chrome.runtime.getURL('fullscreen/fullscreen.html'+(params.length?'?'+params.join('&'):''));
   try{
+    if(chrome.tabs && chrome.tabs.create){
+      chrome.tabs.create({url:url, active:true});
+      return;
+    }
+  }catch(e){}
+  try{
     if(chrome.windows && chrome.windows.create){
       chrome.windows.create({url:url, type:'normal', state:'maximized', focused:true});
       return;
     }
   }catch(e){}
-  try{ chrome.tabs.create({url:url}); }catch(e){ window.open(url,'_blank'); }
+  try{ window.open(url,'_blank'); }catch(e){}
 }
 
 function renderChips(portal){
@@ -295,11 +299,29 @@ function initStandalone(){
 function initOpenAiKey(){
   var el=document.getElementById('openai-key');
   if(!el) return;
-  try{ chrome.storage.local.get('docbridge_openai_key',function(d){ if(d&&d.docbridge_openai_key) el.value=d.docbridge_openai_key; }); }catch(e){}
+  function paintStatus(){
+    var st=document.getElementById('ai-status');
+    if(!st) return;
+    var v=(el.value||'').trim();
+    if(!v){ st.textContent='AI background removal is off — add a key to enable it (per-use confirmation always).'; return; }
+    try{
+      if(chrome.permissions&&chrome.permissions.contains){
+        chrome.permissions.contains({origins:['https://api.openai.com/*']},function(granted){
+          st.textContent=granted
+            ?'✓ AI background removal ready — nothing is sent until you confirm, each time.'
+            :'Key saved — OpenAI access will be requested on first AI use.';
+        });
+      } else {
+        st.textContent='Key saved — AI background removal will ask before sending anything.';
+      }
+    }catch(e){ st.textContent='Key saved.'; }
+  }
+  try{ chrome.storage.local.get('docbridge_openai_key',function(d){ if(d&&d.docbridge_openai_key) el.value=d.docbridge_openai_key; paintStatus(); }); }catch(e){}
   el.addEventListener('change',function(){
     var v=(el.value||'').trim();
     try{ chrome.storage.local.set({docbridge_openai_key:v}); }catch(e){}
-    if(v){ try{ if(chrome.permissions&&chrome.permissions.request) chrome.permissions.request({origins:['https://api.openai.com/*']},function(){}); }catch(e){} }
+    if(v){ try{ if(chrome.permissions&&chrome.permissions.request) chrome.permissions.request({origins:['https://api.openai.com/*']},function(){ paintStatus(); }); else paintStatus(); }catch(e){ paintStatus(); } }
+    else paintStatus();
   });
 }
 detectActiveTab();

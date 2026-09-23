@@ -44,17 +44,20 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     return true; // async response
   }
 
-  // Open the full-screen converter (called from content scripts, which cannot
-  // use chrome.windows/tabs directly — e.g. the PDF-portal notice button).
+  // Open the full-screen converter in a new tab (called from content scripts,
+  // which cannot use chrome.windows/tabs directly — e.g. the PDF-portal
+  // notice button).
   if (message.type === 'OPEN_FULLSCREEN') {
     var params = [];
     if (message && message.preset) params.push('preset=' + encodeURIComponent(message.preset));
     if (message && message.typeName) params.push('type=' + encodeURIComponent(message.typeName));
     var url = chrome.runtime.getURL('fullscreen/fullscreen.html' + (params.length ? '?' + params.join('&') : ''));
     try {
-      chrome.windows.create({ url: url, type: 'normal', state: 'maximized', focused: true });
+      chrome.tabs.create({ url: url, active: true });
     } catch (e) {
-      chrome.tabs.create({ url: url });
+      try {
+        chrome.windows.create({ url: url, type: 'normal', state: 'maximized', focused: true });
+      } catch (err) {}
     }
     sendResponse({ ok: true });
     return true;

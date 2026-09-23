@@ -8,6 +8,9 @@
   var activePortal = null;
   var activeUploadIndex = 0;
   var outputFormat = null; // null = follow the portal's default
+  // Voice is strictly opt-in: only speaks when the citizen enabled
+  // "Elderly assistive mode" in the extension popup Settings. Default: silent.
+  var voiceEnabled = false;
 
   var $ = function(id) { return document.getElementById(id); };
 
@@ -259,7 +262,9 @@
     if (reduction > 0 && !isPdfOut) {
       var red = document.createElement("div");
       red.className = "fs-reduction";
-      red.textContent = reduction + "% smaller \u00b7 converted on your device";
+      red.textContent = opt.aiCleaned === "cloud"
+        ? "AI-recomposed background · fitted to portal spec on your device"
+        : reduction + "% smaller \u00b7 converted on your device";
       box.appendChild(red);
     }
 
@@ -302,6 +307,13 @@
       box.appendChild(warn);
     }
 
+    // Honest footer: the default is zero-leak, but say so when this session
+    // used the cloud AI path with the citizen's confirmation.
+    if (opt.aiCleaned === "cloud") {
+      var note = $("fs-privacy-note");
+      if (note) note.innerHTML = "&#128274; <strong>Zero leak by default</strong> &mdash; this file&rsquo;s background was recomposed with AI using your key, with your confirmation.";
+    }
+
     var filename = fsFilename(portal.id, upload.type, opt.ext || formatExt(opt.format || "jpg"));
 
     var actions = document.createElement("div");
@@ -320,24 +332,72 @@
     actions.appendChild(dl);
     actions.appendChild(again);
 
-    // AI background cleanup (photos only, white-bg slots, JPEG output)
-    var isPhotoJpeg = upload.type === "photo" && opt.format === "jpeg" && !opt.aiCleaned && orig.format !== "pdf";
-    if (isPhotoJpeg && constraint.bg_color === "white" && constraint.width_px && constraint.height_px) {
-      var ai = document.createElement("button");
-      ai.type = "button";
-      ai.id = "fs-btn-ai";
-      ai.className = "fs-btn-ai";
-      ai.textContent = "\u2728 Replace background with AI (on-device)";
-      ai.style.flexBasis = "100%";
-      actions.appendChild(ai);
-      ai.onclick = function() {
-        ai.disabled = true;
-        ai.textContent = "\u2728 Removing background\u2026";
+    // Background cleanup, two tiers (photos only, white-bg slots, JPEG
+    // output): on-device keying is the default; cloud AI is explicit,
+    // per-use opt-in with its own key and disclaimer.
+    var canCleanup = upload.type === "photo" && opt.format === "jpeg" && !opt.aiCleaned && orig.format !== "pdf";
+    if (canCleanup && constraint.bg_color === "white" && constraint.width_px && constraint.height_px) {
+      var pick = document.createElement("div");
+      pick.className = "db-ai-pick";
+      pick.style.flexBasis = "100%";
+
+      var localBtn = document.createElement("button");
+      localBtn.type = "button";
+      localBtn.className = "fs-btn-secondary";
+      localBtn.textContent = "Clean background — 100% on-device";
+
+      var cloudBtn = document.createElement("button");
+      cloudBtn.type = "button";
+      cloudBtn.className = "fs-btn-ai";
+      cloudBtn.textContent = "Remove background with AI";
+
+      pick.appendChild(localBtn);
+      pick.appendChild(cloudBtn);
+      actions.appendChild(pick);
+
+      localBtn.onclick = function() {
+        localBtn.disabled = true;
+        localBtn.textContent = "Cleaning…";
         DocBridgeProcessor.aiCleanup(orig.blob, constraint).then(function(cleaned) {
           renderResult(cleaned, file, upload, portal);
         }).catch(function() {
-          ai.disabled = false;
-          ai.textContent = "\u2728 Replace background with AI (on-device)";
+          localBtn.disabled = false;
+          localBtn.textContent = "Clean background — 100% on-device";
+        });
+      };
+
+      cloudBtn.onclick = function() {
+        if ($("fs-ai-consent")) return;
+        localBtn.disabled = true;
+        cloudBtn.disabled = true;
+        DocBridgeAI.getKey().then(function(k) {
+          var card = DocBridgeAI.buildConsentCard({
+            hasKey: !!k,
+            onCancel: function() {
+              card.remove();
+              localBtn.disabled = false;
+              cloudBtn.disabled = false;
+            },
+            onConfirm: function(typedKey) {
+              function run() {
+                DocBridgeAI.cleanupToSpec(orig.blob, constraint).then(function(cleaned) {
+                  renderResult(cleaned, file, upload, portal);
+                }).catch(function(e) {
+                  var st = card._status;
+                  if (st) { st.style.display = "block"; st.textContent = (e && e.message) || "AI cleanup failed. Your on-device file is untouched."; }
+                  if (card._go) { card._go.disabled = false; card._go.textContent = "Try again"; }
+                });
+              }
+              if (typedKey) {
+                DocBridgeAI.saveKey(typedKey).then(function() { run(); });
+              } else {
+                run();
+              }
+            }
+          });
+          card.id = "fs-ai-consent";
+          box.appendChild(card);
+          try { card.scrollIntoView({ block: "nearest" }); } catch (e) {}
         });
       };
     }
@@ -445,7 +505,10 @@
     } catch (e) {}
   }
   function speak(text) {
+    // Opt-in only: never narrate unless assistive mode was explicitly enabled.
+    if (!voiceEnabled) return;
     try {
+      if (!("speechSynthesis" in window)) return;
       window.speechSynthesis.cancel();
       var u = new SpeechSynthesisUtterance(text);
       u.rate = 0.95;
@@ -516,11 +579,12 @@
 
     try {
       chrome.storage.local.get("docbridge_assist_mode", function(d) {
-        if (d && d.docbridge_assist_mode === "assistive") {
+        voiceEnabled = !!(d && (d.docbridge_assist_mode === "assistive" || d.docbridge_assist_mode === true));
+        if (voiceEnabled) {
           setTimeout(function() { speak("DocBridge full-screen converter is ready. Choose your portal, then add your document."); }, 400);
         }
       });
-    } catch (e) {}
+    } catch (e) { voiceEnabled = false; }
 
     try {
       chrome.storage.local.get("docbridge_stats", function(d) {
