@@ -1,5 +1,24 @@
 var activePortal=null;
 var activeUploadIndex=0;
+var activeSiteIsGov=false;
+
+// Launch the full-screen converter workspace. Used on non-sarkari sites and
+// for standalone mode — opens a maximized extension window instead of the
+// cramped popup, and instead of the old dead-end "reload the page" for pages
+// where DocBridge's content scripts never run.
+function launchFullscreen(portal, type){
+  var params=[];
+  if(portal && portal.id) params.push('preset='+encodeURIComponent(portal.id));
+  if(type) params.push('type='+encodeURIComponent(type));
+  var url=chrome.runtime.getURL('fullscreen/fullscreen.html'+(params.length?'?'+params.join('&'):''));
+  try{
+    if(chrome.windows && chrome.windows.create){
+      chrome.windows.create({url:url, type:'normal', state:'maximized', focused:true});
+      return;
+    }
+  }catch(e){}
+  try{ chrome.tabs.create({url:url}); }catch(e){ window.open(url,'_blank'); }
+}
 
 function renderChips(portal){
   var c=document.getElementById('preset-chips');
@@ -29,7 +48,11 @@ function updateCta(){
   if(activePortal && activePortal.uploads && activePortal.uploads[activeUploadIndex]){
     var u=activePortal.uploads[activeUploadIndex];
     var label=u.type.charAt(0).toUpperCase()+u.type.slice(1);
-    btn.textContent='Open DocBridge ' + label + ' on this page →';
+    if(activeSiteIsGov){
+      btn.textContent='Open DocBridge ' + label + ' on this page →';
+    } else {
+      btn.textContent='Open Full-Screen DocBridge '+label+' converter →';
+    }
     btn.disabled=false;
   } else {
     btn.textContent='Pick a document type above →';
@@ -83,10 +106,11 @@ function detectActiveTab(){
         var p=DOCBRIDGE_PORTALS[i];
         if(matchDomain(u.hostname, p.domains)){ matched=p; break; }
       }
+      activeSiteIsGov=!!matched && matched.domains.length>0;
       if(matched){ activePortal=matched; activeUploadIndex=0; showDetected(matched); renderChips(matched); }
       else { activePortal=null; showCustomFallback(); }
       fillPortalTags();
-    }catch(e){ urlEl.textContent=url||'Unknown'; showCustomFallback(); fillPortalTags(); }
+    }catch(e){ urlEl.textContent=url||'Unknown'; activeSiteIsGov=false; showCustomFallback(); fillPortalTags(); }
   }
   try{
     chrome.tabs.query({active:true,currentWindow:true},function(tabs){
@@ -200,6 +224,12 @@ function initCta(){
   var status=document.getElementById('cta-status');
   if(!btn) return;
   btn.onclick=function(){
+    var u=activeConstraint();
+    if(!activeSiteIsGov || !u){
+      // Non-sarkari site or standalone intent → full-screen workspace.
+      launchFullscreen(u?u.portal:activePortal, u?u.upload.type:null);
+      return;
+    }
     status.style.display='block';
     try{
       chrome.tabs.query({active:true,currentWindow:true},function(tabs){
@@ -246,135 +276,22 @@ function activeConstraint(){
     return { upload:activePortal.uploads[activeUploadIndex], portal:activePortal };
   return null;
 }
-function fileToDataUrl(file){
-  return new Promise(function(res,rej){ var r=new FileReader(); r.onload=function(){res(String(r.result))}; r.onerror=rej; r.readAsDataURL(file); });
-}
-function downloadBlob(blob, filename, cb){
-  var url=URL.createObjectURL(blob);
-  try{
-    chrome.downloads.download({url:url,filename:filename,saveAs:false},function(){
-      setTimeout(function(){try{URL.revokeObjectURL(url)}catch(e){}},2000);
-      if(cb)cb();
-    });
-  }catch(e){
-    var a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(function(){try{URL.revokeObjectURL(url)}catch(err){}},1000);
-    if(cb)cb();
-  }
-}
-function standaloneFilename(portalId, type){
-  var idMap={'passport-seva':'Passport','upsc':'UPSC','sarathi-vahan':'Sarathi','ssc':'SSC_CGL','ibps':'IBPS_PO','sbi-po':'SBI_PO','rrb':'RRB','epfo-uan':'EPFO','indian-visa':'IndianVisa','e-visa':'eVisa','jkbopee':'JKBOPEE','uidai-aadhaar':'Aadhaar','nsp':'NSP','e-shram':'eShram','income-tax':'IncomeTax','gst':'GST','csc-digital-seva':'CSC','custom-manual':'Custom'};
-  var base=idMap[portalId]||String(portalId||'Doc').replace(/[^a-z0-9]/gi,'_');
-  var t=type.charAt(0).toUpperCase()+type.slice(1).toLowerCase();
-  return base+'_'+t+'_Compliant.jpg';
-}
 function initStandalone(){
   var drop=document.getElementById('standalone-drop');
+  if(!drop) return;
   var input=document.getElementById('standalone-file');
-  var box=document.getElementById('standalone-result');
-  if(!drop||!input||!box) return;
-  drop.onclick=function(){ input.click(); };
-  drop.onkeydown=function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); input.click(); } };
+  function open(){
+    var u=activeConstraint();
+    launchFullscreen(u?u.portal:null, u?u.upload.type:null);
+  }
+  drop.onclick=open;
+  drop.onkeydown=function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); open(); } };
+  // Dragging a file anywhere onto the zone also launches the workspace — the
+  // big screen is where the file lands and gets prepared.
   ['dragover','dragenter'].forEach(function(ev){ drop.addEventListener(ev,function(e){ e.preventDefault(); drop.classList.add('drag'); }); });
   ['dragleave','drop'].forEach(function(ev){ drop.addEventListener(ev,function(e){ e.preventDefault(); drop.classList.remove('drag'); }); });
-  drop.addEventListener('drop',function(e){ if(e.dataTransfer&&e.dataTransfer.files[0]) processStandaloneFile(e.dataTransfer.files[0]); });
-  input.onchange=function(){ if(this.files[0]) processStandaloneFile(this.files[0]); this.value=''; };
 }
-function processStandaloneFile(file){
-  var box=document.getElementById('standalone-result');
-  var sel=activeConstraint();
-  if(!sel){ box.style.display='block'; box.innerHTML='<div class="popup-error">Pick a document type above first (or set a custom spec).</div>'; return; }
-  if(!(file.type&&file.type.indexOf('image/')===0)){ box.style.display='block'; box.innerHTML='<div class="popup-error">That isn\u2019t an image. Choose a JPEG/PNG photo.</div>'; return; }
-  box.style.display='block';
-  box.innerHTML='<div class="popup-result-card">Processing your '+sel.upload.type+' for '+sel.portal.name+'…</div>';
-  var t0=Date.now();
-  DocBridgeProcessor.processImage(file, sel.upload.constraint).then(function(result){
-    var opt=result.optimized, orig=result.original;
-    var ok=opt.withinLimit;
-    var fn=standaloneFilename(sel.portal.id, sel.upload.type);
-    var html='<div class="popup-result-card">'
-      +'<div class="popup-result-row"><span>Original (stays on your device)</span><strong>'+Math.round(orig.size_kb)+'KB · '+orig.width+'×'+orig.height+'</strong></div>'
-      +'<div class="popup-result-row"><span>Optimized</span><strong>'+Math.round(opt.size_kb)+'KB · '+opt.width+'×'+opt.height+'</strong></div>'
-      +'<div class="popup-result-row"><span>Status</span><strong class="'+(ok?'popup-result-ok':'popup-result-warn')+'">'+(ok?'✓ Ready ('+fn+')':'⚠ Over limit — try on-device cleanup below or a smaller source')+'</strong></div>'
-      +'<div class="popup-preview"><img id="sa-prev-orig" alt="Original preview" style="display:none"><img id="sa-prev-opt" alt="Optimized preview" style="display:none"></div>'
-      +'<button id="sa-download" class="popup-cta" style="margin-top:10px">Download '+fn+'</button>'
-      +'<details class="popup-details" style="margin-top:8px"><summary class="popup-section-title">More options</summary>'
-      +'<button id="sa-cleanup" class="popup-apply" style="background:#fff;color:var(--navy);border:1px solid var(--navy)">✨ Clean background — 100% on-device</button>'
-      +'<button id="sa-verify" class="popup-apply" style="background:#fff;color:var(--navy);border:1px dashed var(--navy)">🤖 Cloud AI verify — sends this image using my key</button>'
-      +'<div id="sa-verdict" class="popup-hint" style="display:none"></div>'
-      +'</details>'
-      +'</div>';
-    box.innerHTML=html;
-    fileToDataUrl(orig.blob).then(function(u){ var i=document.getElementById('sa-prev-orig'); if(i){i.src=u; i.style.display='block';} });
-    fileToDataUrl(opt.blob).then(function(u){ var i=document.getElementById('sa-prev-opt'); if(i){i.src=u; i.style.display='block';} });
-    document.getElementById('sa-download').onclick=function(){
-      var b=this; b.disabled=true; b.textContent='Saving…';
-      downloadBlob(opt.blob, fn, function(){
-        b.textContent='✓ Saved — check Downloads';
-        try{ chrome.storage.local.get('docbridge_stats',function(d){ var s=(d&&d.docbridge_stats)||{processed:0}; s.processed=(s.processed||0)+1; chrome.storage.local.set({docbridge_stats:s},function(){ var sp=document.getElementById('stat-processed'); if(sp)sp.textContent=s.processed; }); }); }catch(e){}
-      });
-    };
-    var cl=document.getElementById('sa-cleanup');
-    if(cl){
-      var showCleanup = sel.upload.type==='photo' && sel.upload.constraint.bg_color==='white' && sel.upload.constraint.width_px;
-      if(!showCleanup) cl.style.display='none';
-      else cl.onclick=function(){
-        cl.disabled=true; cl.textContent='✨ Cleaning…';
-        DocBridgeProcessor.aiCleanup(orig.blob, sel.upload.constraint).then(function(cleaned){
-          processStandaloneCleanupResult(cleaned, sel, fn);
-        }).catch(function(){ cl.disabled=false; cl.textContent='✨ AI background cleanup (on-device)'; });
-      };
-    }
-    var vf=document.getElementById('sa-verify');
-    if(vf) vf.onclick=function(){ aiVerifyWithKey(opt.blob, sel); };
-  }).catch(function(err){
-    box.innerHTML='<div class="popup-error">Couldn\u2019t process that image. '+(err&&err.message?err.message:'Try another file.')+'</div>';
-  });
-}
-function processStandaloneCleanupResult(cleaned, sel, fn){
-  var box=document.getElementById('standalone-result');
-  var opt=cleaned.optimized;
-  box.innerHTML='<div class="popup-result-card">'
-    +'<div class="popup-result-row"><span>AI-cleaned</span><strong>'+Math.round(opt.size_kb)+'KB · '+opt.width+'×'+opt.height+'</strong></div>'
-    +'<div class="popup-result-row"><span>Status</span><strong class="'+(opt.withinLimit?'popup-result-ok':'popup-result-warn')+'">'+(opt.withinLimit?'✓ White background, spec size':'⚠ Check size before upload')+'</strong></div>'
-    +'<button id="sa-download2" class="popup-cta" style="margin-top:10px">Download '+fn+'</button></div>';
-  document.getElementById('sa-download2').onclick=function(){
-    var b=this; b.disabled=true; b.textContent='Saving…';
-    downloadBlob(opt.blob, fn, function(){ b.textContent='✓ Saved — check Downloads'; });
-  };
-}
-function aiVerifyWithKey(blob, sel){
-  var verdict=document.getElementById('sa-verdict');
-  if(!confirm('Cloud AI check will send THIS image to OpenAI using your key. Your on-device file stays valid either way. Continue?')) return;
-  chrome.storage.local.get('docbridge_openai_key',function(d){
-    var key=d&&d.docbridge_openai_key;
-    if(!key){ verdict.style.display='block'; verdict.textContent='Add your OpenAI API key under Settings first. Nothing has been sent.'; return; }
-    verdict.style.display='block'; verdict.textContent='Asking AI (your key, this image only)…';
-    function run(){
-      fileToDataUrl(blob).then(function(dataUrl){
-        return fetch('https://api.openai.com/v1/chat/completions',{
-          method:'POST',
-          headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
-          body:JSON.stringify({
-            model:'gpt-4o-mini',
-            max_tokens:200,
-            messages:[{role:'user',content:[
-              {type:'text',text:'This photo will be uploaded to '+sel.portal.name+' ('+getConstraintSummary(sel.upload.constraint)+'). Is the background plain white and dimensions sensible? Reply in one short line: verdict + one fix if needed.'},
-              {type:'image_url',image_url:{url:dataUrl,detail:'low'}}
-            ]}]
-          })
-        });
-      }).then(function(r){ if(!r.ok) throw new Error('AI returned '+r.status); return r.json(); })
-      .then(function(j){ var t=j&&j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content; verdict.textContent='🤖 '+(t||'No verdict returned.'); })
-      .catch(function(e){ verdict.textContent='AI check failed: '+(e&&e.message?e.message:'network error')+'. Your on-device file above is still valid.'; });
-    }
-    try{
-      if(chrome.permissions&&chrome.permissions.request){
-        chrome.permissions.request({origins:['https://api.openai.com/*']},function(){ run(); });
-      } else run();
-    }catch(e){ run(); }
-  });
-}
+
 function initOpenAiKey(){
   var el=document.getElementById('openai-key');
   if(!el) return;

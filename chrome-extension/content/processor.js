@@ -1,6 +1,39 @@
 const DocBridgeProcessor = {
-  async processImage(file, constraint) {
+  // Unified entry point. Reads the source format, honors the requested output
+  // format, and routes to the right on-device engine:
+  //   PDF → JPEG/PNG : pdf.js renders the page, then the image pipeline.
+  //   image → PDF    : pdf-lib embeds the (optimized) image on a PDF page.
+  //   PDF → PDF      : pdf.js re-renders + pdf-lib rebuilds until it fits.
+  // Everything runs in this browser — no bytes ever leave the device.
+  async processFile(file, constraint, opts) {
+    const fmt = detectFileFormat(file);
+    const want = effectiveOutputFormat(constraint, opts && opts.outputFormat);
+    if (fmt === 'pdf') {
+      if (want === 'pdf') {
+        return this.pdfToPdfCompress(file, constraint);
+      }
+      const render = await this.renderPdfToCanvas(file, (opts && opts.pageIndex) || 1, (opts && opts.scale) || 1.6);
+      const result = await this.runOptimize(render.canvas, file, constraint, want, { pageCount: render.numPages });
+      const pageNote = 'Converted from PDF page ' + ((opts && opts.pageIndex) || 1) + ' of ' + render.numPages + '.';
+      result.optimized.warning = result.optimized.warning ? result.optimized.warning + ' ' + pageNote : pageNote;
+      return result;
+    }
+    if (want === 'pdf') {
+      return this.imageToPdf(file, constraint);
+    }
+    return this.processImage(file, constraint, want);
+  },
+
+  async processImage(file, constraint, outputFormat) {
+    const fmt = effectiveOutputFormat(constraint, outputFormat);
     const canvas = await this.fileToCanvas(file);
+    return this.runOptimize(canvas, file, constraint, fmt, null);
+  },
+
+  // Shared image optimization pipeline (crop → scale → normalize BG → stamp →
+  // compress into the portal's KB band). Used for both real images and PDFs
+  // rendered to canvas, so photo and document conversion behave identically.
+  async runOptimize(canvas, file, constraint, fmt, meta) {
     const originalWidth = canvas.width;
     const originalHeight = canvas.height;
     let processedCanvas = canvas;
@@ -21,7 +54,7 @@ const DocBridgeProcessor = {
     const targetKB = constraint.max_kb || 100;
     const minKB = constraint.min_kb;
     const safeBand = this.getSafeBand(minKB, targetKB);
-    const result = await this.compressToTargetSize(processedCanvas, 'jpeg', targetKB, minKB, safeBand);
+    const result = await this.compressToTargetSize(processedCanvas, fmt, targetKB, minKB, safeBand);
 
     const optimizedBlob = result.blob;
     const optimizedSizeKB = optimizedBlob.size / 1024;
@@ -31,8 +64,8 @@ const DocBridgeProcessor = {
     }
 
     return {
-      original: { blob: file, size_kb: file.size / 1024, width: originalWidth, height: originalHeight },
-      optimized: { blob: optimizedBlob, size_kb: optimizedSizeKB, width: result.canvas.width, height: result.canvas.height, warning: warning, wasScaled: result.wasScaled, withinLimit: optimizedSizeKB <= targetKB && (!minKB || optimizedSizeKB >= minKB), safeBand: safeBand },
+      original: { blob: file, size_kb: file.size / 1024, width: originalWidth, height: originalHeight, format: detectFileFormat(file) },
+      optimized: { blob: optimizedBlob, size_kb: optimizedSizeKB, width: result.canvas.width, height: result.canvas.height, warning: warning, wasScaled: result.wasScaled, withinLimit: optimizedSizeKB <= targetKB && (!minKB || optimizedSizeKB >= minKB), safeBand: safeBand, format: fmt, mime: formatMime(fmt), ext: formatExt(fmt), pageCount: meta ? meta.pageCount : undefined },
       constraint: constraint
     };
   },
@@ -47,6 +80,184 @@ const DocBridgeProcessor = {
       return { low: Math.max(1, Math.round(maxKB * 0.82)), high: maxKB - 2 };
     }
     return null;
+  },
+
+  // Lazily load bundled pdf.js (ESM + worker), fully on-device, no CDN.
+  // Works in Full-Screen pages and popups; in content-script contexts pdf.js
+  // falls back to its main-thread ("fake worker") renderer, which pdflib-less
+  // IE-era fallbacks made reliable — so PDF pages can render on live portals too.
+  async loadPdfJs() {
+    if (this._pdfjs) return this._pdfjs;
+    const url = (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getURL)
+      ? chrome.runtime.getURL('vendor/pdf.min.mjs')
+      : 'vendor/pdf.min.mjs';
+    const mod = await import(url).catch(function(e) {
+      throw new Error('PDF engine failed to load: ' + (e && e.message ? e.message : 'unknown'));
+    });
+    const pdfjs = mod && mod.default ? mod.default : mod;
+    try {
+      if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getURL) {
+        pdfjs.GlobalWorkerOptions.workerSrc = chrome.runtime.getURL('vendor/pdf.worker.min.mjs');
+      }
+    } catch (e) {}
+    this._pdfjs = pdfjs;
+    return pdfjs;
+  },
+
+  // Lazily load bundled pdf-lib (UMD → window.PDFLib), on-device.
+  async getPdfLib() {
+    if (typeof window !== 'undefined' && window.PDFLib && window.PDFLib.PDFDocument) return window.PDFLib;
+    if (this._pdflib) return this._pdflib;
+    const url = (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getURL)
+      ? chrome.runtime.getURL('vendor/pdf-lib.min.js')
+      : 'vendor/pdf-lib.min.js';
+    await import(url).catch(function(e) { throw new Error('PDF library failed to load: ' + (e && e.message ? e.message : 'unknown')); });
+    this._pdflib = window.PDFLib;
+    return this._pdflib;
+  },
+
+  // Render one page of a PDF to a canvas via pdf.js (used for PDF → image).
+  async renderPdfToCanvas(file, pageIndex, scale) {
+    const pdfjs = await this.loadPdfJs();
+    const data = new Uint8Array(await file.arrayBuffer());
+    const pdf = await pdfjs.getDocument({ data }).promise;
+    const numPages = pdf.numPages;
+    const page = await pdf.getPage(pageIndex || 1);
+    const viewport = page.getViewport({ scale: scale || 1.5 });
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(viewport.width);
+    canvas.height = Math.round(viewport.height);
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    await page.render({ canvasContext: ctx, viewport }).promise;
+    try { await pdf.destroy(); } catch (e) {}
+    return { canvas: canvas, numPages: numPages };
+  },
+
+  // Encode a canvas as a single-page PDF via pdf-lib (used for image → PDF).
+  async canvasToPdfBlob(canvas, quality, PDFLib) {
+    const lib = PDFLib || await this.getPdfLib();
+    const jpeg = await this.canvasToBlob(canvas, 'image/jpeg', quality || 0.9);
+    const doc = await lib.PDFDocument.create();
+    const img = await doc.embedJpg(new Uint8Array(await jpeg.arrayBuffer()));
+    const page = doc.addPage([img.width, img.height]);
+    page.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
+    const bytes = await doc.save();
+    return new Blob([new Uint8Array(bytes)], { type: 'application/pdf' });
+  },
+
+  // image → PDF: optimize the source like a photo, then embed in a PDF page
+  // sized to the image. Tries quality/scale combos until it fits max_kb.
+  async imageToPdf(file, constraint) {
+    let canvas;
+    try { canvas = await this.fileToCanvas(file); } catch (e) { throw new Error('Could not decode that file. Try a JPEG, PNG or WebP.'); }
+    if (constraint.width_px && constraint.height_px) {
+      canvas = this.cropToAspectRatio(canvas, constraint.width_px, constraint.height_px);
+      canvas = this.scaleCanvas(canvas, constraint.width_px, constraint.height_px);
+    }
+    if (constraint.bg_color === 'white') canvas = this.normalizeBackground(canvas);
+
+    const targetKB = constraint.max_kb || 500;
+    const lib = await this.getPdfLib();
+    let bestBlob = null, bestCanvas = null, wasScaled = false;
+    const qualities = [0.9, 0.75, 0.6];
+    const scales = [1, 0.9, 0.8, 0.65];
+    for (let qi = 0; qi < qualities.length; qi++) {
+      for (let si = 0; si < scales.length; si++) {
+        let c = canvas;
+        if (scales[si] < 1) {
+          c = this.scaleCanvas(canvas, Math.max(120, Math.round(canvas.width * scales[si])), Math.max(120, Math.round(canvas.height * scales[si])));
+        }
+        const blob = await this.canvasToPdfBlob(c, qualities[qi], lib);
+        if (!bestBlob || blob.size < bestBlob.size) { bestBlob = blob; bestCanvas = c; }
+        if (blob.size / 1024 <= targetKB) {
+          return this.pdfResult(file, constraint, blob, c, false, undefined);
+        }
+      }
+    }
+    wasScaled = true;
+    const warning = 'PDF is ' + Math.round(bestBlob.size / 1024) + 'KB — over the ' + targetKB + 'KB limit. Try a lighter source image.';
+    return this.pdfResult(file, constraint, bestBlob, bestCanvas, wasScaled, warning);
+  },
+
+  // PDF → PDF: when the PDF fits the cap already, keep it byte-for-byte.
+  // Otherwise re-render via pdf.js and rebuild a smaller PDF with pdf-lib
+  // (image-based scans shrink well). Falls back to warning + passthrough.
+  async pdfToPdfCompress(file, constraint) {
+    const targetKB = constraint.max_kb;
+    const sizeKB = file.size / 1024;
+    if (targetKB && sizeKB <= targetKB) {
+      return this.pdfResult(file, constraint, file, null, false,
+        'Verified — your PDF is ' + Math.round(sizeKB) + 'KB, within the ' + targetKB + 'KB cap. Original preserved locally.');
+    }
+    let pdfjs = null;
+    try { pdfjs = await this.loadPdfJs(); } catch (e) { pdfjs = null; }
+    if (!pdfjs) {
+      return this.pdfResult(file, constraint, file, null, true,
+        targetKB ? ('PDF is ' + Math.round(sizeKB) + 'KB — over the ' + targetKB + 'KB cap. This page could not re-render it; use the Full-Screen converter or a lighter scan.') : undefined);
+    }
+    const pdf = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+    const numPages = pdf.numPages;
+    const lib = await this.getPdfLib();
+    let bestBlob = null, bestWasScaled = false;
+    const qualities = [0.82, 0.7, 0.55];
+    const scales = [1.2, 1.0, 0.8];
+    outer:
+    for (let qi = 0; qi < qualities.length; qi++) {
+      for (let si = 0; si < scales.length; si++) {
+        const doc = await lib.PDFDocument.create();
+        for (let i = 1; i <= numPages; i++) {
+          const page = await pdf.getPage(i);
+          const viewport = page.getViewport({ scale: scales[si] });
+          const cv = document.createElement('canvas');
+          cv.width = Math.round(viewport.width);
+          cv.height = Math.round(viewport.height);
+          const ctx = cv.getContext('2d');
+          ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, cv.width, cv.height);
+          await page.render({ canvasContext: ctx, viewport }).promise;
+          const jpeg = await this.canvasToBlob(cv, 'image/jpeg', qualities[qi]);
+          const img = await doc.embedJpg(new Uint8Array(await jpeg.arrayBuffer()));
+          const p = doc.addPage([img.width, img.height]);
+          p.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
+        }
+        const bytes = await doc.save();
+        const blob = new Blob([new Uint8Array(bytes)], { type: 'application/pdf' });
+        if (!bestBlob || blob.size < bestBlob.size) { bestBlob = blob; bestWasScaled = (qualities[qi] < 0.8 || scales[si] < 1.2); }
+        if (targetKB && blob.size / 1024 <= targetKB) {
+          const warning = bestWasScaled
+            ? ('PDF re-encoded to ' + Math.round(blob.size / 1024) + 'KB to meet the ' + targetKB + 'KB cap — clarity slightly reduced.')
+            : undefined;
+          return this.pdfResult(file, constraint, blob, null, bestWasScaled, warning);
+        }
+      }
+    }
+    try { await pdf.destroy(); } catch (e) {}
+    const warning = bestBlob && targetKB
+      ? ('Even after compression the PDF is ' + Math.round(bestBlob.size / 1024) + 'KB — over the ' + targetKB + 'KB cap. Try a lighter scan.')
+      : undefined;
+    return this.pdfResult(file, constraint, bestBlob || file, null, bestWasScaled, warning);
+  },
+
+  pdfResult(file, constraint, blob, canvas, wasScaled, warning) {
+    const sizeKB = (blob && blob.size ? blob.size : 0) / 1024;
+    const targetKB = constraint.max_kb;
+    return {
+      original: { blob: file, size_kb: file.size / 1024, width: canvas ? canvas.width : 0, height: canvas ? canvas.height : 0, format: 'pdf' },
+      optimized: {
+        blob: blob,
+        size_kb: sizeKB,
+        width: canvas ? canvas.width : 0,
+        height: canvas ? canvas.height : 0,
+        warning: warning,
+        wasScaled: !!wasScaled,
+        withinLimit: !targetKB || (sizeKB <= targetKB && (!constraint.min_kb || sizeKB >= constraint.min_kb)),
+        format: 'pdf',
+        mime: 'application/pdf',
+        ext: 'pdf'
+      },
+      constraint: constraint
+    };
   },
 
   createCanvas(w, h) {
@@ -263,6 +474,12 @@ const DocBridgeProcessor = {
     let qualityWarning;
 
     const tryQuality = async (c) => {
+      // PNG (and other lossless targets) ignore the quality knob — no
+      // binary search needed, just one export at high quality. The outer
+      // scaling loop still brings it under the KB cap if required.
+      if (format !== 'jpeg') {
+        return await this.canvasToBlob(c, 'image/' + format, 0.92);
+      }
       let low = 0.05, high = 0.98;
       let bestBlob = await this.canvasToBlob(c, 'image/' + format, 0.98);
       let smallestBlob = bestBlob;

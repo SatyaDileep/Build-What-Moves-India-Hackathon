@@ -194,7 +194,7 @@
     var fileInput = document.createElement("input");
     fileInput.type = "file";
     fileInput.id = "db-file-input";
-    fileInput.accept = "image/jpeg,image/jpg,image/png";
+    fileInput.accept = "image/jpeg,image/jpg,image/png,image/webp,image/gif,image/bmp,application/pdf";
     fileInput.style.display = "none";
 
     dropzone.appendChild(dropIcon);
@@ -268,8 +268,8 @@
     var resultDiv = document.getElementById("db-panel-result");
     var uploadType = (activeUploadType || "photo");
 
-    // Reject non-image files
-    if (!isImageFile(file)) {
+    // Reject unsupported files (text, executables, anything we can't convert)
+    if (!isSupportedInput(file)) {
       dropzone.style.display = "none";
       resultDiv.style.display = "block";
       resultDiv.innerHTML = "";
@@ -279,10 +279,10 @@
       errIcon.className = "db-result-error-icon";
       errIcon.textContent = "\u26a0";
       var errText = document.createElement("div");
-      errText.textContent = "This portal requires a JPEG " + uploadType + ". PDF processing is coming in v2.";
+      errText.textContent = "That file type isn\u2019t supported here. Use a JPEG/PNG/WebP photo, or a PDF document (PDF pages can also be rendered in the Full-Screen converter).";
       var errHint = document.createElement("div");
       errHint.className = "db-result-error-hint";
-      errHint.textContent = "Please select a JPEG or JPG file.";
+      errHint.textContent = "Accepted: JPEG \u00b7 PNG \u00b7 WebP \u00b7 GIF \u00b7 BMP \u00b7 PDF.";
       var retryBtn = document.createElement("button");
       retryBtn.className = "db-btn-secondary";
       retryBtn.textContent = "Try another file";
@@ -327,8 +327,9 @@
       if (stamp) effConstraint.stampText = stamp;
     }
 
-    // Process
-    DocBridgeProcessor.processImage(file, effConstraint).then(function(result) {
+    // Process — route through the format-aware dispatcher so PDFs get rendered
+    // / converted on-device instead of being rejected.
+    DocBridgeProcessor.processFile(file, effConstraint, {}).then(function(result) {
       showResult(result, file.name, uploadType);
     }).catch(function(err) {
       resultDiv.innerHTML = "";
@@ -389,7 +390,7 @@
     mOrig.innerHTML = "<span>Original</span><strong>" + formatFileSize(orig.size_kb) + " \u00b7 " + orig.width + "\u00d7" + orig.height + "px</strong>";
     var mOpt = document.createElement("div");
     mOpt.className = "db-metric";
-    mOpt.innerHTML = "<span>Optimized</span><strong>" + formatFileSize(opt.size_kb) + " \u00b7 " + opt.width + "\u00d7" + opt.height + "px " + (opt.withinLimit?"\u2713":"") + "</strong>";
+    mOpt.innerHTML = "<span>Optimized</span><strong>" + formatFileSize(opt.size_kb) + " \u00b7 " + opt.width + "\u00d7" + opt.height + "px " + (opt.format && opt.format !== 'jpeg' ? "(" + formatLabel(opt.format) + ") " : "") + (opt.withinLimit?"\u2713":"") + (opt.pageCount ? " \u00b7 " + opt.pageCount + " pg" : "") + "</strong>";
     metrics.appendChild(mOrig); metrics.appendChild(mOpt);
 
     var tabs = document.createElement("div");
@@ -510,7 +511,7 @@
     // AI background cleanup — only for photo slots on white-background
     // portals, mirroring the web app's "Replace background with AI" action.
     // Replaces the After card with a white-bg, spec-compliant re-composition.
-    var isPhoto = (uploadType || 'photo') === 'photo' && !opt.aiCleaned;
+    var isPhoto = (uploadType || 'photo') === 'photo' && !opt.aiCleaned && orig.format !== 'pdf';
     if (isPhoto && constraint.bg_color === 'white' && constraint.width_px && constraint.height_px) {
       var aiWrap = document.createElement("div");
       aiWrap.className = "db-ai-cleanup";
@@ -636,7 +637,7 @@
     if (t.toLowerCase()==='photo') t='Photo';
     if (t.toLowerCase()==='signature') t='Signature';
     if (t.toLowerCase()==='thumb') t='Thumb';
-    return base + '_' + t + '_Compliant.jpg';
+    return base + '_' + t + '_Compliant.' + (opt && opt.ext ? opt.ext : 'jpg');
   }
 
   function triggerDownload(blob, filename, cb){

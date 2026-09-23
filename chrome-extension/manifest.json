@@ -1,12 +1,18 @@
 {
   "manifest_version": 3,
-  "name": "DocBridge - Sarkari Photo & Signature Resizer",
-  "version": "1.0.1",
-  "description": "Resize photos and signatures for SSC, UPSC, IBPS, and Indian government portals. 100% private and on-device.",
+  "name": "DocBridge - Sarkari Photo, Signature & Document Converter",
+  "version": "1.1.0",
+  "description": "Resize, convert and compress photos, signatures and documents for SSC, UPSC, EPFO and Indian government portals. 100% private and on-device.",
   "minimum_chrome_version": "109",
   "permissions": ["activeTab", "downloads", "storage"],
   "optional_host_permissions": ["https://api.openai.com/*"],
   "host_permissions": ["*://*.gov.in/*", "*://*.nic.in/*", "*://*.ibps.in/*", "*://*.ibpsonline.ibps.in/*", "*://*.sbi.co.in/*", "*://*.bank.sbi/*", "*://*.nsdl.com/*"],
+  "web_accessible_resources": [
+    {
+      "resources": ["vendor/pdf-lib.min.js", "vendor/pdf.min.mjs", "vendor/pdf.worker.min.mjs", "assets/*", "styles/*", "shared/*"],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "background": {
     "service_worker": "background/service-worker.js"
   },

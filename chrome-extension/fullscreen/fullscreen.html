@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DocBridge — Full-Screen Converter</title>
+<link rel="stylesheet" href="../styles/content.css">
+<link rel="stylesheet" href="fullscreen.css">
+</head>
+<body>
+<header class="fs-header">
+  <div class="fs-brand">
+    <span class="fs-shield">&#10022;</span>
+    <div>
+      <div class="fs-brand-name">DocBridge</div>
+      <div class="fs-brand-sub">Sarkari photo &amp; document converter &mdash; 100% on-device</div>
+    </div>
+  </div>
+  <div class="fs-header-actions">
+    <span id="fs-context-label" class="fs-context"></span>
+    <button id="fs-help" class="fs-btn-ghost" type="button">How it works</button>
+  </div>
+</header>
+
+<main class="fs-main">
+  <section class="fs-panel">
+    <div id="fs-help-card" class="fs-help-card" hidden>
+      <strong>How DocBridge works — in 3 easy steps</strong>
+      <p>1. Pick the portal (or a general document) it must match.</p>
+      <p>2. Choose the output the portal needs &mdash; JPEG, PNG or PDF &mdash; and add your file.</p>
+      <p>3. Preview, download, and hand it to the portal. Your document never leaves this browser.</p>
+    </div>
+
+    <div class="fs-step">
+      <div class="fs-step-head"><span class="fs-step-num">1</span><h2>Choose what it must match</h2></div>
+      <div class="fs-search-wrap">
+        <input id="fs-preset-search" type="search" placeholder="Search portals &mdash; SSC, UPSC, Passport, General / Document&hellip;" aria-label="Search portals">
+        <div id="fs-preset-dropdown" class="fs-dropdown"></div>
+      </div>
+      <div id="fs-type-chips" class="fs-chips" role="group" aria-label="Document types"></div>
+      <div id="fs-req-summary" class="fs-req"></div>
+      <div class="fs-format-row">
+        <label class="fs-format-label" for="fs-output-format">Convert to</label>
+        <select id="fs-output-format" class="fs-select" aria-label="Output format"></select>
+        <span id="fs-format-hint" class="fs-format-hint"></span>
+      </div>
+    </div>
+
+    <div class="fs-step">
+      <div class="fs-step-head"><span class="fs-step-num">2</span><h2>Add your file</h2></div>
+      <div id="fs-drop" class="fs-dropzone" role="button" tabindex="0" aria-label="Drop a file or browse to convert">
+        <div class="fs-drop-icon">&#8593;</div>
+        <div class="fs-drop-text">Drop your photo or document here</div>
+        <div class="fs-drop-sub">JPEG &middot; PNG &middot; WebP &middot; GIF &middot; BMP &middot; PDF &mdash; or <span class="fs-drop-link">browse</span></div>
+        <input id="fs-file" type="file" accept="image/jpeg,image/jpg,image/png,image/webp,image/gif,image/bmp,application/pdf" hidden>
+      </div>
+    </div>
+
+    <section id="fs-result" class="fs-result" hidden aria-live="polite"></section>
+    <div id="fs-error" class="fs-error" hidden aria-live="assertive"></div>
+  </section>
+</main>
+
+<footer class="fs-footer">
+  <span>&#128274; <strong>Zero leak</strong> &mdash; everything is processed in this browser, nothing is uploaded. &middot; <span id="fs-stat-processed">0</span> documents prepared</span>
+</footer>
+
+<script src="../shared/portals.js"></script>
+<script src="../shared/utils.js"></script>
+<script src="../content/processor.js"></script>
+<script src="../vendor/pdf-lib.min.js"></script>
+<script src="fullscreen.js"></script>
+</body>
+</html>

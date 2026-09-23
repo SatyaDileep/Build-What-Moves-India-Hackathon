@@ -185,6 +185,7 @@
         '</div>' +
         '<div class="db-nudge-hint">' + portal.note + '</div>' +
         '<div class="db-nudge-actions">' +
+          '<button id="db-pdf-convert" class="db-btn-secondary">Open Full-Screen Converter</button>' +
           '<button id="db-nudge-dismiss" class="db-btn-ghost">Dismiss</button>' +
         '</div>' +
       '</div>';
@@ -193,6 +194,20 @@
 
     document.getElementById("db-nudge-dismiss").onclick = function() {
       nudge.remove();
+    };
+
+    var convert = document.getElementById("db-pdf-convert");
+    if (convert) convert.onclick = function() {
+      nudge.remove();
+      try {
+        chrome.runtime.sendMessage({ type: "OPEN_FULLSCREEN", preset: portal.id }, function(resp) {
+          if (chrome.runtime.lastError || !resp) {
+            window.open(chrome.runtime.getURL("fullscreen/fullscreen.html"), "_blank", "noopener");
+          }
+        });
+      } catch(e) {
+        try { window.open(chrome.runtime.getURL("fullscreen/fullscreen.html"), "_blank", "noopener"); } catch(err) {}
+      }
     };
   }
 

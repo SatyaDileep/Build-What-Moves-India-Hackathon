@@ -373,20 +373,46 @@ if (typeof DOCBRIDGE_PORTALS !== 'undefined') {
   DOCBRIDGE_PORTALS.push(...DOCBRIDGE_MOCK_PORTALS);
 }
 
-// Portals where PDF processing is needed (v2) — shown as "limited support" in v1
+// Portals that expect documents (often PDF) rather than plain photos. The
+// note is shown when DocBridge detects one — conversions now run on-device.
 const DOCBRIDGE_PDF_PORTALS = [
   {
     id: 'epfo',
     name: 'EPFO',
     domains: ['epfindia.gov.in', 'unifiedportal-mem.epfindia.gov.in'],
     urlPatterns: [],
-    note: 'PDF processing coming in v2. For now, please convert to JPEG.'
+    note: 'PDF-compress your passbook or convert document pages to JPEG — fully on-device with DocBridge.'
   },
   {
     id: 'nps',
     name: 'National Pension System',
     domains: ['nps.nsdl.com', 'cra.nsdl.com'],
     urlPatterns: [],
-    note: 'PDF processing coming in v2. For now, please convert to JPEG.'
+    note: 'Compress or convert your PDF/JPEG documents on-device with DocBridge.'
   }
 ];
+
+// Open converter preset for non-portal pages: pick it from the search dropdown
+// or land here directly in Full-Screen mode. No domain — never auto-matches.
+const DOCBRIDGE_GENERIC_PRESET = {
+  id: 'generic-doc',
+  name: 'General / Document Converter',
+  domains: [],
+  urlPatterns: [],
+  uploads: [
+    {
+      type: 'document',
+      hint: 'Any format \u2192 JPEG / PNG / PDF \u00b7 on-device',
+      constraint: {
+        format: 'pdf',
+        max_kb: 500,
+        input_formats: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'],
+        output_formats: ['image/jpeg', 'image/png', 'application/pdf']
+      }
+    }
+  ]
+};
+
+if (typeof DOCBRIDGE_PORTALS !== 'undefined') {
+  DOCBRIDGE_PORTALS.push(DOCBRIDGE_GENERIC_PRESET);
+}
