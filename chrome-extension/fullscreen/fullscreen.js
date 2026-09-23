@@ -163,6 +163,20 @@
     ctx.textContent = activePortal ? "\u2724 " + activePortal.name : "Full-Screen Standalone";
   }
 
+  /* ===== Chevron train progress ===== */
+  function setStep(n) {
+    var stops = document.querySelectorAll(".fs-stop");
+    for (var k = 0; k < stops.length; k++) {
+      (function(s) {
+        var i = parseInt(s.getAttribute("data-step"), 10);
+        s.classList.toggle("done", i < n);
+        s.classList.toggle("current", i === n);
+        var num = s.querySelector(".fs-stop-num");
+        if (num) num.textContent = i < n ? "\u2713" : String(i);
+      })(stops[k]);
+    }
+  }
+
   /* ===== File drop / browse ===== */
   function initDrop() {
     var drop = $("fs-drop");
@@ -190,6 +204,7 @@
 
     hideError();
     showProcessing("Preparing\u2026 " + file.name);
+    setStep(2);
     DocBridgeProcessor.processFile(file, u.constraint, { outputFormat: fmt })
       .then(function(result) {
         renderResult(result, file, u, activePortal);
@@ -199,6 +214,7 @@
         var box = $("fs-result");
         box.hidden = true;
         box.innerHTML = "";
+        setStep(2);
         showError("Couldn\u2019t convert that file: " + (err && err.message ? err.message : "unknown error") + (err && err.message && err.message.indexOf("PDF") >= 0 ? " \u2014 if this is a PDF inside a portal page, the Full-Screen converter can render it." : ""));
       });
   }
@@ -208,6 +224,7 @@
     var box = $("fs-result");
     box.hidden = false;
     box.innerHTML = "";
+    setStep(3);
 
     var orig = result.original;
     var opt = result.optimized;
@@ -341,6 +358,7 @@
     again.onclick = function() {
       box.hidden = true;
       box.innerHTML = "";
+      setStep(2);
       $("fs-file").value = "";
     };
   }
@@ -517,5 +535,6 @@
     initHelp();
     initDrop();
     init();
+    setStep(1);
   });
 })();

@@ -14,11 +14,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;m
 
 .fs-main{flex:1;display:flex;justify-content:center;padding:32px 24px}
 .fs-panel{width:100%;max-width:1060px;display:flex;flex-direction:column;gap:22px}
+
+/* Chevron train — horizontal progress: Choose target > Add file > Download */
+.fs-train{display:flex;gap:8px;margin-bottom:2px}
+.fs-stop{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 12px 12px 30px;background:#E2E8F0;color:var(--db-muted);font-size:13px;font-weight:800;white-space:nowrap;
+  clip-path:polygon(0 0,calc(100% - 18px) 0,100% 50%,calc(100% - 18px) 100%,0 100%,18px 50%)}
+.fs-stop:first-child{padding-left:16px;clip-path:polygon(0 0,calc(100% - 18px) 0,100% 50%,calc(100% - 18px) 100%,0 100%)}
+.fs-stop:last-child{clip-path:polygon(0 0,100% 0,100% 100%,0 100%,18px 50%)}
+.fs-stop-num{width:22px;height:22px;border-radius:50%;background:rgba(10,37,64,.15);color:inherit;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
+.fs-stop.current{background:var(--db-navy);color:#fff;box-shadow:0 4px 14px rgba(10,37,64,.3)}
+.fs-stop.current .fs-stop-num{background:var(--db-saffron);color:#fff}
+.fs-stop.done{background:var(--db-emerald);color:#fff}
+.fs-stop.done .fs-stop-num{background:rgba(255,255,255,.25);color:#fff}
+@media (max-width:640px){
+  .fs-stop{font-size:11px;padding:10px 6px 10px 24px;gap:6px}
+  .fs-stop:first-child{padding-left:10px}
+}
 .fs-help-card{background:#FBFAF5;border:1px solid #FDE68A;border-left:4px solid var(--db-saffron);border-radius:12px;padding:16px 20px;font-size:14px;line-height:1.6}
 
 .fs-step{background:#fff;border:1px solid var(--db-border);border-radius:16px;padding:22px 26px;box-shadow:0 4px 20px rgba(10,37,64,.06)}
 .fs-step-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}
-.fs-step-num{width:28px;height:28px;border-radius:50%;background:var(--db-navy);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:800}
 .fs-step-head h2{font-size:16px;margin:0;color:var(--db-navy)}
 
 .fs-popular{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px}

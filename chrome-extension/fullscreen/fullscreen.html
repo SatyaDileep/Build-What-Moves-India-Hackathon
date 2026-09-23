@@ -24,6 +24,12 @@
 
 <main class="fs-main">
   <section class="fs-panel">
+    <div class="fs-train" aria-label="Progress">
+      <div class="fs-stop" data-step="1"><span class="fs-stop-num">1</span><span>Choose target</span></div>
+      <div class="fs-stop" data-step="2"><span class="fs-stop-num">2</span><span>Add your file</span></div>
+      <div class="fs-stop" data-step="3"><span class="fs-stop-num">3</span><span>Download ready</span></div>
+    </div>
+
     <div id="fs-help-card" class="fs-help-card" hidden>
       <strong>How DocBridge works — in 3 easy steps</strong>
       <p>1. Pick the portal (or a general document) it must match.</p>
@@ -32,7 +38,7 @@
     </div>
 
     <div class="fs-step">
-      <div class="fs-step-head"><span class="fs-step-num">1</span><h2>Choose what it must match</h2></div>
+      <div class="fs-step-head"><h2>Choose what it must match</h2></div>
       <div id="fs-popular" class="fs-popular" aria-label="Popular portals"></div>
       <div class="fs-search-wrap">
         <input id="fs-preset-search" type="search" placeholder="Search 50 Sarkari presets — type SSC, NEET, Passport, scholarship…" aria-label="Search portals">
@@ -48,7 +54,7 @@
     </div>
 
     <div class="fs-step">
-      <div class="fs-step-head"><span class="fs-step-num">2</span><h2>Add your file</h2></div>
+      <div class="fs-step-head"><h2>Add your file</h2></div>
       <div id="fs-drop" class="fs-dropzone" role="button" tabindex="0" aria-label="Drop a file or browse to convert">
         <div class="fs-drop-icon">&#8593;</div>
         <div class="fs-drop-text">Drop your photo or document here</div>
