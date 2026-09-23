@@ -94,6 +94,17 @@
 .db-feedback-meta{font-size:11px;color:var(--db-muted);background:var(--db-slate);border:1px solid var(--db-border);border-radius:6px;padding:6px 8px;margin-bottom:10px;word-break:break-all}
 .db-feedback-actions{display:flex;gap:8px;justify-content:flex-end}
 
+/* AI background removal (BYOK) — two-tier cleanup + explicit consent */
+.db-ai-pick{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+.db-ai-consent{margin-top:12px;padding:12px 14px;border:1px solid #DBEAFE;background:#f5f8ff;border-radius:10px;text-align:left}
+.db-ai-consent-title{font-size:13px;font-weight:800;color:var(--db-navy);margin-bottom:8px}
+.db-ai-consent-list{margin:0 0 10px;padding-left:18px;font-size:12px;color:var(--db-text);line-height:1.55}
+.db-ai-keyrow{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:var(--db-text);margin-bottom:10px}
+.db-ai-keyinput{padding:9px 12px;border:1px solid var(--db-border);border-radius:8px;font-size:13px;background:#fff}
+.db-ai-keyinput:focus{outline:none;border-color:var(--db-navy)}
+.db-ai-consent-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.db-ai-consent-status{margin-top:8px;font-size:12px;color:var(--db-muted);line-height:1.5}
+
 /* AI background cleanup (v2 parity with web app) */
 .db-ai-cleanup{margin-top:12px;padding:10px 12px;border:1px solid #DBEAFE;background:#f5f8ff;border-radius:10px;text-align:center}
 .db-btn-ai{width:100%;padding:12px 14px;min-height:44px;border:none;border-radius:8px;background:var(--db-navy);color:#fff;font-weight:700;font-size:13px;cursor:pointer;transition:opacity .15s ease}

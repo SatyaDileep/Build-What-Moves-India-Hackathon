@@ -253,11 +253,12 @@ function initCta(){
   };
 }
 
-chrome.storage.local.get(['docbridge_stats','docbridge_nudge_enabled','docbridge_assist_mode','docbridge_selected'],function(data){
+chrome.storage.local.get(['docbridge_stats','docbridge_nudge_enabled','docbridge_assist_mode','docbridge_voice_enabled','docbridge_selected'],function(data){
   var stats=data.docbridge_stats||{processed:0};
   var sp=document.getElementById('stat-processed'); if(sp) sp.textContent=stats.processed||0;
   document.getElementById('toggle-nudge').checked=data.docbridge_nudge_enabled!==false;
   document.getElementById('toggle-assist').checked=data.docbridge_assist_mode==='assistive';
+  document.getElementById('toggle-voice').checked=data.docbridge_voice_enabled===true;
   if(data.docbridge_selected){
     var pid=data.docbridge_selected.portalId;
     var found=(typeof DOCBRIDGE_PORTALS!=='undefined'?DOCBRIDGE_PORTALS.find(function(p){return p.id===pid}):null);
@@ -270,6 +271,7 @@ chrome.storage.local.get(['docbridge_stats','docbridge_nudge_enabled','docbridge
 });
 document.getElementById('toggle-nudge').addEventListener('change',function(){ chrome.storage.local.set({docbridge_nudge_enabled:this.checked}); });
 document.getElementById('toggle-assist').addEventListener('change',function(){ chrome.storage.local.set({docbridge_assist_mode:this.checked?'assistive':'standard'}); });
+document.getElementById('toggle-voice').addEventListener('change',function(){ chrome.storage.local.set({docbridge_voice_enabled:this.checked}); });
 document.addEventListener('click',function(e){
   var dd=document.getElementById('preset-dropdown');
   var s=document.getElementById('preset-search');

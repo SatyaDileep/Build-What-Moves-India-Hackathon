@@ -508,29 +508,39 @@
     actions.appendChild(againBtn);
     resultContainer.appendChild(actions);
 
-    // AI background cleanup — only for photo slots on white-background
-    // portals, mirroring the web app's "Replace background with AI" action.
-    // Replaces the After card with a white-bg, spec-compliant re-composition.
+    // Background cleanup, two tiers — only for photo slots on
+    // white-background portals. On-device keying is the default; cloud AI
+    // (citizen's own key) is explicit per-use opt-in with a disclaimer.
+    // Both re-render the After card with a spec-compliant re-composition.
     var isPhoto = (uploadType || 'photo') === 'photo' && !opt.aiCleaned && orig.format !== 'pdf';
     if (isPhoto && constraint.bg_color === 'white' && constraint.width_px && constraint.height_px) {
       var aiWrap = document.createElement("div");
       aiWrap.className = "db-ai-cleanup";
-      var aiBtn = document.createElement("button");
-      aiBtn.id = "db-result-ai";
-      aiBtn.className = "db-btn-ai";
-      aiBtn.textContent = "✨ Replace background with AI";
       var aiNote = document.createElement("div");
       aiNote.className = "db-ai-note";
-      aiNote.textContent = "Background is not plain white? DocBridge re-composes the photo on a verified white background at " + constraint.width_px + "×" + constraint.height_px + ".";
-      aiWrap.appendChild(aiBtn);
+      aiNote.textContent = "Background is not plain white? Re-compose the photo on a verified white background at " + constraint.width_px + "×" + constraint.height_px + " — on your device, or with AI using your own key.";
+      var aiPick = document.createElement("div");
+      aiPick.className = "db-ai-pick";
+      var aiLocal = document.createElement("button");
+      aiLocal.id = "db-result-ai";
+      aiLocal.className = "db-btn-secondary";
+      aiLocal.textContent = "Clean background — on-device";
+      var aiCloud = document.createElement("button");
+      aiCloud.id = "db-result-ai-cloud";
+      aiCloud.className = "db-btn-ai";
+      aiCloud.textContent = "Remove background with AI";
+      aiPick.appendChild(aiLocal);
+      aiPick.appendChild(aiCloud);
       aiWrap.appendChild(aiNote);
+      aiWrap.appendChild(aiPick);
       resultContainer.appendChild(aiWrap);
-      aiBtn.onclick = function() {
-        aiBtn.disabled = true;
-        aiBtn.textContent = "✨ Removing background…";
+      aiLocal.onclick = function() {
+        aiLocal.disabled = true;
+        aiCloud.disabled = true;
+        aiLocal.textContent = "Cleaning…";
         var procDiv2 = document.createElement("div");
         procDiv2.className = "db-processing";
-        procDiv2.textContent = "AI cleanup in progress — white background, exact size…";
+        procDiv2.textContent = "Cleanup in progress — white background, exact size…";
         resultContainer.insertBefore(procDiv2, aiWrap);
         DocBridgeProcessor.aiCleanup(result.original.blob, result.constraint).then(function(cleaned) {
           procDiv2.remove();
@@ -540,8 +550,44 @@
           showResult(cleaned, filename, uploadType);
         }).catch(function() {
           procDiv2.remove();
-          aiBtn.disabled = false;
-          aiBtn.textContent = "✨ Replace background with AI";
+          aiLocal.disabled = false;
+          aiCloud.disabled = false;
+          aiLocal.textContent = "Clean background — on-device";
+        });
+      };
+      aiCloud.onclick = function() {
+        if (document.getElementById("db-ai-consent")) return;
+        aiLocal.disabled = true;
+        aiCloud.disabled = true;
+        DocBridgeAI.getKey().then(function(k) {
+          var card = DocBridgeAI.buildConsentCard({
+            hasKey: !!k,
+            onCancel: function() {
+              card.remove();
+              aiLocal.disabled = false;
+              aiCloud.disabled = false;
+            },
+            onConfirm: function(typedKey) {
+              function run() {
+                DocBridgeAI.cleanupToSpec(result.original.blob, result.constraint).then(function(cleaned) {
+                  card.remove();
+                  aiWrap.remove();
+                  showResult(cleaned, filename, uploadType);
+                }).catch(function(e) {
+                  var st = card._status;
+                  if (st) { st.style.display = "block"; st.textContent = (e && e.message) || "AI cleanup failed. Your on-device file is untouched."; }
+                  if (card._go) { card._go.disabled = false; card._go.textContent = "Try again"; }
+                });
+              }
+              if (typedKey) {
+                DocBridgeAI.saveKey(typedKey).then(function() { run(); });
+              } else {
+                run();
+              }
+            }
+          });
+          card.id = "db-ai-consent";
+          resultContainer.insertBefore(card, aiWrap.nextSibling);
         });
       };
     }

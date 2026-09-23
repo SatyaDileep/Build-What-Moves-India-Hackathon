@@ -77,9 +77,17 @@
         <span class="toggle-slider"></span>
       </label>
     </div>
+    <div class="popup-setting">
+      <span>Voice guidance <em>— spoken steps, off by default</em></span>
+      <label class="toggle">
+        <input type="checkbox" id="toggle-voice" aria-label="Voice guidance spoken steps">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
     <div class="popup-setting popup-setting-col">
-      <span>OpenAI API key <em>— optional, stored only in this browser. Used solely for AI verify/cleanup when you click it.</em></span>
+      <span>OpenAI API key <em>— optional, stored only in this browser. Enables AI background removal; nothing is ever sent without your per-use confirmation.</em></span>
       <input id="openai-key" type="password" placeholder="sk-…" autocomplete="off" aria-label="OpenAI API key">
+      <div id="ai-status" class="popup-hint" aria-live="polite"></div>
     </div>
   </details>
 

@@ -11,6 +11,47 @@
   // Voice is strictly opt-in: only speaks when the citizen enabled
   // "Elderly assistive mode" in the extension popup Settings. Default: silent.
   var voiceEnabled = false;
+  var assistiveMode = false;
+
+  // Header speaker button: standalone on/off switch for spoken guidance.
+  // When Elderly assistive mode owns the voice, the button says so and yields.
+  function paintVoiceBtn() {
+    var b = $("fs-voice-btn");
+    if (!b) return;
+    if (assistiveMode) {
+      b.disabled = true;
+      b.setAttribute("aria-pressed", "true");
+      b.textContent = "🔊 Assistive voice on";
+      b.title = "Voice is on via Elderly assistive mode (extension popup → Settings)";
+    } else {
+      b.disabled = false;
+      b.setAttribute("aria-pressed", voiceEnabled ? "true" : "false");
+      b.textContent = voiceEnabled ? "🔊 Voice on" : "🔇 Voice off";
+      b.title = "Toggle spoken guidance";
+    }
+  }
+
+  function initVoice() {
+    var b = $("fs-voice-btn");
+    if (b) b.onclick = function() {
+      if (assistiveMode) return;
+      voiceEnabled = !voiceEnabled;
+      try { chrome.storage.local.set({ docbridge_voice_enabled: voiceEnabled }); } catch (e) {}
+      if (!voiceEnabled) { try { if ("speechSynthesis" in window) window.speechSynthesis.cancel(); } catch (e) {} }
+      paintVoiceBtn();
+      if (voiceEnabled) speak("Voice guidance on.");
+    };
+    try {
+      chrome.storage.local.get(["docbridge_assist_mode", "docbridge_voice_enabled"], function(d) {
+        assistiveMode = !!(d && (d.docbridge_assist_mode === "assistive" || d.docbridge_assist_mode === true));
+        voiceEnabled = assistiveMode || !!(d && d.docbridge_voice_enabled === true);
+        paintVoiceBtn();
+        if (voiceEnabled) {
+          setTimeout(function() { speak("DocBridge full-screen converter is ready. Choose your portal, then add your document."); }, 400);
+        }
+      });
+    } catch (e) { voiceEnabled = false; assistiveMode = false; paintVoiceBtn(); }
+  }
 
   var $ = function(id) { return document.getElementById(id); };
 
@@ -578,15 +619,6 @@
     });
 
     try {
-      chrome.storage.local.get("docbridge_assist_mode", function(d) {
-        voiceEnabled = !!(d && (d.docbridge_assist_mode === "assistive" || d.docbridge_assist_mode === true));
-        if (voiceEnabled) {
-          setTimeout(function() { speak("DocBridge full-screen converter is ready. Choose your portal, then add your document."); }, 400);
-        }
-      });
-    } catch (e) { voiceEnabled = false; }
-
-    try {
       chrome.storage.local.get("docbridge_stats", function(d) {
         var s = (d && d.docbridge_stats) || { processed: 0 };
         var el = $("fs-stat-processed");
@@ -599,6 +631,7 @@
     initHelp();
     initDrop();
     init();
+    initVoice();
     setStep(1);
   });
 })();

@@ -31,6 +31,7 @@
         "shared/portals.js",
         "shared/utils.js",
         "content/processor.js",
+        "content/ai.js",
         "content/share.js",
         "content/feedback.js",
         "content/nudge.js",

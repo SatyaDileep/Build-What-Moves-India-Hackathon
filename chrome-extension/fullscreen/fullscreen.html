@@ -18,6 +18,7 @@
   </div>
   <div class="fs-header-actions">
     <span id="fs-context-label" class="fs-context"></span>
+    <button id="fs-voice-btn" class="fs-btn-ghost" type="button" aria-pressed="false" title="Toggle spoken guidance">🔇 Voice off</button>
     <button id="fs-help" class="fs-btn-ghost" type="button">How it works</button>
   </div>
 </header>
@@ -69,12 +70,13 @@
 </main>
 
 <footer class="fs-footer">
-  <span>&#128274; <strong>Zero leak</strong> &mdash; everything is processed in this browser, nothing is uploaded. &middot; <span id="fs-stat-processed">0</span> documents prepared</span>
+  <span id="fs-privacy-note">&#128274; <strong>Zero leak</strong> &mdash; everything is processed in this browser, nothing is uploaded. &middot; <span id="fs-stat-processed">0</span> documents prepared</span>
 </footer>
 
 <script src="../shared/portals.js"></script>
 <script src="../shared/utils.js"></script>
 <script src="../content/processor.js"></script>
+<script src="../content/ai.js"></script>
 <script src="../vendor/pdf-lib.min.js"></script>
 <script src="fullscreen.js"></script>
 </body>
