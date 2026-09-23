@@ -19,7 +19,16 @@
   <div class="fs-header-actions">
     <span id="fs-context-label" class="fs-context"></span>
     <button id="fs-voice-btn" class="fs-btn-ghost" type="button" aria-pressed="false" title="Toggle spoken guidance">🔇 Voice off</button>
+    <button id="fs-keys-btn" class="fs-btn-ghost" type="button" aria-haspopup="dialog" title="View and manage AI API keys">🔑 AI keys</button>
     <button id="fs-help" class="fs-btn-ghost" type="button">How it works</button>
+  </div>
+  <div id="fs-keys-panel" class="fs-keys-panel" role="dialog" aria-label="AI API keys" hidden>
+    <div class="fs-keys-head">
+      <strong>AI API keys</strong>
+      <button id="fs-keys-close" class="fs-btn-ghost fs-keys-x" type="button" aria-label="Close">✕</button>
+    </div>
+    <p class="fs-keys-sub">Bring your own key. Stored only in this browser, never synced. Cloud AI has no zero-retention — each provider processes sent photos under its own data policy.</p>
+    <div id="fs-keys-rows"></div>
   </div>
 </header>
 

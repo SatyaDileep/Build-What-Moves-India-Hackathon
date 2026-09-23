@@ -561,6 +561,144 @@
     } catch (e) {}
   }
 
+  /* ===== AI keys popover (top-right key management) ===== */
+  function maskKey(k) {
+    k = String(k || "");
+    if (k.length <= 4) return "••••";
+    return "••••" + k.slice(-4) + " saved";
+  }
+
+  function renderKeysRows() {
+    var wrap = $("fs-keys-rows");
+    if (!wrap || typeof DocBridgeAI === "undefined") return;
+    wrap.innerHTML = "";
+    DocBridgeAI.getProvider().then(function(active) {
+      DocBridgeAI.listProviders().forEach(function(pid) {
+        var def = DocBridgeAI.providerDef(pid);
+        DocBridgeAI.getKey(pid).then(function(k) {
+          if (!wrap.isConnected) return;
+          var row = document.createElement("div");
+          row.className = "fs-key-row" + (pid === active ? " active" : "");
+
+          var top = document.createElement("div");
+          top.className = "fs-key-top";
+          var dot = document.createElement("span");
+          dot.className = "fs-key-dot" + (k ? " on" : "");
+          dot.title = k ? "Key saved" : "No key saved";
+          var nm = document.createElement("div");
+          nm.className = "fs-key-name";
+          nm.textContent = def.label + " ";
+          var sm = document.createElement("small");
+          sm.textContent = "· " + def.model;
+          nm.appendChild(sm);
+          var use = document.createElement("label");
+          use.className = "fs-key-use";
+          use.title = "Use " + def.label + " for AI cleanup";
+          var radio = document.createElement("input");
+          radio.type = "radio";
+          radio.name = "fs-key-default";
+          radio.checked = pid === active;
+          radio.onchange = function() {
+            if (!radio.checked) return;
+            DocBridgeAI.setProvider(pid).then(function() { renderKeysRows(); });
+          };
+          use.appendChild(radio);
+          use.appendChild(document.createTextNode("default"));
+          top.appendChild(dot);
+          top.appendChild(nm);
+          top.appendChild(use);
+          row.appendChild(top);
+
+          var inputrow = document.createElement("div");
+          inputrow.className = "fs-key-inputrow";
+          var input = document.createElement("input");
+          input.type = "password";
+          input.autocomplete = "off";
+          input.className = "fs-key-input";
+          input.placeholder = k ? maskKey(k) : def.placeholder;
+          input.setAttribute("aria-label", def.label + " API key");
+          var save = document.createElement("button");
+          save.type = "button";
+          save.className = "fs-key-save";
+          save.textContent = "Save";
+          inputrow.appendChild(input);
+          inputrow.appendChild(save);
+          row.appendChild(inputrow);
+
+          var foot = document.createElement("div");
+          foot.className = "fs-key-foot";
+          var link = document.createElement("a");
+          link.href = def.keyUrl;
+          link.className = "fs-key-link";
+          link.textContent = "Get a key →";
+          link.onclick = function(e) {
+            e.preventDefault();
+            try { chrome.tabs.create({ url: def.keyUrl, active: true }); }
+            catch (err) { try { window.open(def.keyUrl, "_blank"); } catch (e2) {} }
+          };
+          var status = document.createElement("span");
+          status.className = "fs-key-status";
+          status.textContent = k ? "Saved in this browser" : "Not set — on-device works without it";
+          foot.appendChild(link);
+          foot.appendChild(status);
+          if (k) {
+            var rm = document.createElement("button");
+            rm.type = "button";
+            rm.className = "fs-key-link";
+            rm.style.cssText = "background:none;border:none;cursor:pointer;padding:0;";
+            rm.textContent = "Remove";
+            rm.onclick = function() {
+              DocBridgeAI.saveKey(pid, "").then(function() { renderKeysRows(); });
+            };
+            foot.appendChild(rm);
+          }
+          row.appendChild(foot);
+
+          save.onclick = function() {
+            var v = input.value.trim();
+            if (!v) { status.textContent = k ? "Unchanged — existing key kept." : "Paste a key first."; return; }
+            save.disabled = true;
+            save.textContent = "Saving…";
+            DocBridgeAI.saveKey(pid, v).then(function() {
+              DocBridgeAI.requestPermission(pid).then(function() { renderKeysRows(); });
+            });
+          };
+
+          wrap.appendChild(row);
+        });
+      });
+    });
+  }
+
+  function initKeysPanel() {
+    var btn = $("fs-keys-btn");
+    var panel = $("fs-keys-panel");
+    if (!btn || !panel) return;
+    function close() {
+      panel.hidden = true;
+      try { document.removeEventListener("click", outside, true); } catch (e) {}
+    }
+    function outside(e) {
+      if (panel.hidden) return;
+      if (!panel.contains(e.target) && !btn.contains(e.target)) close();
+    }
+    btn.onclick = function(e) {
+      try { e.stopPropagation(); } catch (err) {}
+      if (panel.hidden) {
+        panel.hidden = false;
+        renderKeysRows();
+        document.addEventListener("click", outside, true);
+      } else {
+        close();
+      }
+    };
+    var x = $("fs-keys-close");
+    if (x) x.onclick = close;
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "Escape" && !panel.hidden) close();
+    });
+  }
+
   /* ===== Misc UI ===== */
   function showProcessing(text) {
     var box = $("fs-result");
@@ -635,6 +773,7 @@
     initDrop();
     init();
     initVoice();
+    initKeysPanel();
     setStep(1);
   });
 })();
