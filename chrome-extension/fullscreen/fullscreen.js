@@ -158,7 +158,7 @@
     showProcessing("Preparing\u2026 " + file.name);
     DocBridgeProcessor.processFile(file, u.constraint, { outputFormat: fmt })
       .then(function(result) {
-        renderResult(result, file, u);
+        renderResult(result, file, u, activePortal);
         speakResult(result);
       })
       .catch(function(err) {
@@ -170,7 +170,7 @@
   }
 
   /* ===== Result rendering ===== */
-  function renderResult(result, file, upload) {
+  function renderResult(result, file, upload, portal) {
     var box = $("fs-result");
     box.hidden = false;
     box.innerHTML = "";
@@ -189,7 +189,7 @@
 
     var title = document.createElement("div");
     title.className = "fs-result-title";
-    title.textContent = "Your converted " + (isPdfOut ? "PDF" : formatLabel(opt.format)) + " for " + upload.portal.name;
+    title.textContent = "Your converted " + (isPdfOut ? "PDF" : formatLabel(opt.format)) + " for " + portal.name;
 
     box.appendChild(title);
 
@@ -251,7 +251,7 @@
       box.appendChild(warn);
     }
 
-    var filename = fsFilename(upload.portal.id, upload.type, opt.ext || formatExt(opt.format || "jpg"));
+    var filename = fsFilename(portal.id, upload.type, opt.ext || formatExt(opt.format || "jpg"));
 
     var actions = document.createElement("div");
     actions.className = "fs-actions";
@@ -283,7 +283,7 @@
         ai.disabled = true;
         ai.textContent = "\u2728 Removing background\u2026";
         DocBridgeProcessor.aiCleanup(orig.blob, constraint).then(function(cleaned) {
-          renderResult(cleaned, file, upload);
+          renderResult(cleaned, file, upload, portal);
         }).catch(function() {
           ai.disabled = false;
           ai.textContent = "\u2728 Replace background with AI (on-device)";
